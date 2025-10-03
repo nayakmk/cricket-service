@@ -1,0 +1,144 @@
+# Cricket App API - Edge Cases and Error Scenarios
+# Tests for boundary conditions and error handling
+
+###############################################################################
+# EDGE CASES: Empty collections
+###############################################################################
+
+### Test empty teams collection (should return empty array)
+GET http://localhost:8888/api/teams
+
+### Test empty players collection (should return empty array)
+GET http://localhost:8888/api/players
+
+### Test empty matches collection (should return empty array)
+GET http://localhost:8888/api/matches
+
+### Test empty team lineups collection (should return empty array)
+GET http://localhost:8888/api/teamLineups
+
+###############################################################################
+# EDGE CASES: Large data sets
+###############################################################################
+
+### Test with query parameters (pagination)
+GET http://localhost:8888/api/matches?page=1&limit=10
+
+### Test with status filter
+GET http://localhost:8888/api/matches?status=upcoming
+
+### Test with status filter - completed matches
+GET http://localhost:8888/api/matches?status=completed
+
+###############################################################################
+# ERROR SCENARIOS: Invalid IDs
+###############################################################################
+
+### Invalid team ID format
+GET http://localhost:8888/api/teams/123
+
+### Invalid player ID format
+GET http://localhost:8888/api/players/456
+
+### Invalid match ID format
+GET http://localhost:8888/api/matches/789
+
+### Invalid lineup ID format
+GET http://localhost:8888/api/teamLineups/abc
+
+###############################################################################
+# ERROR SCENARIOS: Non-existent resources
+###############################################################################
+
+### Non-existent team
+GET http://localhost:8888/api/teams/999999999999999999999999
+
+### Non-existent player
+GET http://localhost:8888/api/players/888888888888888888888888
+
+### Non-existent match
+GET http://localhost:8888/api/matches/777777777777777777777777
+
+### Non-existent lineup
+GET http://localhost:8888/api/teamLineups/666666666666666666666666
+
+###############################################################################
+# ERROR SCENARIOS: Malformed requests
+###############################################################################
+
+### POST to teams without body
+POST http://localhost:8888/api/teams
+
+### POST to players without body
+POST http://localhost:8888/api/players
+
+### POST to matches without body
+POST http://localhost:8888/api/matches
+
+### POST to teamLineups without body
+POST http://localhost:8888/api/teamLineups
+
+###############################################################################
+# ERROR SCENARIOS: Invalid JSON
+###############################################################################
+
+### Invalid JSON in POST body
+POST http://localhost:8888/api/teams
+Content-Type: application/json
+
+{ invalid json content
+
+### Empty JSON object
+POST http://localhost:8888/api/teams
+Content-Type: application/json
+
+{}
+
+###############################################################################
+# CONCURRENCY TESTS
+###############################################################################
+
+### Multiple simultaneous requests to same endpoint
+GET http://localhost:8888/api/teams
+GET http://localhost:8888/api/teams
+GET http://localhost:8888/api/teams
+
+### Mixed read/write operations
+GET http://localhost:8888/api/teams
+POST http://localhost:8888/api/teams
+Content-Type: application/json
+
+{
+  "name": "Concurrency Test Team"
+}
+GET http://localhost:8888/api/teams
+
+###############################################################################
+# CORS TESTS
+###############################################################################
+
+### Test OPTIONS request (CORS preflight)
+OPTIONS http://localhost:8888/api/teams
+
+### Test with custom headers
+GET http://localhost:8888/api/teams
+Authorization: Bearer test-token
+X-Custom-Header: test-value
+
+###############################################################################
+# LOAD TESTS (simulate multiple users)
+###############################################################################
+
+### Simulate multiple users accessing teams
+GET http://localhost:8888/api/teams
+GET http://localhost:8888/api/teams
+GET http://localhost:8888/api/teams
+GET http://localhost:8888/api/teams
+GET http://localhost:8888/api/teams
+
+### Simulate multiple users accessing matches
+GET http://localhost:8888/api/matches
+GET http://localhost:8888/api/matches
+GET http://localhost:8888/api/matches
+GET http://localhost:8888/api/matches
+GET http://localhost:8888/api/matches

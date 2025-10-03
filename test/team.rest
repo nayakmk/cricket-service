@@ -1,0 +1,296 @@
+# Cricket App API Tests - Complete REST API Validation
+# Base URL: http://localhost:8888/api
+
+###############################################################################
+# TEAMS ENDPOINTS
+###############################################################################
+
+### Get all teams (with expanded captain details)
+GET http://localhost:8888/api/teams
+
+### Get Team Odia details (with captain info)
+GET http://localhost:8888/api/teams/xJxHVvphmShp3HRTwFnS
+
+### Get Team ROI details (with captain info)
+GET http://localhost:8888/api/teams/uCNNe4wd44YSMfyW5gh1
+
+### Create new team
+POST http://localhost:8888/api/teams
+Content-Type: application/json
+
+{
+  "name": "Test Team",
+  "captainId": "PYShLShCNhZ0Cj9Zr2hR",
+  "logo": "test-logo.png",
+  "homeGround": "Test Ground",
+  "foundedYear": 2024
+}
+
+### Update team
+PUT http://localhost:8888/api/teams/xJxHVvphmShp3HRTwFnS
+Content-Type: application/json
+
+{
+  "name": "Updated Team Odia",
+  "homeGround": "Updated Ground"
+}
+
+### Delete team
+DELETE http://localhost:8888/api/teams/xJxHVvphmShp3HRTwFnS
+
+###############################################################################
+# PLAYERS ENDPOINTS
+###############################################################################
+
+### Get all players
+GET http://localhost:8888/api/players
+
+### Get specific player (Puneet - captain)
+GET http://localhost:8888/api/players/PYShLShCNhZ0Cj9Zr2hR
+
+### Get specific player (Sundar - Team ROI captain)
+GET http://localhost:8888/api/players/XtFdE2owQnCowHZ3lBH8
+
+### Create new player
+POST http://localhost:8888/api/players
+Content-Type: application/json
+
+{
+  "name": "Test Player",
+  "email": "test@example.com",
+  "role": "Batsman",
+  "battingStyle": "Right-handed",
+  "bowlingStyle": "Right-arm medium",
+  "nationality": "India",
+  "age": 25
+}
+
+### Update player
+PUT http://localhost:8888/api/players/PYShLShCNhZ0Cj9Zr2hR
+Content-Type: application/json
+
+{
+  "name": "Updated Puneet",
+  "role": "All-rounder"
+}
+
+### Delete player (soft delete)
+DELETE http://localhost:8888/api/players/PYShLShCNhZ0Cj9Zr2hR
+
+###############################################################################
+# TEAM LINEUPS ENDPOINTS
+###############################################################################
+
+### Get all team lineups (with expanded player details)
+GET http://localhost:8888/api/teamLineups
+
+### Get Team Odia lineup (with full player details)
+GET http://localhost:8888/api/teamLineups/24jiTg9bshgrc4oN54UT
+
+### Get Team ROI lineup (with full player details)
+GET http://localhost:8888/api/teamLineups/1YrC1DwmtCchItYSohRw
+
+### Create new team lineup
+POST http://localhost:8888/api/teamLineups
+Content-Type: application/json
+
+{
+  "teamId": "xJxHVvphmShp3HRTwFnS",
+  "teamName": "Team Odia",
+  "playerIds": ["PYShLShCNhZ0Cj9Zr2hR", "tRy9uZOUM3CP9aJQ2E4i"],
+  "playingXI": ["PYShLShCNhZ0Cj9Zr2hR", "tRy9uZOUM3CP9aJQ2E4i"],
+  "captain": "PYShLShCNhZ0Cj9Zr2hR",
+  "wicketKeeper": "qgpLagIqTS7Xe1CyHpGB"
+}
+
+### Update team lineup
+PUT http://localhost:8888/api/teamLineups/24jiTg9bshgrc4oN54UT
+Content-Type: application/json
+
+{
+  "captain": "tRy9uZOUM3CP9aJQ2E4i"
+}
+
+### Delete team lineup
+DELETE http://localhost:8888/api/teamLineups/24jiTg9bshgrc4oN54UT
+
+###############################################################################
+# MATCHES ENDPOINTS
+###############################################################################
+
+### Get all matches (with expanded team and lineup data)
+GET http://localhost:8888/api/matches
+
+### Get specific match (with complete team and player data)
+GET http://localhost:8888/api/matches/e3uU5Ky9vY119Ib8TYUp
+
+### Create new match
+POST http://localhost:8888/api/matches
+Content-Type: application/json
+
+{
+  "title": "Test Match",
+  "team1Id": "xJxHVvphmShp3HRTwFnS",
+  "team2Id": "uCNNe4wd44YSMfyW5gh1",
+  "team1LineupId": "24jiTg9bshgrc4oN54UT",
+  "team2LineupId": "1YrC1DwmtCchItYSohRw",
+  "venue": "Test Ground",
+  "date": "2025-10-03",
+  "format": "T20",
+  "overs": 20,
+  "tossWinner": "xJxHVvphmShp3HRTwFnS",
+  "tossDecision": "bat"
+}
+
+### Update match
+PUT http://localhost:8888/api/matches/e3uU5Ky9vY119Ib8TYUp
+Content-Type: application/json
+
+{
+  "status": "in-progress",
+  "currentInnings": "first"
+}
+
+### Delete match
+DELETE http://localhost:8888/api/matches/e3uU5Ky9vY119Ib8TYUp
+
+###############################################################################
+# LIVE SCORES ENDPOINTS
+###############################################################################
+
+### Get live scores for match
+GET http://localhost:8888/api/live-scores/e3uU5Ky9vY119Ib8TYUp
+
+###############################################################################
+# SCORING ENDPOINTS
+###############################################################################
+
+### Add a ball (for testing scoring function)
+POST http://localhost:8888/api/scoring
+Content-Type: application/json
+
+{
+  "inningId": "8fX1bW7vU4e8J3K5Yz6Q",
+  "overNumber": 1,
+  "ballNumber": 1,
+  "batsmanId": "PYShLShCNhZ0Cj9Zr2hR",
+  "bowlerId": "XtFdE2owQnCowHZ3lBH8",
+  "runs": 4,
+  "extraType": null,
+  "extraRuns": 0,
+  "isWicket": false,
+  "wicketType": null,
+  "fielderId": null
+}
+
+### Add boundary (6 runs)
+POST http://localhost:8888/api/scoring
+Content-Type: application/json
+
+{
+  "inningId": "8fX1bW7vU4e8J3K5Yz6Q",
+  "overNumber": 1,
+  "ballNumber": 2,
+  "batsmanId": "PYShLShCNhZ0Cj9Zr2hR",
+  "bowlerId": "XtFdE2owQnCowHZ3lBH8",
+  "runs": 6,
+  "extraType": null,
+  "extraRuns": 0,
+  "isWicket": false,
+  "wicketType": null,
+  "fielderId": null
+}
+
+### Add wicket (bowled)
+POST http://localhost:8888/api/scoring
+Content-Type: application/json
+
+{
+  "inningId": "8fX1bW7vU4e8J3K5Yz6Q",
+  "overNumber": 1,
+  "ballNumber": 3,
+  "batsmanId": "PYShLShCNhZ0Cj9Zr2hR",
+  "bowlerId": "XtFdE2owQnCowHZ3lBH8",
+  "runs": 0,
+  "extraType": null,
+  "extraRuns": 0,
+  "isWicket": true,
+  "wicketType": "bowled",
+  "fielderId": null
+}
+
+### Add wide ball
+POST http://localhost:8888/api/scoring
+Content-Type: application/json
+
+{
+  "inningId": "8fX1bW7vU4e8J3K5Yz6Q",
+  "overNumber": 1,
+  "ballNumber": 4,
+  "batsmanId": "tRy9uZOUM3CP9aJQ2E4i",
+  "bowlerId": "XtFdE2owQnCowHZ3lBH8",
+  "runs": 1,
+  "extraType": "wide",
+  "extraRuns": 1,
+  "isWicket": false,
+  "wicketType": null,
+  "fielderId": null
+}
+
+### Add no-ball
+POST http://localhost:8888/api/scoring
+Content-Type: application/json
+
+{
+  "inningId": "8fX1bW7vU4e8J3K5Yz6Q",
+  "overNumber": 1,
+  "ballNumber": 5,
+  "batsmanId": "tRy9uZOUM3CP9aJQ2E4i",
+  "bowlerId": "XtFdE2owQnCowHZ3lBH8",
+  "runs": 1,
+  "extraType": "no-ball",
+  "extraRuns": 1,
+  "isWicket": false,
+  "wicketType": null,
+  "fielderId": null
+}
+
+###############################################################################
+# ERROR TESTING
+###############################################################################
+
+### Test 404 - Invalid team ID
+GET http://localhost:8888/api/teams/invalid-id
+
+### Test 404 - Invalid player ID
+GET http://localhost:8888/api/players/invalid-id
+
+### Test 404 - Invalid lineup ID
+GET http://localhost:8888/api/teamLineups/invalid-id
+
+### Test 404 - Invalid match ID
+GET http://localhost:8888/api/matches/invalid-id
+
+### Test 400 - Create team without required fields
+POST http://localhost:8888/api/teams
+Content-Type: application/json
+
+{
+  "logo": "test.png"
+}
+
+### Test 400 - Create player without required fields
+POST http://localhost:8888/api/players
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### Test 400 - Create match without required fields
+POST http://localhost:8888/api/matches
+Content-Type: application/json
+
+{
+  "title": "Test Match"
+}

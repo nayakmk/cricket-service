@@ -1,0 +1,35 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[dev]
+  functions = "netlify/functions"
+  publish = "public"
+
+[[redirects]]
+  from = "/api/external/*"
+  to = "/.netlify/functions/external"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "http://localhost:3001"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With"
+    Access-Control-Allow-Credentials = "true"
+
+[functions]
+  directory = "netlify/functions"
+
+[functions.environment]
+  RAPIDAPI_KEY = "e27809ce4cmsha82996c2e07a674p16c2f2jsne2eda76f3b89"
+  NEWS_API_KEY = "pub_876f4e980d524fd1bf5cc7be93a5fd60"

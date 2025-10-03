@@ -1,0 +1,13 @@
+# API redirects - must be first and more specific
+/api/matches/* /.netlify/functions/matches 200
+/api/teams/* /.netlify/functions/teams 200
+/api/players/* /.netlify/functions/players 200
+/api/teamLineups/* /.netlify/functions/teamLineups 200
+/api/scoring/* /.netlify/functions/scoring 200
+/api/live-scores/* /.netlify/functions/live-scores 200
+
+# General API fallback
+/api/* /.netlify/functions/:splat 200
+
+# SPA fallback for client-side routing
+/* /index.html 200

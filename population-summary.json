@@ -1,0 +1,68 @@
+{
+  "processedMatches": [
+    {
+      "matchId": "uueFNerflQTAVVBxyrxe",
+      "team1Id": "BCHLU5wGS4dQUIyvKOzq",
+      "team2Id": "sVsZjXAs48LhPE0lJY2g",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "vufv7XiBpmIGspl93vtS",
+      "team1Id": "bfaH0MO638m0NEwFf4ri",
+      "team2Id": "yDzocf3R95QwQAgt4L8W",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "WKwjNAjqIdvufRzVfYPi",
+      "team1Id": "Wa4g5nxRhLoYgeSV9Y9x",
+      "team2Id": "ET9cvBAlVGqpQAbDPQya",
+      "inningsCount": 2
+    }
+  ],
+  "teamsMap": {
+    "Abhinas Boyyzz": "BCHLU5wGS4dQUIyvKOzq",
+    "Soumyak": "sVsZjXAs48LhPE0lJY2g",
+    "F Red": "bfaH0MO638m0NEwFf4ri",
+    "M Blue": "yDzocf3R95QwQAgt4L8W",
+    "Malaya Rangbati": "Wa4g5nxRhLoYgeSV9Y9x",
+    "Rupraj Riders": "ET9cvBAlVGqpQAbDPQya"
+  },
+  "playersMap": {
+    "Rupraj M": "cK6Ms4DxrBH3fcdsc88t",
+    "Sundar Raman": "dJNHT9J0BWm3lxtBQSxw",
+    "Pawan S": "8b7VetOcfD2jMfPljURt",
+    "Sridhar": "kECA5K4mMati4fWWXUVO",
+    "Abinash Subudhi (c)": "wFH1NXaaNNyBfEAOaz8z",
+    "ISHAN BANERJEE": "tWv59AHKxppC6FsQMSJR",
+    "Kumar Gaurav": "HOXsEA6w0UOVr9vhFaXV",
+    "Anil Bommaraju": "LtpY5QRhDNIrts10hCG4",
+    "Ashutosh Sahoo": "iARvJF66UL5r4NKZA4VA",
+    "Kartic Sharma": "uovcAWyfucCAHBLj7Vqv",
+    "Puneet Pandey": "wHzZGxuD5dVd3NBHkSOX",
+    "SUBHAJIT SARKAR": "M0w2nhgAzYMgXe13FFMX",
+    "Soumyak P (c)": "gJewXycLLmMRSQjweJru",
+    "Norace": "nirvOUw9je9V2FnU9FSW",
+    "Sheetal Kulkarni": "PxHtsPNJY3DSwQlVAoNm",
+    "Amit Jain": "qjd2nLBqbfJYQEANINpd",
+    "Farashi": "5pzUvl69JfpOs3lFJKwd",
+    "Mithun Hore": "6MPguO9jAzc9IkVd5ji1",
+    "Abinash Subudhi": "5F7FJrfVnx1W28pdETAK",
+    "Ecolife Arka": "K4bokrwLSOpHqrRX6J7a",
+    "Soumyak P": "EEXUAQObRKasaNU5nyPs",
+    "Purnendu K Patra": "aRtFM4h4uMWMXVNJN5MB",
+    "Sambeet Sahoo": "hTbhEoV28TQq6r7CWQkq",
+    "Ashutosh Sahoo (c)": "M2oGOXsQ6TIapbPXEhLp",
+    "Puneet Pandey (wk)": "AgZaTCDeFT7ZdGMuQdNm",
+    "Malaya Nayak": "GvvyhS6s8YeJNrkwYdtj",
+    "Sonal Kumar": "a4tfLbL4pi2hxtKz0IXf",
+    "Akhilesh": "PHqEwZ1KCAQgVWalRSVw",
+    "Saroj (wk)": "AwsPbS7inE5ifrfF3RMy",
+    "Malaya Nayak (c)": "Ayu9smc4Fx0eMkxqmoEG",
+    "Ashutosh kumar": "7TBs8tTpECsimYjYAllB",
+    "Rupraj M (c)": "QtBIBfMdop2QZbmb4t4Y",
+    "EON Shashank. A608": "jvzgFnQr54QyOrYCqtR7",
+    "Saroj": "1fxdnYXMbyIP6T743UHS",
+    "Ecolife Arka (wk)": "2sIXdBBNIym4i5qakVgC"
+  },
+  "timestamp": "2025-10-03T14:16:59.075Z"
+}

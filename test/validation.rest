@@ -1,0 +1,64 @@
+# Cricket App API - Data Validation Tests
+# Tests to validate expanded API responses with complete data
+
+###############################################################################
+# VALIDATION: Teams endpoint returns captain details
+###############################################################################
+
+### Verify teams endpoint includes captain details
+GET http://localhost:8888/api/teams
+
+### Verify specific team includes captain object (not just ID)
+GET http://localhost:8888/api/teams/xJxHVvphmShp3HRTwFnS
+
+###############################################################################
+# VALIDATION: Team Lineups endpoint returns complete player data
+###############################################################################
+
+### Verify team lineups include full player details
+GET http://localhost:8888/api/teamLineups
+
+### Verify lineup includes playersDetails array with full player objects
+GET http://localhost:8888/api/teamLineups/24jiTg9bshgrc4oN54UT
+
+### Verify lineup includes playingXIDetails array
+GET http://localhost:8888/api/teamLineups/24jiTg9bshgrc4oN54UT
+
+### Verify lineup includes captainDetails and wicketkeeperDetails
+GET http://localhost:8888/api/teamLineups/24jiTg9bshgrc4oN54UT
+
+###############################################################################
+# VALIDATION: Matches endpoint returns complete team and lineup data
+###############################################################################
+
+### Verify matches include expanded team data
+GET http://localhost:8888/api/matches
+
+### Verify specific match includes team1 and team2 with captain details
+GET http://localhost:8888/api/matches/e3uU5Ky9vY119Ib8TYUp
+
+### Verify match includes lineups with complete player data
+GET http://localhost:8888/api/matches/e3uU5Ky9vY119Ib8TYUp
+
+###############################################################################
+# VALIDATION: Players endpoint returns complete player data
+###############################################################################
+
+### Verify players endpoint returns all player details
+GET http://localhost:8888/api/players
+
+### Verify specific player includes all fields
+GET http://localhost:8888/api/players/PYShLShCNhZ0Cj9Zr2hR
+
+###############################################################################
+# PERFORMANCE TESTS
+###############################################################################
+
+### Test response time for teams endpoint
+GET http://localhost:8888/api/teams
+
+### Test response time for matches endpoint (with expanded data)
+GET http://localhost:8888/api/matches
+
+### Test response time for team lineups endpoint (with expanded data)
+GET http://localhost:8888/api/teamLineups

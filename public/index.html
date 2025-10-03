@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cricket Scoring API</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .api-endpoint {
+      background: #f8f9fa;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 4px solid #007bff;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏏 Cricket Scoring API</h1>
+    <p>Welcome to the Cricket Scoring API server. The API is now running with the following endpoints:</p>
+    
+    <h2>Available Endpoints:</h2>
+    
+    <h3>Matches</h3>
+    <div class="api-endpoint">GET /api/matches - Get all matches</div>
+    <div class="api-endpoint">GET /api/matches/{id} - Get specific match</div>
+    
+    <h3>Teams</h3>
+    <div class="api-endpoint">GET /api/teams - Get all teams</div>
+    <div class="api-endpoint">GET /api/teams/{id} - Get specific team</div>
+    
+    <h3>Players</h3>
+    <div class="api-endpoint">GET /api/players - Get all players</div>
+    <div class="api-endpoint">GET /api/players/{id} - Get specific player</div>
+    
+    <h3>Team Lineups</h3>
+    <div class="api-endpoint">GET /api/teamLineups - Get all team lineups</div>
+    <div class="api-endpoint">GET /api/teamLineups/{id} - Get specific lineup</div>
+    
+    <h3>Scoring</h3>
+    <div class="api-endpoint">POST /api/scoring/start-inning - Start a new inning</div>
+    <div class="api-endpoint">POST /api/scoring/record-ball - Record a ball</div>
+    
+    <p><strong>Status:</strong> ✅ API Server Running</p>
+    <p><strong>Database:</strong> ✅ Firestore Connected</p>
+  </div>
+</body>
+</html>
