@@ -139,10 +139,147 @@
       resize: vertical;
       min-height: 80px;
     }
-    .form-actions {
+    .form-row {
       display: flex;
-      gap: 10px;
+      gap: 15px;
+    }
+    .form-row .form-group {
+      flex: 1;
+    }
+    .team-selection-section {
       margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+    .team-selection-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 15px;
+    }
+    .team-panel {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+    .team-panel h5 {
+      margin: 0 0 15px 0;
+      color: #495057;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 8px;
+    }
+    .player-selection-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      background: white;
+    }
+    .player-checkbox-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .player-checkbox-item:last-child {
+      border-bottom: none;
+    }
+    .player-checkbox-item input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    .player-info {
+      flex: 1;
+    }
+    .player-name {
+      font-weight: 500;
+      color: #212529;
+    }
+    .player-role {
+      font-size: 12px;
+      color: #6c757d;
+    }
+    .scoring-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .match-header {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #dee2e6;
+    }
+    .match-header h3 {
+      margin: 0 0 10px 0;
+      color: #007bff;
+    }
+    .match-info {
+      color: #6c757d;
+      font-size: 14px;
+    }
+    .innings-setup {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #dee2e6;
+    }
+    .inning-config {
+      display: flex;
+      gap: 15px;
+      align-items: end;
+    }
+    .live-scoring {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    .score-display {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .score-summary {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007bff;
+      margin: 10px 0;
+    }
+    .scoring-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .batsman-selection, .bowler-selection, .runs-input {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+    .run-buttons, .wicket-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .current-over {
+      background: #fff3cd;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      border: 1px solid #ffeaa7;
+    }
+    .inning-actions {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #dee2e6;
     }
     .detail-view {
       background: #f8f9fa;
@@ -221,6 +358,9 @@
     }
     .status-completed {
       background: #6c757d;
+    }
+    .status-scheduled {
+      background: #17a2b8;
     }
     .status-upcoming {
       background: #ffc107;
@@ -712,39 +852,67 @@
       <h2>Matches</h2>
       <div class="form-actions">
         <button class="btn" onclick="loadMatches()">Load All Matches</button>
-        <button class="btn btn-secondary" onclick="showCreateForm('matches')">Create New Match</button>
+        <button class="btn btn-secondary" onclick="showCreateMatchForm()">Create New Match</button>
       </div>
       <div id="matches-content"></div>
       <div id="match-detail" class="detail-view" style="display: none;"></div>
       <div id="matches-form" class="form-container">
-        <h3 id="matches-form-title">Create New Match</h3>
+        <h3 id="matches-form-title">Create New Match & Start Scoring</h3>
         <form id="matches-form-element">
-          <div class="form-group">
-            <label for="matchType">Match Type:</label>
-            <select id="matchType" required>
-              <option value="T20">T20</option>
-              <option value="ODI">ODI</option>
-              <option value="Test">Test</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="venue">Venue:</label>
-            <input type="text" id="venue" required>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="matchType">Match Type:</label>
+              <select id="matchType" required>
+                <option value="T20">T20</option>
+                <option value="ODI">ODI</option>
+                <option value="Test">Test</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="venue">Venue:</label>
+              <input type="text" id="venue" required>
+            </div>
           </div>
           <div class="form-group">
             <label for="scheduledDate">Scheduled Date:</label>
             <input type="datetime-local" id="scheduledDate" required>
           </div>
-          <div class="form-group">
-            <label for="team1Id">Team 1 ID:</label>
-            <input type="text" id="team1Id" placeholder="Enter formatted team ID" required>
+
+          <div class="team-selection-section">
+            <h4>Select Teams & Players</h4>
+            <div class="team-selection-grid">
+              <div class="team-panel">
+                <h5>Team 1</h5>
+                <div class="form-group">
+                  <label for="team1Id">Select Team:</label>
+                  <select id="team1Id" required onchange="onTeamChange('team1')">
+                    <option value="">Choose a team...</option>
+                  </select>
+                  <button type="button" class="btn btn-small" onclick="loadTeamPlayers('team1')" id="loadTeam1Btn" disabled>Load Players</button>
+                </div>
+                <div id="team1-players" class="player-selection-list">
+                  <p>Select team and click "Load Players"</p>
+                </div>
+              </div>
+
+              <div class="team-panel">
+                <h5>Team 2</h5>
+                <div class="form-group">
+                  <label for="team2Id">Select Team:</label>
+                  <select id="team2Id" required onchange="onTeamChange('team2')">
+                    <option value="">Choose a team...</option>
+                  </select>
+                  <button type="button" class="btn btn-small" onclick="loadTeamPlayers('team2')" id="loadTeam2Btn" disabled>Load Players</button>
+                </div>
+                <div id="team2-players" class="player-selection-list">
+                  <p>Select team and click "Load Players"</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="team2Id">Team 2 ID:</label>
-            <input type="text" id="team2Id" placeholder="Enter formatted team ID" required>
-          </div>
+
           <div class="form-actions">
-            <button type="submit" class="btn">Save Match</button>
+            <button type="submit" class="btn">Create Match & Start Scoring</button>
             <button type="button" class="btn btn-secondary" onclick="hideCreateForm('matches')">Cancel</button>
           </div>
         </form>
@@ -1193,10 +1361,112 @@
     }
 
     // Form handlers for APIs that don't support operations yet
-    document.getElementById('matches-form-element').addEventListener('submit', function(e) {
+    document.getElementById('matches-form-element').addEventListener('submit', async function(e) {
       e.preventDefault();
-      showError('matches-content', new Error('Match creation not implemented yet'));
+
+      const team1Id = document.getElementById('team1Id').value.trim();
+      const team2Id = document.getElementById('team2Id').value.trim();
+
+      if (!team1Id || !team2Id) {
+        showError('matches-content', new Error('Please select both teams'));
+        return;
+      }
+
+      if (team1Id === team2Id) {
+        showError('matches-content', new Error('Please select different teams'));
+        return;
+      }
+
+      const matchData = {
+        title: document.getElementById('matchType').value,
+        venue: document.getElementById('venue').value.trim(),
+        scheduledDate: document.getElementById('scheduledDate').value,
+        team1Id: team1Id,
+        team2Id: team2Id
+      };
+
+      // Get selected players for each team
+      const team1Players = getSelectedPlayers('team1');
+      const team2Players = getSelectedPlayers('team2');
+
+      if (team1Players.length === 0 || team2Players.length === 0) {
+        showError('matches-content', new Error('Please select players for both teams'));
+        return;
+      }
+
+      try {
+        // Create the match
+        const result = await apiCall('/api/matches', 'POST', matchData);
+        const matchId = result.data.id;
+
+        showSuccess('matches-content', `Match created successfully! Starting scoring interface...`);
+
+        // Start the scoring interface
+        setTimeout(() => {
+          startMatchScoring(matchId, matchData, team1Players, team2Players);
+        }, 1500);
+
+      } catch (error) {
+        console.error('Match creation failed:', error);
+        showError('matches-content', error);
+      }
     });
+
+    // Function to populate team dropdowns
+    async function populateTeamDropdowns() {
+      try {
+        // Load teams if not already loaded
+        if (!currentData.teams || currentData.teams.length === 0) {
+          const data = await apiCall('/api/teams');
+          currentData.teams = data.data;
+        }
+
+        const teams = currentData.teams;
+        const team1Select = document.getElementById('team1Id');
+        const team2Select = document.getElementById('team2Id');
+
+        // Clear existing options except the first one
+        team1Select.innerHTML = '<option value="">Choose a team...</option>';
+        team2Select.innerHTML = '<option value="">Choose a team...</option>';
+
+        // Add teams to both dropdowns
+        teams.forEach(team => {
+          const option1 = document.createElement('option');
+          option1.value = team.id;
+          option1.textContent = `${team.name} (${team.displayId || team.id})`;
+          team1Select.appendChild(option1);
+
+          const option2 = document.createElement('option');
+          option2.value = team.id;
+          option2.textContent = `${team.name} (${team.displayId || team.id})`;
+          team2Select.appendChild(option2);
+        });
+      } catch (error) {
+        console.error('Failed to load teams for dropdowns:', error);
+      }
+    }
+
+    // Function to handle team selection changes
+    function onTeamChange(teamPrefix) {
+      const select = document.getElementById(`${teamPrefix}Id`);
+      const loadBtn = document.getElementById(`load${teamPrefix.charAt(0).toUpperCase() + teamPrefix.slice(1)}Btn`);
+      const selectedValue = select.value;
+
+      // Enable/disable load players button
+      loadBtn.disabled = !selectedValue;
+
+      // Clear player selection if team changed
+      const playersDiv = document.getElementById(`${teamPrefix}-players`);
+      if (!selectedValue) {
+        playersDiv.innerHTML = '<p>Select team and click "Load Players"</p>';
+      }
+    }
+
+    // Function to show the match creation form with populated dropdowns
+    function showCreateMatchForm() {
+      showCreateForm('matches');
+      populateTeamDropdowns();
+    }
 
     document.getElementById('players-form-element').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -1418,7 +1688,8 @@
 
       matches.forEach(match => {
         const statusClass = match.status === 'live' ? 'status-live' :
-                           match.status === 'completed' ? 'status-completed' : 'status-upcoming';
+                           match.status === 'completed' ? 'status-completed' :
+                           match.status === 'scheduled' ? 'status-scheduled' : 'status-upcoming';
 
         html += `
           <div class="data-card" onclick="showMatchDetail('${match.id}')">
@@ -1426,14 +1697,14 @@
               <button class="btn btn-small btn-edit" onclick="editMatch('${match.id}', event)">Edit</button>
               <button class="btn btn-small btn-delete" onclick="deleteMatch('${match.id}', event)">Delete</button>
             </div>
-            <h3>${match.displayId || match.id}</h3>
-            <p><span class="status-indicator ${statusClass}"></span>${match.status || 'Unknown'}</p>
+            <h3>${match.title || match.displayId || match.id}</h3>
+            <p><span class="status-indicator ${statusClass}"></span>${match.status || 'scheduled'}</p>
             <p><strong>Teams:</strong> ${match.team1 ? match.team1.name : 'TBD'} vs ${match.team2 ? match.team2.name : 'TBD'}</p>
             <p><strong>Score:</strong> ${match.team1Score || 0} - ${match.team2Score || 0}</p>
             <p><strong>Result:</strong> ${match.result || 'N/A'}</p>
-            <p><strong>Type:</strong> ${match.matchType || 'N/A'}</p>
+            <p><strong>Type:</strong> ${match.matchType || match.title || 'N/A'}</p>
             <p><strong>Venue:</strong> ${match.venue || 'N/A'}</p>
-            ${match.scheduledDate ? `<p><strong>Date:</strong> ${new Date(match.scheduledDate).toLocaleDateString()}</p>` : ''}
+            ${match.scheduledDate ? `<p><strong>Date:</strong> ${new Date(match.scheduledDate).toLocaleString()}</p>` : ''}
           </div>
         `;
       });
@@ -1495,6 +1766,12 @@
                     dots: b.dots || 0,
                     fours: b.fours || 0,
                     sixes: b.sixes || 0
+                  })) || [],
+                  fall_of_wickets: inning.fallOfWickets?.map(fow => ({
+                    wicket_number: fow.wicketNumber || 0,
+                    score: fow.score || 0,
+                    player_out: fow.batsmanName || 'Unknown',
+                    over: fow.overs || 0
                   })) || []
                 };
                 innings.push(transformedInning);
@@ -2410,6 +2687,499 @@
       // Show selected content and activate tab
       document.getElementById(tabName + '-mapping').classList.add('active');
       event.target.classList.add('active');
+    }
+
+    // Match scoring functions
+    async function loadTeamPlayers(teamPrefix) {
+      const teamId = document.getElementById(teamPrefix + 'Id').value.trim();
+      if (!teamId) {
+        alert('Please enter a team ID first');
+        return;
+      }
+
+      const playerListDiv = document.getElementById(teamPrefix + '-players');
+      playerListDiv.innerHTML = '<div class="loading">Loading players...</div>';
+
+      try {
+        // For now, load all players and filter by teamId
+        // TODO: Add team filtering to players API
+        const result = await apiCall('/api/players');
+        const allPlayers = result.data;
+
+        // Filter players by teamId (assuming players have teamId field)
+        const teamPlayers = allPlayers.filter(player => player.teamId === teamId);
+
+        if (teamPlayers.length === 0) {
+          playerListDiv.innerHTML = '<p>No players found for this team. Players will be selectable from all available players.</p>';
+          // Show all players as selectable
+          displayPlayerSelectionList(playerListDiv, allPlayers, teamPrefix);
+        } else {
+          displayPlayerSelectionList(playerListDiv, teamPlayers, teamPrefix);
+        }
+
+      } catch (error) {
+        console.error('Failed to load team players:', error);
+        playerListDiv.innerHTML = '<p class="error">Failed to load players</p>';
+      }
+    }
+
+    function displayPlayerSelectionList(container, players, teamPrefix) {
+      if (!players || players.length === 0) {
+        container.innerHTML = '<p>No players available</p>';
+        return;
+      }
+
+      let html = '';
+      players.forEach(player => {
+        const checkboxId = `${teamPrefix}-player-${player.id}`;
+        html += `
+          <div class="player-checkbox-item">
+            <input type="checkbox" id="${checkboxId}" value="${player.id}" onchange="updatePlayerSelection('${teamPrefix}')">
+            <div class="player-info">
+              <div class="player-name">${player.name}</div>
+              <div class="player-role">${player.role || 'N/A'} • ID: ${player.displayId || player.id}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updatePlayerSelection(teamPrefix) {
+      // Could add validation or limits here
+      const selectedCount = getSelectedPlayers(teamPrefix).length;
+      console.log(`${teamPrefix} selected players: ${selectedCount}`);
+    }
+
+    function getSelectedPlayers(teamPrefix) {
+      const checkboxes = document.querySelectorAll(`#${teamPrefix}-players input[type="checkbox"]:checked`);
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    async function startMatchScoring(matchId, matchData, team1Players, team2Players) {
+      // Hide the form and show scoring interface
+      hideCreateForm('matches');
+
+      // Create scoring interface
+      const scoringHtml = createScoringInterface(matchId, matchData, team1Players, team2Players);
+      document.getElementById('matches-content').innerHTML = scoringHtml;
+
+      // Initialize scoring state
+      window.currentMatch = {
+        id: matchId,
+        data: matchData,
+        team1Players: team1Players,
+        team2Players: team2Players,
+        innings: [],
+        currentInning: null
+      };
+
+      console.log('Match scoring interface initialized for match:', matchId);
+    }
+
+    function createScoringInterface(matchId, matchData, team1Players, team2Players) {
+      return `
+        <div class="scoring-container">
+          <div class="match-header">
+            <h3>${matchData.title} Match - ${matchData.venue}</h3>
+            <div class="match-info">
+              <span>Team 1: ${matchData.team1Id}</span> |
+              <span>Team 2: ${matchData.team2Id}</span> |
+              <span>Date: ${new Date(matchData.scheduledDate).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div class="innings-setup">
+            <h4>Set Up First Innings</h4>
+            <div class="inning-config">
+              <div class="form-group">
+                <label>Batting Team:</label>
+                <select id="battingTeam">
+                  <option value="${matchData.team1Id}">Team 1 (${matchData.team1Id})</option>
+                  <option value="${matchData.team2Id}">Team 2 (${matchData.team2Id})</option>
+                </select>
+              </div>
+              <button class="btn" onclick="startInning()">Start Innings</button>
+            </div>
+          </div>
+
+          <div id="scoring-interface" style="display: none;">
+            <!-- Scoring interface will be populated here -->
+          </div>
+        </div>
+      `;
+    }
+
+    function startInning() {
+      const battingTeamId = document.getElementById('battingTeam').value;
+      const bowlingTeamId = battingTeamId === window.currentMatch.data.team1Id ?
+        window.currentMatch.data.team2Id : window.currentMatch.data.team1Id;
+
+      // Create new inning
+      const inningNumber = window.currentMatch.innings.length + 1;
+      const newInning = {
+        inningNumber: inningNumber,
+        battingTeam: battingTeamId,
+        bowlingTeam: bowlingTeamId,
+        batsmen: [],
+        bowling: [],
+        totalRuns: 0,
+        totalWickets: 0,
+        totalOvers: 0,
+        totalBalls: 0,
+        currentOver: [],
+        currentBatsman: null,
+        currentBowler: null
+      };
+
+      window.currentMatch.innings.push(newInning);
+      window.currentMatch.currentInning = newInning;
+
+      // Show scoring interface
+      showScoringInterface();
+    }
+
+    function showScoringInterface() {
+      const inning = window.currentMatch.currentInning;
+      const battingPlayers = inning.battingTeam === window.currentMatch.data.team1Id ?
+        window.currentMatch.team1Players : window.currentMatch.team2Players;
+      const bowlingPlayers = inning.bowlingTeam === window.currentMatch.data.team1Id ?
+        window.currentMatch.team1Players : window.currentMatch.team2Players;
+
+      const html = `
+        <div class="live-scoring">
+          <div class="score-display">
+            <h4>Innings ${inning.inningNumber}: ${inning.battingTeam} vs ${inning.bowlingTeam}</h4>
+            <div class="score-summary">
+              <span class="runs">${inning.totalRuns}/${inning.totalWickets}</span>
+              <span class="overs">(${Math.floor(inning.totalOvers)}.${inning.totalBalls % 6} overs)</span>
+            </div>
+          </div>
+
+          <div class="scoring-controls">
+            <div class="batsman-selection">
+              <h5>Select Batsman</h5>
+              <select id="currentBatsman" onchange="selectBatsman()">
+                <option value="">Choose batsman...</option>
+                ${battingPlayers.map(playerId => {
+                  const player = currentData.players.find(p => p.id === playerId);
+                  return player ? `<option value="${playerId}">${player.name}</option>` : '';
+                }).join('')}
+              </select>
+            </div>
+
+            <div class="bowler-selection">
+              <h5>Select Bowler</h5>
+              <select id="currentBowler" onchange="selectBowler()">
+                <option value="">Choose bowler...</option>
+                ${bowlingPlayers.map(playerId => {
+                  const player = currentData.players.find(p => p.id === playerId);
+                  return player ? `<option value="${playerId}">${player.name}</option>` : '';
+                }).join('')}
+              </select>
+            </div>
+
+            <div class="runs-input">
+              <h5>Add Runs/Wickets</h5>
+              <div class="run-buttons">
+                <button class="btn" onclick="addRuns(0)">0</button>
+                <button class="btn" onclick="addRuns(1)">1</button>
+                <button class="btn" onclick="addRuns(2)">2</button>
+                <button class="btn" onclick="addRuns(3)">3</button>
+                <button class="btn" onclick="addRuns(4)">4</button>
+                <button class="btn" onclick="addRuns(6)">6</button>
+              </div>
+              <div class="wicket-buttons">
+                <button class="btn btn-danger" onclick="addWicket('bowled')">Bowled</button>
+                <button class="btn btn-danger" onclick="addWicket('caught')">Caught</button>
+                <button class="btn btn-danger" onclick="addWicket('runout')">Run Out</button>
+                <button class="btn btn-danger" onclick="addWicket('lbw')">LBW</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="current-over">
+            <h5>This Over: <span id="current-over-balls"></span></h5>
+          </div>
+
+          <div class="inning-actions">
+            <button class="btn btn-success" onclick="endInning()">End Innings</button>
+            <button class="btn btn-secondary" onclick="saveInningData()">Save Current Data</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('scoring-interface').innerHTML = html;
+      document.getElementById('scoring-interface').style.display = 'block';
+      document.querySelector('.innings-setup').style.display = 'none';
+    }
+
+    function selectBatsman() {
+      const batsmanId = document.getElementById('currentBatsman').value;
+      if (window.currentMatch.currentInning) {
+        window.currentMatch.currentInning.currentBatsman = batsmanId;
+      }
+    }
+
+    function selectBowler() {
+      const bowlerId = document.getElementById('currentBowler').value;
+      if (window.currentMatch.currentInning) {
+        window.currentMatch.currentInning.currentBowler = bowlerId;
+      }
+    }
+
+    function addRuns(runs) {
+      const inning = window.currentMatch.currentInning;
+      if (!inning || !inning.currentBatsman || !inning.currentBowler) {
+        alert('Please select both batsman and bowler first');
+        return;
+      }
+
+      // Add to batsman's score
+      let batsman = inning.batsmen.find(b => b.playerId === inning.currentBatsman);
+      if (!batsman) {
+        batsman = {
+          playerId: inning.currentBatsman,
+          runs: 0,
+          balls: 0,
+          fours: 0,
+          sixes: 0,
+          notOut: true
+        };
+        inning.batsmen.push(batsman);
+      }
+
+      batsman.runs += runs;
+      batsman.balls += 1;
+
+      if (runs === 4) batsman.fours += 1;
+      if (runs === 6) batsman.sixes += 1;
+
+      // Add to bowler's figures
+      let bowler = inning.bowling.find(b => b.playerId === inning.currentBowler);
+      if (!bowler) {
+        bowler = {
+          playerId: inning.currentBowler,
+          overs: 0,
+          balls: 0,
+          runs: 0,
+          wickets: 0
+        };
+        inning.bowling.push(bowler);
+      }
+
+      bowler.runs += runs;
+      bowler.balls += 1;
+
+      // Update over
+      inning.currentOver.push(runs);
+      inning.totalBalls += 1;
+
+      // Check if over is complete
+      if (inning.currentOver.length >= 6) {
+        bowler.overs += 1;
+        bowler.balls = 0; // Reset balls for next over
+        inning.currentOver = [];
+        inning.totalOvers += 1;
+
+        // Switch bowler
+        document.getElementById('currentBowler').value = '';
+        inning.currentBowler = null;
+      }
+
+      // Update total runs
+      inning.totalRuns += runs;
+
+      // Update display
+      updateScoreDisplay();
+      updateCurrentOverDisplay();
+    }
+
+    function addWicket(type) {
+      const inning = window.currentMatch.currentInning;
+      if (!inning || !inning.currentBatsman || !inning.currentBowler) {
+        alert('Please select both batsman and bowler first');
+        return;
+      }
+
+      // Mark batsman as out
+      const batsman = inning.batsmen.find(b => b.playerId === inning.currentBatsman);
+      if (batsman) {
+        batsman.notOut = false;
+        batsman.dismissalType = type;
+      }
+
+      // Add to bowler's wickets
+      const bowler = inning.bowling.find(b => b.playerId === inning.currentBowler);
+      if (bowler) {
+        bowler.wickets += 1;
+      }
+
+      // Update totals
+      inning.totalWickets += 1;
+      inning.totalBalls += 1;
+
+      // Update over
+      inning.currentOver.push('W');
+
+      // Check if over is complete
+      if (inning.currentOver.length >= 6) {
+        if (bowler) {
+          bowler.overs += 1;
+          bowler.balls = 0;
+        }
+        inning.currentOver = [];
+        inning.totalOvers += 1;
+      }
+
+      // Clear current batsman
+      document.getElementById('currentBatsman').value = '';
+      inning.currentBatsman = null;
+
+      // Update display
+      updateScoreDisplay();
+      updateCurrentOverDisplay();
+    }
+
+    function updateScoreDisplay() {
+      const inning = window.currentMatch.currentInning;
+      if (!inning) return;
+
+      const scoreElement = document.querySelector('.score-summary .runs');
+      const oversElement = document.querySelector('.score-summary .overs');
+
+      if (scoreElement) {
+        scoreElement.textContent = `${inning.totalRuns}/${inning.totalWickets}`;
+      }
+
+      if (oversElement) {
+        const overs = Math.floor(inning.totalOvers) + (inning.totalBalls % 6) / 10;
+        oversElement.textContent = `(${overs.toFixed(1)} overs)`;
+      }
+    }
+
+    function updateCurrentOverDisplay() {
+      const inning = window.currentMatch.currentInning;
+      if (!inning) return;
+
+      const overElement = document.getElementById('current-over-balls');
+      if (overElement) {
+        overElement.textContent = inning.currentOver.join(' ');
+      }
+    }
+
+    async function saveInningData() {
+      const match = window.currentMatch;
+      const inning = match.currentInning;
+
+      if (!inning) {
+        alert('No active inning to save');
+        return;
+      }
+
+      try {
+        // Save inning data to Firestore
+        const inningData = {
+          inningNumber: inning.inningNumber,
+          battingTeam: inning.battingTeam,
+          bowlingTeam: inning.bowlingTeam,
+          totalRuns: inning.totalRuns,
+          totalWickets: inning.totalWickets,
+          totalOvers: inning.totalOvers,
+          totalBalls: inning.totalBalls
+        };
+
+        // Save to matches/{matchId}/innings/{inningId}
+        await apiCall(`/api/matches/${match.id}/innings`, 'POST', inningData);
+
+        // Update match scores
+        const currentTeam1Score = match.data.team1Score || 0;
+        const currentTeam2Score = match.data.team2Score || 0;
+
+        let updatedTeam1Score = currentTeam1Score;
+        let updatedTeam2Score = currentTeam2Score;
+
+        // Add innings runs to the batting team's score
+        if (inning.battingTeam === match.data.team1Id) {
+          updatedTeam1Score += inning.totalRuns;
+        } else if (inning.battingTeam === match.data.team2Id) {
+          updatedTeam2Score += inning.totalRuns;
+        }
+
+        // Update match with new scores
+        const matchUpdate = {
+          team1Score: updatedTeam1Score,
+          team2Score: updatedTeam2Score
+        };
+
+        await apiCall(`/api/matches/${match.id}`, 'PUT', matchUpdate);
+
+        // Save batsmen data
+        for (const batsman of inning.batsmen) {
+          await apiCall(`/api/matches/${match.id}/innings/${inning.inningNumber}/batsmen`, 'POST', batsman);
+        }
+
+        // Save bowling data
+        for (const bowler of inning.bowling) {
+          await apiCall(`/api/matches/${match.id}/innings/${inning.inningNumber}/bowling`, 'POST', bowler);
+        }
+
+        alert('Inning data saved successfully!');
+        console.log('Inning data saved for match:', match.id);
+
+      } catch (error) {
+        console.error('Failed to save inning data:', error);
+        alert('Failed to save inning data: ' + error.message);
+      }
+    }
+
+    function endInning() {
+      const inning = window.currentMatch.currentInning;
+      if (!inning) return;
+
+      // Mark inning as complete
+      inning.completed = true;
+
+      // Save data first
+      saveInningData();
+
+      // Check if match should continue with next innings
+      const nextInningNumber = window.currentMatch.innings.length + 1;
+
+      if (nextInningNumber <= 2) { // For limited overs, typically 2 innings max
+        // Setup next innings
+        setTimeout(() => {
+          setupNextInning();
+        }, 1000);
+      } else {
+        // Match complete
+        alert('Match completed!');
+        // Could add match completion logic here
+      }
+    }
+
+    function setupNextInning() {
+      const match = window.currentMatch;
+      const html = `
+        <div class="innings-setup">
+          <h4>Set Up Innings ${match.innings.length + 1}</h4>
+          <div class="inning-config">
+            <div class="form-group">
+              <label>Batting Team:</label>
+              <select id="battingTeam">
+                <option value="${match.data.team1Id}">Team 1 (${match.data.team1Id})</option>
+                <option value="${match.data.team2Id}">Team 2 (${match.data.team2Id})</option>
+              </select>
+            </div>
+            <button class="btn" onclick="startInning()">Start Next Innings</button>
+          </div>
+        </div>
+
+        <div id="scoring-interface" style="display: none;"></div>
+      `;
+
+      document.getElementById('matches-content').innerHTML += html;
     }
   </script>
 </body>

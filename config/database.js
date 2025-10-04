@@ -30,6 +30,7 @@ const collections = {
   matches: db.collection('matches'),
   teams: db.collection('teams'),
   players: db.collection('players'),
+  tournaments: db.collection('tournaments'),
   teamLineups: db.collection('teamLineups'),
   innings: db.collection('innings'),
   balls: db.collection('balls'),

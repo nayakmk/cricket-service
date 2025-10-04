@@ -45,53 +45,51 @@ exports.handler = async (event, context) => {
       const snapshot = await query.get();
       const matches = [];
 
-      // Use batch queries to fetch team names efficiently
-      const teamIds = new Set();
-      snapshot.docs.forEach(doc => {
-        const matchData = doc.data();
-        if (matchData.team1Id) teamIds.add(matchData.team1Id);
-        if (matchData.team2Id) teamIds.add(matchData.team2Id);
-      });
-
-      // Batch fetch team names
-      const teamPromises = Array.from(teamIds).map(teamId =>
-        collections.teams.doc(teamId).get()
-      );
-      const teamDocs = await Promise.all(teamPromises);
-
-      const teamsMap = {};
-      teamDocs.forEach(teamDoc => {
-        if (teamDoc.exists) {
-          const teamData = teamDoc.data();
-          teamsMap[teamDoc.id] = {
-            id: teamDoc.id,
-            name: teamData.name,
-            shortName: teamData.shortName
-          };
-        }
-      });
-
-      // Build matches list with essential data only
+      // Build matches list using embedded team details
       for (const doc of snapshot.docs) {
         const matchData = doc.data();
+
+        // Calculate scores from innings data
+        let team1Score = matchData.team1Score || 0;
+        let team2Score = matchData.team2Score || 0;
+
+        // If no stored scores, try to calculate from innings
+        if (team1Score === 0 && team2Score === 0) {
+          try {
+            const inningsSnapshot = await collections.matches.doc(doc.id).collection('innings').get();
+            for (const inningDoc of inningsSnapshot.docs) {
+              const inningData = inningDoc.data();
+              if (inningData.battingTeam === matchData.team1Id) {
+                team1Score += inningData.totalRuns || 0;
+              } else if (inningData.battingTeam === matchData.team2Id) {
+                team2Score += inningData.totalRuns || 0;
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to calculate scores for match ${doc.id}:`, error);
+          }
+        }
 
         const essentialMatch = {
           id: doc.id,
           numericId: matchData.numericId,
           displayId: matchData.numericId || doc.id, // Use numericId for display, fallback to UUID
+          title: matchData.title, // Include the title field
           status: matchData.status,
-          matchType: matchData.matchType,
+          matchType: matchData.matchType || matchData.title, // Fallback to title if matchType not set
           venue: matchData.venue,
           scheduledDate: matchData.scheduledDate,
           createdAt: matchData.createdAt,
           updatedAt: matchData.updatedAt,
-          // Include basic team info
-          team1: matchData.team1Id ? teamsMap[matchData.team1Id] : null,
-          team2: matchData.team2Id ? teamsMap[matchData.team2Id] : null,
-          // Include basic score info if available
+          // Use embedded team details instead of separate queries
+          team1: matchData.teams?.team1 || null,
+          team2: matchData.teams?.team2 || null,
+          // Include toss information
+          toss: matchData.toss || null,
+          // Include calculated score info
           currentInnings: matchData.currentInnings,
-          team1Score: matchData.team1Score,
-          team2Score: matchData.team2Score,
+          team1Score: team1Score,
+          team2Score: team2Score,
           winner: matchData.winner,
           result: matchData.result
         };
@@ -133,27 +131,9 @@ exports.handler = async (event, context) => {
         ...matchDoc.data()
       };
 
-      // Batch fetch teams and their captains (basic info only)
-      const teamIds = [matchData.team1Id, matchData.team2Id].filter(id => id);
-      const teamPromises = teamIds.map(teamId => collections.teams.doc(teamId).get());
-      const teamDocs = await Promise.all(teamPromises);
-
-      const teamsMap = {};
-      teamDocs.forEach(teamDoc => {
-        if (teamDoc.exists) {
-          const teamData = teamDoc.data();
-          teamsMap[teamDoc.id] = {
-            id: teamDoc.id,
-            name: teamData.name,
-            shortName: teamData.shortName,
-            // Include numericId if available
-            numericId: teamData.numericId
-          };
-        }
-      });
-
-      matchData.team1 = teamsMap[matchData.team1Id] || null;
-      matchData.team2 = teamsMap[matchData.team2Id] || null;
+      // Use embedded team details instead of separate queries
+      matchData.team1 = matchData.teams?.team1 || null;
+      matchData.team2 = matchData.teams?.team2 || null;
 
       // Fetch detailed innings with all player stats
       try {
@@ -163,48 +143,69 @@ exports.handler = async (event, context) => {
         for (const inningDoc of inningsSnapshot.docs) {
           const inningData = { id: inningDoc.id, ...inningDoc.data() };
 
-          // Fetch batsmen details
-          const batsmenSnapshot = await collections.matches.doc(matchId).collection('innings').doc(inningDoc.id).collection('batsmen').get();
+          // Process batsmen details from array
           const batsmen = [];
-          for (const batsmanDoc of batsmenSnapshot.docs) {
-            const batsmanData = batsmanDoc.data();
-            // Get player details
-            const playerDoc = await collections.players.where('numericId', '==', batsmanData.playerId).limit(1).get();
-            const playerData = playerDoc.empty ? null : { id: playerDoc.docs[0].id, ...playerDoc.docs[0].data() };
-            batsmen.push({
-              ...batsmanData,
-              player: playerData ? {
-                id: playerData.id,
-                name: playerData.name,
-                numericId: playerData.numericId
-              } : null
-            });
+          if (inningData.batsmen && Array.isArray(inningData.batsmen)) {
+            for (const batsmanData of inningData.batsmen) {
+              // Get player details by document ID
+              const playerDoc = await collections.players.doc(batsmanData.playerId).get();
+              const playerData = playerDoc.exists ? { id: playerDoc.id, ...playerDoc.data() } : null;
+              batsmen.push({
+                ...batsmanData,
+                player: playerData ? {
+                  id: playerData.id,
+                  name: playerData.name,
+                  numericId: playerData.numericId
+                } : null
+              });
+            }
           }
 
-          // Fetch bowling details
-          const bowlingSnapshot = await collections.matches.doc(matchId).collection('innings').doc(inningDoc.id).collection('bowling').get();
+          // Process bowling details from array
           const bowling = [];
-          for (const bowlerDoc of bowlingSnapshot.docs) {
-            const bowlerData = bowlerDoc.data();
-            // Get player details
-            const playerDoc = await collections.players.where('numericId', '==', bowlerData.playerId).limit(1).get();
-            const playerData = playerDoc.empty ? null : { id: playerDoc.docs[0].id, ...playerDoc.docs[0].data() };
-            bowling.push({
-              ...bowlerData,
-              player: playerData ? {
-                id: playerData.id,
-                name: playerData.name,
-                numericId: playerData.numericId
-              } : null
-            });
+          if (inningData.bowlers && Array.isArray(inningData.bowlers)) {
+            for (const bowlerData of inningData.bowlers) {
+              // Get player details by document ID
+              const playerDoc = await collections.players.doc(bowlerData.playerId).get();
+              const playerData = playerDoc.exists ? { id: playerDoc.id, ...playerDoc.data() } : null;
+              bowling.push({
+                ...bowlerData,
+                player: playerData ? {
+                  id: playerData.id,
+                  name: playerData.name,
+                  numericId: playerData.numericId
+                } : null
+              });
+            }
           }
 
-          // Fetch fall of wickets details
-          const fallOfWicketsSnapshot = await collections.matches.doc(matchId).collection('innings').doc(inningDoc.id).collection('fallOfWickets').get();
+          // Process fall of wickets details from array
           const fallOfWickets = [];
-          for (const fowDoc of fallOfWicketsSnapshot.docs) {
-            const fowData = fowDoc.data();
-            fallOfWickets.push(fowData);
+          if (inningData.fallOfWickets && Array.isArray(inningData.fallOfWickets)) {
+            for (const fowData of inningData.fallOfWickets) {
+              // Get player details by numeric ID if playerOutId exists
+              let playerName = fowData.batsmanName || fowData.player_out || 'Unknown';
+              if (fowData.playerOutId) {
+                try {
+                  // Find player by numericId
+                  const playerQuery = await collections.players.where('numericId', '==', fowData.playerOutId).limit(1).get();
+                  if (!playerQuery.empty) {
+                    const playerDoc = playerQuery.docs[0];
+                    const playerData = playerDoc.data();
+                    playerName = playerData.name || playerName;
+                  }
+                } catch (error) {
+                  console.warn(`Failed to resolve player name for fall of wickets playerOutId ${fowData.playerOutId}:`, error);
+                }
+              }
+
+              fallOfWickets.push({
+                wicketNumber: fowData.wicketNumber || fowData.wicket_number || 0,
+                batsmanName: playerName,
+                score: fowData.score || 0,
+                overs: fowData.overs || fowData.over || 0
+              });
+            }
           }
 
           innings.push({
@@ -393,48 +394,48 @@ exports.handler = async (event, context) => {
 
         const inningData = { id: inningDoc.id, ...inningDoc.data() };
 
-        // Fetch batsmen details
-        const batsmenSnapshot = await collections.matches.doc(matchId).collection('innings').doc(inningId).collection('batsmen').get();
+        // Process batsmen details from array
         const batsmen = [];
-        for (const batsmanDoc of batsmenSnapshot.docs) {
-          const batsmanData = batsmanDoc.data();
-          // Get player details
-          const playerQuery = await collections.players.where('numericId', '==', batsmanData.playerId).limit(1).get();
-          const playerData = playerQuery.empty ? null : { id: playerQuery.docs[0].id, ...playerQuery.docs[0].data() };
-          batsmen.push({
-            ...batsmanData,
-            player: playerData ? {
-              id: playerData.id,
-              name: playerData.name,
-              numericId: playerData.numericId
-            } : null
-          });
+        if (inningData.batsmen && Array.isArray(inningData.batsmen)) {
+          for (const batsmanData of inningData.batsmen) {
+            // Get player details by document ID
+            const playerQuery = await collections.players.doc(batsmanData.playerId).get();
+            const playerData = playerQuery.exists ? { id: playerQuery.id, ...playerQuery.data() } : null;
+            batsmen.push({
+              ...batsmanData,
+              player: playerData ? {
+                id: playerData.id,
+                name: playerData.name,
+                numericId: playerData.numericId
+              } : null
+            });
+          }
         }
 
-        // Fetch bowling details
-        const bowlingSnapshot = await collections.matches.doc(matchId).collection('innings').doc(inningId).collection('bowling').get();
+        // Process bowling details from array
         const bowling = [];
-        for (const bowlerDoc of bowlingSnapshot.docs) {
-          const bowlerData = bowlerDoc.data();
-          // Get player details
-          const playerQuery = await collections.players.where('numericId', '==', bowlerData.playerId).limit(1).get();
-          const playerData = playerQuery.empty ? null : { id: playerQuery.docs[0].id, ...playerQuery.docs[0].data() };
-          bowling.push({
-            ...bowlerData,
-            player: playerData ? {
-              id: playerData.id,
-              name: playerData.name,
-              numericId: playerData.numericId
-            } : null
-          });
+        if (inningData.bowlers && Array.isArray(inningData.bowlers)) {
+          for (const bowlerData of inningData.bowlers) {
+            // Get player details by document ID
+            const playerQuery = await collections.players.doc(bowlerData.playerId).get();
+            const playerData = playerQuery.exists ? { id: playerQuery.id, ...playerQuery.data() } : null;
+            bowling.push({
+              ...bowlerData,
+              player: playerData ? {
+                id: playerData.id,
+                name: playerData.name,
+                numericId: playerData.numericId
+              } : null
+            });
+          }
         }
 
-        // Fetch fall of wickets details
-        const fallOfWicketsSnapshot = await collections.matches.doc(matchId).collection('innings').doc(inningId).collection('fallOfWickets').get();
+        // Process fall of wickets details from array
         const fallOfWickets = [];
-        for (const fowDoc of fallOfWicketsSnapshot.docs) {
-          const fowData = fowDoc.data();
-          fallOfWickets.push(fowData);
+        if (inningData.fallOfWickets && Array.isArray(inningData.fallOfWickets)) {
+          for (const fowData of inningData.fallOfWickets) {
+            fallOfWickets.push(fowData);
+          }
         }
 
         const detailedInningData = {
@@ -442,9 +443,7 @@ exports.handler = async (event, context) => {
           batsmen: batsmen,
           bowling: bowling,
           fallOfWickets: fallOfWickets
-        };
-
-        return {
+        };        return {
           statusCode: 200,
           headers: corsHeaders,
           body: JSON.stringify({
@@ -611,6 +610,223 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           success: true,
           message: 'Match deleted successfully'
+        })
+      };
+    }
+
+    // POST /api/matches/:matchId/innings - Create new inning for a match
+    if (method === 'POST' && path.match(/^\/[^\/]+\/innings$/)) {
+      const matchId = path.split('/')[1];
+      const inningData = JSON.parse(event.body);
+
+      // Validate required fields
+      if (!inningData.inningNumber || !inningData.battingTeam || !inningData.bowlingTeam) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Missing required fields: inningNumber, battingTeam, bowlingTeam'
+          })
+        };
+      }
+
+      // Verify match exists
+      const matchDoc = await collections.matches.doc(matchId).get();
+      if (!matchDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Match not found'
+          })
+        };
+      }
+
+      // Use inningNumber as document ID for consistency
+      const documentId = inningData.inningNumber.toString();
+
+      const newInning = {
+        ...inningData,
+        matchId,
+        status: 'completed', // Since we're saving completed inning data
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Store inning as subcollection of the match
+      await collections.matches.doc(matchId).collection('innings').doc(documentId).set(newInning);
+
+      return {
+        statusCode: 201,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: true,
+          data: { id: documentId, ...newInning },
+          message: 'Inning created successfully'
+        })
+      };
+    }
+
+    // POST /api/matches/:matchId/innings/:inningId/batsmen - Add batsman to inning
+    if (method === 'POST' && path.match(/^\/[^\/]+\/innings\/[^\/]+\/batsmen$/)) {
+      const parts = path.split('/');
+      const matchId = parts[1];
+      const inningId = parts[3];
+      const batsmanData = JSON.parse(event.body);
+
+      // Validate required fields
+      if (!batsmanData.playerId || batsmanData.runs === undefined) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Missing required fields: playerId, runs'
+          })
+        };
+      }
+
+      // Verify match and inning exist
+      const matchDoc = await collections.matches.doc(matchId).get();
+      if (!matchDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Match not found'
+          })
+        };
+      }
+
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
+      if (!inningDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Inning not found'
+          })
+        };
+      }
+
+      // Get current inning data
+      const inningData = inningDoc.data();
+      const batsmen = inningData.batsmen || [];
+
+      // Check if batsman already exists, update if so, otherwise add
+      const existingIndex = batsmen.findIndex(b => b.playerId === batsmanData.playerId);
+      if (existingIndex >= 0) {
+        batsmen[existingIndex] = {
+          ...batsmen[existingIndex],
+          ...batsmanData,
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        batsmen.push({
+          ...batsmanData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      // Update the inning document with the modified batsmen array
+      await collections.matches.doc(matchId).collection('innings').doc(inningId).update({
+        batsmen: batsmen,
+        updatedAt: new Date().toISOString()
+      });
+
+      return {
+        statusCode: 201,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: true,
+          data: batsmanData,
+          message: 'Batsman added successfully'
+        })
+      };
+    }
+
+    // POST /api/matches/:matchId/innings/:inningId/bowling - Add bowler to inning
+    if (method === 'POST' && path.match(/^\/[^\/]+\/innings\/[^\/]+\/bowling$/)) {
+      const parts = path.split('/');
+      const matchId = parts[1];
+      const inningId = parts[3];
+      const bowlingData = JSON.parse(event.body);
+
+      // Validate required fields
+      if (!bowlingData.playerId || bowlingData.overs === undefined) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Missing required fields: playerId, overs'
+          })
+        };
+      }
+
+      // Verify match and inning exist
+      const matchDoc = await collections.matches.doc(matchId).get();
+      if (!matchDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Match not found'
+          })
+        };
+      }
+
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
+      if (!inningDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Inning not found'
+          })
+        };
+      }
+
+      // Get current inning data
+      const inningData = inningDoc.data();
+      const bowlers = inningData.bowlers || [];
+
+      // Check if bowler already exists, update if so, otherwise add
+      const existingIndex = bowlers.findIndex(b => b.playerId === bowlingData.playerId);
+      if (existingIndex >= 0) {
+        bowlers[existingIndex] = {
+          ...bowlers[existingIndex],
+          ...bowlingData,
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        bowlers.push({
+          ...bowlingData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      // Update the inning document with the modified bowlers array
+      await collections.matches.doc(matchId).collection('innings').doc(inningId).update({
+        bowlers: bowlers,
+        updatedAt: new Date().toISOString()
+      });
+
+      return {
+        statusCode: 201,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: true,
+          data: bowlingData,
+          message: 'Bowler added successfully'
         })
       };
     }
