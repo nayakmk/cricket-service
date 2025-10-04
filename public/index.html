@@ -1308,13 +1308,17 @@
       const selectionCount = document.getElementById('selection-count');
 
       console.log('mergeActions element:', mergeActions);
-      if (selectedPlayers.length > 0) {
-        mergeActions.style.display = 'block';
-        selectionCount.textContent = `${selectedPlayers.length} player${selectedPlayers.length > 1 ? 's' : ''} selected`;
-        console.log('Showing merge actions');
-      } else {
-        mergeActions.style.display = 'none';
-        console.log('Hiding merge actions');
+      if (mergeActions) {
+        if (selectedPlayers.length > 0) {
+          mergeActions.style.display = 'block';
+          if (selectionCount) {
+            selectionCount.textContent = `${selectedPlayers.length} player${selectedPlayers.length > 1 ? 's' : ''} selected`;
+          }
+          console.log('Showing merge actions');
+        } else {
+          mergeActions.style.display = 'none';
+          console.log('Hiding merge actions');
+        }
       }
     }
 
@@ -1399,9 +1403,13 @@
     // Form management functions
     function showCreateForm(section) {
       hideAllForms();
-      document.getElementById(`${section}-form`).classList.add('active');
-      document.getElementById(`${section}-content`).style.display = 'none';
-      document.getElementById(`${section}-form-title`).textContent = 'Create New ' + section.charAt(0).toUpperCase() + section.slice(1).slice(0, -1);
+      const form = document.getElementById(`${section}-form`);
+      const content = document.getElementById(`${section}-content`);
+      const formTitle = document.getElementById(`${section}-form-title`);
+
+      if (form) form.classList.add('active');
+      if (content) content.style.display = 'none';
+      if (formTitle) formTitle.textContent = 'Create New ' + section.charAt(0).toUpperCase() + section.slice(1).slice(0, -1);
       editingId = null;
       clearForm(section);
 
@@ -1416,9 +1424,14 @@
 
     function hideCreateForm(section) {
       const form = document.getElementById(`${section}-form`);
-      form.classList.remove('active');
-      form.style.display = 'none'; // Clear any inline styles
-      document.getElementById(`${section}-content`).style.display = 'block';
+      const content = document.getElementById(`${section}-content`);
+      if (form) {
+        form.classList.remove('active');
+        form.style.display = 'none'; // Clear any inline styles
+      }
+      if (content) {
+        content.style.display = 'block';
+      }
       editingId = null;
     }
 
@@ -1500,15 +1513,21 @@
     }
 
     // Utility functions
-    function showSuccess(message) {
-      const successDiv = document.createElement('div');
-      successDiv.className = 'success';
-      successDiv.textContent = message;
-      document.querySelector('.container').insertBefore(successDiv, document.querySelector('.nav-tabs'));
+    function showSuccess(elementId, message) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.innerHTML = `<div class="success">${message}</div>`;
+      } else {
+        // Fallback to global success message if element not found
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success';
+        successDiv.textContent = message;
+        document.querySelector('.container').insertBefore(successDiv, document.querySelector('.nav-tabs'));
 
-      setTimeout(() => {
-        successDiv.remove();
-      }, 3000);
+        setTimeout(() => {
+          successDiv.remove();
+        }, 3000);
+      }
     }
 
     // CRUD Operations
@@ -1819,8 +1838,10 @@
       document.getElementById('players-form-element').setAttribute('data-player-id', playerId);
 
       // Show the form
-      document.getElementById('players-form').classList.add('active');
-      document.getElementById('players-content').style.display = 'none';
+      const playersForm = document.getElementById('players-form');
+      const playersContent = document.getElementById('players-content');
+      if (playersForm) playersForm.classList.add('active');
+      if (playersContent) playersContent.style.display = 'none';
     }
 
     async function deletePlayer(playerId, event) {
@@ -1872,8 +1893,10 @@
       document.getElementById('lineups-form-element').setAttribute('data-lineup-id', lineupId);
 
       // Show the form
-      document.getElementById('lineups-form').classList.add('active');
-      document.getElementById('lineups-content').style.display = 'none';
+      const lineupsForm = document.getElementById('lineups-form');
+      const lineupsContent = document.getElementById('lineups-content');
+      if (lineupsForm) lineupsForm.classList.add('active');
+      if (lineupsContent) lineupsContent.style.display = 'none';
     }
 
     async function deleteLineup(lineupId, event) {

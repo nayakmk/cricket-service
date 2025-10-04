@@ -181,28 +181,23 @@ exports.handler = async function(event, context) {
             const inning = inningDoc.data();
             console.log(`Processing inning ${inning.inningNumber} for preview`);
 
-            // Process batsmen from subcollection
-            const batsmenSnapshot = await collections.matches.doc(match.id).collection('innings').doc(inningDoc.id).collection('batsmen').get();
-            if (!batsmenSnapshot.empty) {
-              for (const batsmanDoc of batsmenSnapshot.docs) {
-                const batsman = batsmanDoc.data();
+            // Process batsmen from inning document (stored as array, not subcollection)
+            if (inning.batsmen && Array.isArray(inning.batsmen)) {
+              for (const batsman of inning.batsmen) {
                 if (!batsman.playerId) continue;
 
-                // Get player data by numeric ID
-                const playerData = Array.from(existingPlayers.values()).find(p => p.numericId === batsman.playerId);
+                // Get player data by document ID (playerId in match data is the Firestore document ID)
+                const playerData = existingPlayers.get(batsman.playerId);
                 if (!playerData) continue;
 
                 const playerName = playerData.name;
                 if (!playerName) continue;
 
-                // Find matching player in existing database
-                let playerId = findMatchingPlayer(playerName, existingPlayers, playerNames);
-
                 // Track mapping for reporting
                 if (!playerMapping.has(playerName)) {
                   playerMapping.set(playerName, {
-                    databasePlayerId: playerId,
-                    databasePlayerName: playerId ? existingPlayers.get(playerId).name : null,
+                    databasePlayerId: batsman.playerId, // We already have the correct player ID
+                    databasePlayerName: playerName,
                     matchCount: 0
                   });
                 }
@@ -210,28 +205,23 @@ exports.handler = async function(event, context) {
               }
             }
 
-            // Process bowlers from subcollection
-            const bowlingSnapshot = await collections.matches.doc(match.id).collection('innings').doc(inningDoc.id).collection('bowling').get();
-            if (!bowlingSnapshot.empty) {
-              for (const bowlingDoc of bowlingSnapshot.docs) {
-                const bowler = bowlingDoc.data();
+            // Process bowlers from inning document (stored as array, not subcollection)
+            if (inning.bowlers && Array.isArray(inning.bowlers)) {
+              for (const bowler of inning.bowlers) {
                 if (!bowler.playerId) continue;
 
-                // Get player data by numeric ID
-                const bowlerPlayerData = Array.from(existingPlayers.values()).find(p => p.numericId === bowler.playerId);
+                // Get player data by document ID (playerId in match data is the Firestore document ID)
+                const bowlerPlayerData = existingPlayers.get(bowler.playerId);
                 if (!bowlerPlayerData) continue;
 
                 const bowlerPlayerName = bowlerPlayerData.name;
                 if (!bowlerPlayerName) continue;
 
-                // Find matching player in existing database
-                let bowlerPlayerId = findMatchingPlayer(bowlerPlayerName, existingPlayers, playerNames);
-
                 // Track mapping for reporting
                 if (!playerMapping.has(bowlerPlayerName)) {
                   playerMapping.set(bowlerPlayerName, {
-                    databasePlayerId: bowlerPlayerId,
-                    databasePlayerName: bowlerPlayerId ? existingPlayers.get(bowlerPlayerId).name : null,
+                    databasePlayerId: bowler.playerId, // We already have the correct player ID
+                    databasePlayerName: bowlerPlayerName,
                     matchCount: 0
                   });
                 }
@@ -438,23 +428,20 @@ exports.handler = async function(event, context) {
               const inning = inningDoc.data();
               console.log(`Processing inning ${inning.inningNumber}`);
 
-              // Process batsmen from subcollection
-              const batsmenSnapshot = await collections.matches.doc(match.id).collection('innings').doc(inningDoc.id).collection('batsmen').get();
-              if (!batsmenSnapshot.empty) {
-                for (const batsmanDoc of batsmenSnapshot.docs) {
-                  const batsman = batsmanDoc.data();
+              // Process batsmen from inning document (stored as array, not subcollection)
+              if (inning.batsmen && Array.isArray(inning.batsmen)) {
+                for (const batsman of inning.batsmen) {
                   if (!batsman.playerId) continue;
 
-                  // Get player data by numeric ID
-                  const playerData = Array.from(existingPlayers.values()).find(p => p.numericId === batsman.playerId);
+                  // Get player data by document ID (playerId in match data is the Firestore document ID)
+                  const playerData = existingPlayers.get(batsman.playerId);
                   if (!playerData) continue;
 
                   const playerName = playerData.name;
                   if (!playerName) continue;
 
-                  // Find matching player in existing database
-                  let playerId = findMatchingPlayer(playerName, existingPlayers, playerNames);
-                  if (!playerId) continue;
+                  // Use the player ID directly (should match since we found it by ID)
+                  let playerId = batsman.playerId;
 
                   // Initialize player stats if not exists
                   if (!playerStats.has(playerId)) {
@@ -478,7 +465,7 @@ exports.handler = async function(event, context) {
                   stats.totalRuns += batsman.runs || 0;
                   stats.totalBalls += batsman.balls || 0;
                   stats.inningsBatted += 1;
-                  if (batsman.notOut) {
+                  if (batsman.status && batsman.status.toLowerCase().includes('not out')) {
                     stats.notOuts += 1;
                   }
 
@@ -494,23 +481,20 @@ exports.handler = async function(event, context) {
                 }
               }
 
-              // Process bowlers from subcollection
-              const bowlingSnapshot = await collections.matches.doc(match.id).collection('innings').doc(inningDoc.id).collection('bowling').get();
-              if (!bowlingSnapshot.empty) {
-                for (const bowlingDoc of bowlingSnapshot.docs) {
-                  const bowler = bowlingDoc.data();
+              // Process bowlers from inning document (stored as array, not subcollection)
+              if (inning.bowlers && Array.isArray(inning.bowlers)) {
+                for (const bowler of inning.bowlers) {
                   if (!bowler.playerId) continue;
 
-                  // Get player data by numeric ID
-                  const bowlerPlayerData = Array.from(existingPlayers.values()).find(p => p.numericId === bowler.playerId);
+                  // Get player data by document ID (playerId in match data is the Firestore document ID)
+                  const bowlerPlayerData = existingPlayers.get(bowler.playerId);
                   if (!bowlerPlayerData) continue;
 
                   const bowlerPlayerName = bowlerPlayerData.name;
                   if (!bowlerPlayerName) continue;
 
-                  // Find matching player in existing database
-                  let bowlerPlayerId = findMatchingPlayer(bowlerPlayerName, existingPlayers, playerNames);
-                  if (!bowlerPlayerId) continue;
+                  // Use the player ID directly (should match since we found it by ID)
+                  let bowlerPlayerId = bowler.playerId;
 
                   // Initialize player stats if not exists
                   if (!playerStats.has(bowlerPlayerId)) {
