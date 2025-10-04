@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  REACT_APP_API_BASE_URL = "https://charming-stroopwafel-69c009.netlify.app"
 
 [dev]
   functions = "netlify/functions"

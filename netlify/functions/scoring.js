@@ -18,7 +18,14 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const path = event.path.replace('/.netlify/functions/scoring', '');
+    // Handle both direct function calls and API route calls
+    let path = event.path;
+    if (path.startsWith('/.netlify/functions/scoring')) {
+      path = path.replace('/.netlify/functions/scoring', '');
+    } else if (path.startsWith('/api/scoring')) {
+      path = path.replace('/api/scoring', '');
+    }
+    
     const method = event.httpMethod;
 
     // POST /api/scoring/innings - Start new inning
@@ -407,8 +414,6 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    await connectToDatabase();
-
     const path = event.path.replace('/.netlify/functions/scoring', '');
     const method = event.httpMethod;
 

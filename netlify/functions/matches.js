@@ -44,19 +44,107 @@ exports.handler = async (event, context) => {
       const snapshot = await query.get();
       const matches = [];
       
-      console.log(`Found ${snapshot.docs.length} matches in database`);
-      
       for (const doc of snapshot.docs) {
         const matchData = { id: doc.id, ...doc.data() };
-        console.log(`Processing match ${matchData.id}: status=${matchData.status}, team1Id=${matchData.team1Id}, team2Id=${matchData.team2Id}`);
         
-        // TEMP: Skip team fetching to see if all matches are returned
-        matchData.team1 = null;
-        matchData.team2 = null;
-        matchData.lineups = {};
+        // Fetch complete team1 details
+        if (matchData.team1Id) {
+          try {
+            const team1Doc = await collections.teams.doc(matchData.team1Id).get();
+            if (team1Doc.exists) {
+              const team1Data = { id: team1Doc.id, ...team1Doc.data() };
+              
+              // Fetch captain details for team1
+              if (team1Data.captainId) {
+                const captainDoc = await collections.players.doc(team1Data.captainId).get();
+                if (captainDoc.exists) {
+                  team1Data.captain = { id: captainDoc.id, ...captainDoc.data() };
+                }
+              }
+              
+              matchData.team1 = team1Data;
+            }
+          } catch (error) {
+            console.error(`Error fetching team1 ${matchData.team1Id}:`, error);
+            matchData.team1 = null;
+          }
+        }
+        
+        // Fetch complete team2 details
+        if (matchData.team2Id) {
+          try {
+            const team2Doc = await collections.teams.doc(matchData.team2Id).get();
+            if (team2Doc.exists) {
+              const team2Data = { id: team2Doc.id, ...team2Doc.data() };
+              
+              // Fetch captain details for team2
+              if (team2Data.captainId) {
+                const captainDoc = await collections.players.doc(team2Data.captainId).get();
+                if (captainDoc.exists) {
+                  team2Data.captain = { id: captainDoc.id, ...captainDoc.data() };
+                }
+              }
+              
+              matchData.team2 = team2Data;
+            }
+          } catch (error) {
+            console.error(`Error fetching team2 ${matchData.team2Id}:`, error);
+            matchData.team2 = null;
+          }
+        }
+        
+        // Fetch team lineups for both teams
+        try {
+          const lineupsSnapshot = await collections.teamLineups
+            .where('teamId', 'in', [matchData.team1Id, matchData.team2Id].filter(Boolean))
+            .get();
+          
+          const lineups = {};
+          for (const lineupDoc of lineupsSnapshot.docs) {
+            const lineupData = { id: lineupDoc.id, ...lineupDoc.data() };
+            
+            // Fetch player details for this lineup
+            if (lineupData.playerIds && Array.isArray(lineupData.playerIds)) {
+              const playersWithDetails = [];
+              for (const playerId of lineupData.playerIds) {
+                try {
+                  const playerDoc = await collections.players.doc(playerId).get();
+                  if (playerDoc.exists) {
+                    playersWithDetails.push({ id: playerDoc.id, ...playerDoc.data() });
+                  }
+                } catch (playerError) {
+                  console.error(`Error fetching player ${playerId}:`, playerError);
+                }
+              }
+              lineupData.playersDetails = playersWithDetails;
+            }
+            
+            // Fetch playing XI details
+            if (lineupData.playingXI && Array.isArray(lineupData.playingXI)) {
+              const playingXIDetails = [];
+              for (const playerId of lineupData.playingXI) {
+                try {
+                  const playerDoc = await collections.players.doc(playerId).get();
+                  if (playerDoc.exists) {
+                    playingXIDetails.push({ id: playerDoc.id, ...playerDoc.data() });
+                  }
+                } catch (playerError) {
+                  console.error(`Error fetching playing XI player ${playerId}:`, playerError);
+                }
+              }
+              lineupData.playingXIDetails = playingXIDetails;
+            }
+            
+            lineups[lineupData.teamId] = lineupData;
+          }
+          
+          matchData.lineups = lineups;
+        } catch (error) {
+          console.error('Error fetching lineups:', error);
+          matchData.lineups = {};
+        }
         
         matches.push(matchData);
-        console.log(`Added match ${matchData.id} to results. Total matches so far: ${matches.length}`);
       }
 
       console.log(`Returning ${matches.length} matches`);
