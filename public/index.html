@@ -3,6 +3,7 @@
 <head>
   <title>Cricket Scoring API</title>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -799,6 +800,234 @@
       padding: 4px 8px;
       font-size: 11px;
       margin-left: 10px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      .container {
+        padding: 15px;
+        margin: 0;
+        border-radius: 5px;
+      }
+
+      .header {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      /* Navigation tabs - stack vertically on mobile */
+      .nav-tabs {
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 15px;
+      }
+
+      .nav-tab {
+        padding: 12px 15px;
+        font-size: 16px;
+        text-align: center;
+        border-radius: 5px;
+        background: #f8f9fa;
+      }
+
+      .nav-tab.active {
+        background: #007bff;
+        color: white;
+      }
+
+      /* Data grid - single column on mobile */
+      .data-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+
+      .data-card {
+        padding: 12px;
+      }
+
+      .data-card h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+      }
+
+      .data-card p {
+        font-size: 13px;
+      }
+
+      /* Forms - stack vertically on mobile */
+      .form-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 10px;
+      }
+
+      /* Team selection grid - single column on mobile */
+      .team-selection-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+
+      /* Inning config - stack vertically on mobile */
+      .inning-config {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      /* Tables - make scrollable on mobile */
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        min-width: 600px; /* Ensure table doesn't get too compressed */
+        font-size: 14px;
+      }
+
+      th, td {
+        padding: 8px 6px;
+        white-space: nowrap;
+      }
+
+      /* Button adjustments for mobile */
+      .btn {
+        padding: 10px 15px;
+        font-size: 16px;
+        min-width: 120px;
+      }
+
+      .btn-small {
+        padding: 6px 10px;
+        font-size: 14px;
+      }
+
+      /* Card actions - stack on mobile */
+      .card-actions {
+        position: static;
+        margin-top: 10px;
+        justify-content: flex-end;
+      }
+
+      /* Score display adjustments */
+      .score-display {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .score-summary {
+        font-size: 20px;
+      }
+
+      /* Player selection list adjustments */
+      .player-selection-list {
+        max-height: 250px;
+      }
+
+      .player-checkbox-item {
+        padding: 10px 12px;
+      }
+
+      /* Modal adjustments for mobile */
+      .modal-content {
+        margin: 10px;
+        max-height: calc(100vh - 20px);
+        overflow-y: auto;
+      }
+
+      /* API endpoint display */
+      .api-endpoint {
+        font-size: 12px;
+        padding: 8px;
+        word-break: break-all;
+      }
+
+      /* Status section */
+      #status {
+        font-size: 14px;
+      }
+
+      /* Adjust spacing for mobile */
+      .header,
+      .content-section,
+      .form-container,
+      .match-header,
+      .innings-setup,
+      .live-scoring {
+        margin-bottom: 15px;
+      }
+    }
+
+    /* Extra small screens */
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+      }
+
+      .container {
+        padding: 10px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .nav-tab {
+        padding: 10px;
+        font-size: 15px;
+      }
+
+      .data-card {
+        padding: 10px;
+      }
+
+      .btn {
+        padding: 8px 12px;
+        font-size: 15px;
+        min-width: 100px;
+      }
+
+      .score-summary {
+        font-size: 18px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 6px 4px;
+      }
+    }
+
+    /* Touch-friendly interactions */
+    @media (hover: none) and (pointer: coarse) {
+      .data-card:hover {
+        box-shadow: none;
+      }
+
+      .nav-tab:hover {
+        background-color: transparent;
+      }
+
+      .btn:hover {
+        transform: none;
+      }
     }
   </style>
 </head>
@@ -1857,6 +2086,7 @@
               // Batting table
               if (inning.batsmen && inning.batsmen.length > 0) {
                 html += '<h6>Batting</h6>';
+                html += '<div class="table-container">';
                 html += '<table class="innings-table">';
                 html += '<tr><th>Batsman</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th><th>SR</th><th>Dismissal</th></tr>';
 
@@ -1873,11 +2103,13 @@
                 });
 
                 html += '</table>';
+                html += '</div>';
               }
 
               // Bowling table
               if (inning.bowling && inning.bowling.length > 0) {
                 html += '<h6>Bowling</h6>';
+                html += '<div class="table-container">';
                 html += '<table class="innings-table">';
                 html += '<tr><th>Bowler</th><th>Overs</th><th>Maidens</th><th>Runs</th><th>Wickets</th><th>Econ</th><th>Dots</th><th>4s</th><th>6s</th></tr>';
 
@@ -1896,11 +2128,13 @@
                 });
 
                 html += '</table>';
+                html += '</div>';
               }
 
               // Fall of wickets
               if (inning.fall_of_wickets && inning.fall_of_wickets.length > 0) {
                 html += '<h6>Fall of Wickets</h6>';
+                html += '<div class="table-container">';
                 html += '<table class="innings-table">';
                 html += '<tr><th>Wicket</th><th>Score</th><th>Player Out</th><th>Over</th></tr>';
 
@@ -1914,6 +2148,7 @@
                 });
 
                 html += '</table>';
+                html += '</div>';
               }
 
               html += '</div>';
@@ -1922,6 +2157,7 @@
             // Fallback to basic innings summary
             if (match.innings && match.innings.length > 0) {
               html += '<h4>Innings Summary</h4>';
+              html += '<div class="table-container">';
               html += '<table class="innings-table">';
               html += '<tr><th>Inning</th><th>Runs</th><th>Wickets</th><th>Overs</th><th>Run Rate</th><th>Batting Team</th><th>Bowling Team</th></tr>';
 
@@ -1943,6 +2179,7 @@
               });
 
               html += '</table>';
+              html += '</div>';
             }
           }
         } catch (inningsError) {
@@ -1950,6 +2187,7 @@
           // Fallback to basic innings summary
           if (match.innings && match.innings.length > 0) {
             html += '<h4>Innings Summary</h4>';
+            html += '<div class="table-container">';
             html += '<table class="innings-table">';
             html += '<tr><th>Inning</th><th>Runs</th><th>Wickets</th><th>Overs</th><th>Run Rate</th><th>Batting Team</th><th>Bowling Team</th></tr>';
 
@@ -1971,6 +2209,7 @@
             });
 
             html += '</table>';
+            html += '</div>';
           }
         }
 
@@ -2557,6 +2796,7 @@
           message += `</div>`;
 
           message += `<div id="matched-mapping" class="mapping-content active">`;
+          message += `<div class="table-container">`;
           message += `<table class="mapping-table">`;
           message += `<thead><tr><th>Match Player Name</th><th>Database Player</th><th>Match Appearances</th></tr></thead>`;
           message += `<tbody>`;
@@ -2570,9 +2810,10 @@
           if (matched.length > 50) {
             message += `<tr><td colspan="3"><em>... and ${matched.length - 50} more matched players</em></td></tr>`;
           }
-          message += `</tbody></table></div>`;
+          message += `</tbody></table></div></div>`;
 
           message += `<div id="unmatched-mapping" class="mapping-content">`;
+          message += `<div class="table-container">`;
           message += `<table class="mapping-table">`;
           message += `<thead><tr><th>Match Player Name</th><th>Status</th><th>Match Appearances</th></tr></thead>`;
           message += `<tbody>`;
@@ -2586,7 +2827,7 @@
           if (unmatched.length > 50) {
             message += `<tr><td colspan="3"><em>... and ${unmatched.length - 50} more unmatched players</em></td></tr>`;
           }
-          message += `</tbody></table></div>`;
+          message += `</tbody></table></div></div>`;
 
           message += `</div>`;
         }
