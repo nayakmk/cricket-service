@@ -6,16 +6,49 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 40px;
+      margin: 0;
+      padding: 20px;
       background-color: #f5f5f5;
     }
     .container {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 0 auto;
       background: white;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 20px;
+    }
+    .nav-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .nav-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-weight: 500;
+    }
+    .nav-tab.active {
+      border-bottom-color: #007bff;
+      color: #007bff;
+    }
+    .nav-tab:hover {
+      background-color: #f8f9fa;
+    }
+    .content-section {
+      display: none;
+    }
+    .content-section.active {
+      display: block;
     }
     .api-endpoint {
       background: #f8f9fa;
@@ -24,37 +57,2360 @@
       border-left: 4px solid #007bff;
       font-family: monospace;
     }
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .data-card {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+      position: relative;
+    }
+    .data-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .data-card h3 {
+      margin: 0 0 10px 40px;
+      color: #007bff;
+    }
+    .data-card p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .card-actions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 5px;
+    }
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+    .btn-edit {
+      background: #ffc107;
+      color: #212529;
+    }
+    .btn-edit:hover {
+      background: #e0a800;
+    }
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+    }
+    .btn-delete:hover {
+      background: #c82333;
+    }
+    .form-container {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border: 1px solid #dee2e6;
+      display: none;
+    }
+    .form-container.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .detail-view {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border: 1px solid #dee2e6;
+    }
+    .detail-view h3 {
+      margin-top: 0;
+      color: #007bff;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .detail-item {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #dee2e6;
+    }
+    .detail-item strong {
+      display: block;
+      color: #495057;
+    }
+    .btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .btn-secondary {
+      background: #6c757d;
+    }
+    .btn-secondary:hover {
+      background: #545b62;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #6c757d;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      border: 1px solid #f5c6cb;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      border: 1px solid #c3e6cb;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-live {
+      background: #28a745;
+    }
+    .status-completed {
+      background: #6c757d;
+    }
+    .status-upcoming {
+      background: #ffc107;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+    .innings-table {
+      margin-top: 10px;
+    }
+    .innings-table th, .innings-table td {
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    .inning-details {
+      margin-bottom: 30px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      background: #f8f9fa;
+    }
+
+    .inning-details h5 {
+      margin-top: 0;
+      color: #007bff;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
+    }
+
+    .inning-details h6 {
+      margin-top: 20px;
+      margin-bottom: 10px;
+      color: #495057;
+      font-size: 16px;
+    }
+
+    /* Merge functionality styles */
+    .merge-actions {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-checkbox {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      z-index: 10;
+    }
+
+    .card-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #007bff;
+    }
+
+    #selection-count {
+      font-weight: 600;
+      color: #856404;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: #007bff;
+    }
+
+    .modal-close {
+      font-size: 28px;
+      cursor: pointer;
+      color: #6c757d;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .merge-preview {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+
+    .primary-player {
+      background: #d4edda;
+      padding: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      color: #155724;
+      margin: 10px 0;
+    }
+
+    .merge-info {
+      background: #d1ecf1;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+
+    .merge-info ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .merge-info li {
+      margin: 5px 0;
+      color: #0c5460;
+    }
+
+    .warning {
+      color: #dc3545;
+      font-weight: bold;
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid #dee2e6;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Player mapping styles */
+    .player-mapping-container {
+      margin-top: 20px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+
+    .player-mapping-container h4 {
+      margin-top: 0;
+      color: #007bff;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+
+    .mapping-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .mapping-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-weight: 500;
+      color: #6c757d;
+    }
+
+    .mapping-tab.active {
+      border-bottom-color: #007bff;
+      color: #007bff;
+    }
+
+    .mapping-tab:hover {
+      background-color: #e9ecef;
+    }
+
+    .mapping-content {
+      display: none;
+    }
+
+    .mapping-content.active {
+      display: block;
+    }
+
+    .mapping-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .mapping-table th,
+    .mapping-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .mapping-table th {
+      background: #007bff;
+      color: white;
+      font-weight: 600;
+    }
+
+    .mapping-table tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+
+    .mapping-table tr:hover {
+      background: #e9ecef;
+    }
+
+    .status-unmatched {
+      color: #dc3545;
+      font-weight: 500;
+    }
+
+    /* Preview modal styles */
+    .preview-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .summary-item {
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .summary-item strong {
+      display: block;
+      color: #007bff;
+      margin-bottom: 5px;
+    }
+
+    .mapping-instructions {
+      margin-bottom: 15px;
+      padding: 15px;
+      background: #e9ecef;
+      border-radius: 6px;
+      border-left: 4px solid #007bff;
+    }
+
+    .mapping-instructions li {
+      margin: 5px 0;
+      color: #495057;
+    }
+
+    /* Interactive mapping interface styles */
+    .mapping-interface {
+      margin-top: 20px;
+    }
+
+    .mapping-columns {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .mapping-column {
+      flex: 1;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      background: #f8f9fa;
+    }
+
+    .mapping-column h4 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #007bff;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
+    }
+
+    .player-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      background: white;
+    }
+
+    .player-card {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .player-card:hover {
+      background: #f8f9fa;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .player-card.selected-json {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+    }
+
+    .player-card.mapped-player {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+    }
+
+    .player-card.unmapped-player {
+      background: white;
+    }
+
+    .player-card.suggested-match {
+      border: 2px dashed #ffc107;
+      background: #fff3cd;
+    }
+
+    .player-name {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .player-details {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .mapping-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .mapping-status {
+      font-weight: 500;
+      padding: 8px 12px;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid #dee2e6;
+    }
+
+    .current-mappings {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+    }
+
+    .current-mappings h4 {
+      margin-top: 0;
+      color: #007bff;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
+    }
+
+    .mapping-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      margin: 5px 0;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+
+    .mapping-item .json-player {
+      font-weight: 500;
+      color: #333;
+      flex: 1;
+    }
+
+    .mapping-item .arrow {
+      margin: 0 10px;
+      color: #666;
+      font-weight: bold;
+    }
+
+    .mapping-item .db-player {
+      font-weight: 500;
+      color: #28a745;
+      flex: 1;
+    }
+
+    .mapping-item .btn-small {
+      padding: 4px 8px;
+      font-size: 11px;
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🏏 Cricket Scoring API</h1>
-    <p>Welcome to the Cricket Scoring API server. The API is now running with the following endpoints:</p>
-    
-    <h2>Available Endpoints:</h2>
-    
-    <h3>Matches</h3>
-    <div class="api-endpoint">GET /api/matches - Get all matches</div>
-    <div class="api-endpoint">GET /api/matches/{id} - Get specific match</div>
-    
-    <h3>Teams</h3>
-    <div class="api-endpoint">GET /api/teams - Get all teams</div>
-    <div class="api-endpoint">GET /api/teams/{id} - Get specific team</div>
-    
-    <h3>Players</h3>
-    <div class="api-endpoint">GET /api/players - Get all players</div>
-    <div class="api-endpoint">GET /api/players/{id} - Get specific player</div>
-    
-    <h3>Team Lineups</h3>
-    <div class="api-endpoint">GET /api/teamLineups - Get all team lineups</div>
-    <div class="api-endpoint">GET /api/teamLineups/{id} - Get specific lineup</div>
-    
-    <h3>Scoring</h3>
-    <div class="api-endpoint">POST /api/scoring/start-inning - Start a new inning</div>
-    <div class="api-endpoint">POST /api/scoring/record-ball - Record a ball</div>
-    
-    <p><strong>Status:</strong> ✅ API Server Running</p>
-    <p><strong>Database:</strong> ✅ Firestore Connected</p>
+    <div class="header">
+      <h1>🏏 Cricket Scoring API</h1>
+      <p>Interactive API Explorer - Click through to explore data</p>
+      <div id="status">
+        <p><strong>Status:</strong> <span id="api-status">Checking...</span></p>
+        <p><strong>Database:</strong> <span id="db-status">Checking...</span></p>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('overview')">Overview</button>
+      <button class="nav-tab" onclick="showSection('matches')">Matches</button>
+      <button class="nav-tab" onclick="showSection('teams')">Teams</button>
+      <button class="nav-tab" onclick="showSection('players')">Players</button>
+      <button class="nav-tab" onclick="showSection('lineups')">Team Lineups</button>
+    </div>
+
+    <div id="overview" class="content-section active">
+      <h2>API Overview</h2>
+      <p>Welcome to the Cricket Scoring API explorer. Use the tabs above to browse through different data collections.</p>
+
+      <h3>Available Endpoints:</h3>
+      <h4>Matches</h4>
+      <div class="api-endpoint">GET /api/matches - Get all matches</div>
+      <div class="api-endpoint">GET /api/matches/{id} - Get specific match</div>
+
+      <h4>Teams</h4>
+      <div class="api-endpoint">GET /api/teams - Get all teams</div>
+      <div class="api-endpoint">GET /api/teams/{id} - Get specific team</div>
+
+      <h4>Players</h4>
+      <div class="api-endpoint">GET /api/players - Get all players</div>
+      <div class="api-endpoint">GET /api/players/{id} - Get specific player</div>
+      <div class="api-endpoint">POST /api/players/merge - Merge multiple players into one</div>
+
+      <h4>Team Lineups</h4>
+      <div class="api-endpoint">GET /api/teamLineups - Get all team lineups</div>
+      <div class="api-endpoint">GET /api/teamLineups/{id} - Get specific lineup</div>
+
+      <h4>Scoring</h4>
+      <div class="api-endpoint">POST /api/scoring/start-inning - Start a new inning</div>
+      <div class="api-endpoint">POST /api/scoring/record-ball - Record a ball</div>
+    </div>
+
+    <div id="matches" class="content-section">
+      <h2>Matches</h2>
+      <div class="form-actions">
+        <button class="btn" onclick="loadMatches()">Load All Matches</button>
+        <button class="btn btn-secondary" onclick="showCreateForm('matches')">Create New Match</button>
+      </div>
+      <div id="matches-content"></div>
+      <div id="match-detail" class="detail-view" style="display: none;"></div>
+      <div id="matches-form" class="form-container">
+        <h3 id="matches-form-title">Create New Match</h3>
+        <form id="matches-form-element">
+          <div class="form-group">
+            <label for="matchType">Match Type:</label>
+            <select id="matchType" required>
+              <option value="T20">T20</option>
+              <option value="ODI">ODI</option>
+              <option value="Test">Test</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="venue">Venue:</label>
+            <input type="text" id="venue" required>
+          </div>
+          <div class="form-group">
+            <label for="scheduledDate">Scheduled Date:</label>
+            <input type="datetime-local" id="scheduledDate" required>
+          </div>
+          <div class="form-group">
+            <label for="team1Id">Team 1 ID:</label>
+            <input type="text" id="team1Id" placeholder="Enter formatted team ID" required>
+          </div>
+          <div class="form-group">
+            <label for="team2Id">Team 2 ID:</label>
+            <input type="text" id="team2Id" placeholder="Enter formatted team ID" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Save Match</button>
+            <button type="button" class="btn btn-secondary" onclick="hideCreateForm('matches')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="teams" class="content-section">
+      <h2>Teams</h2>
+      <div class="form-actions">
+        <button class="btn" onclick="loadTeams()">Load All Teams</button>
+        <button class="btn btn-secondary" onclick="showCreateForm('teams')">Create New Team</button>
+      </div>
+      <div id="teams-content"></div>
+      <div id="team-detail" class="detail-view" style="display: none;"></div>
+      <div id="teams-form" class="form-container">
+        <h3 id="teams-form-title">Create New Team</h3>
+        <form id="teams-form-element">
+          <div class="form-group">
+            <label for="teamName">Team Name:</label>
+            <input type="text" id="teamName" required>
+          </div>
+          <div class="form-group">
+            <label for="shortName">Short Name:</label>
+            <input type="text" id="shortName" required>
+          </div>
+          <div class="form-group">
+            <label for="captainId">Captain ID (optional):</label>
+            <input type="text" id="captainId" placeholder="Enter formatted player ID">
+          </div>
+          <div class="form-group">
+            <label for="homeGround">Home Ground:</label>
+            <input type="text" id="homeGround">
+          </div>
+          <div class="form-group">
+            <label for="foundedYear">Founded Year:</label>
+            <input type="number" id="foundedYear" min="1800" max="2030">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Save Team</button>
+            <button type="button" class="btn btn-secondary" onclick="hideCreateForm('teams')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="players" class="content-section">
+      <h2>Players</h2>
+      <div class="form-actions">
+        <button class="btn" onclick="loadPlayers()">Load All Players</button>
+        <button class="btn btn-secondary" onclick="showCreateForm('players')">Create New Player</button>
+        <button class="btn btn-success" onclick="recalculatePlayerStats()">Recalculate Statistics</button>
+      </div>
+      <div id="players-content"></div>
+      <div id="player-detail" class="detail-view" style="display: none;"></div>
+      <div id="players-form" class="form-container">
+        <h3 id="players-form-title">Create New Player</h3>
+        <form id="players-form-element">
+          <div class="form-group">
+            <label for="playerName">Player Name:</label>
+            <input type="text" id="playerName" required>
+          </div>
+          <div class="form-group">
+            <label for="role">Role:</label>
+            <select id="role" required>
+              <option value="Batsman">Batsman</option>
+              <option value="Bowler">Bowler</option>
+              <option value="All-rounder">All-rounder</option>
+              <option value="Wicket-keeper">Wicket-keeper</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="battingStyle">Batting Style:</label>
+            <select id="battingStyle">
+              <option value="">Select...</option>
+              <option value="Right-handed">Right-handed</option>
+              <option value="Left-handed">Left-handed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="bowlingStyle">Bowling Style:</label>
+            <input type="text" id="bowlingStyle" placeholder="e.g., Right-arm fast, Left-arm spin">
+          </div>
+          <div class="form-group">
+            <label for="teamId">Team ID (optional):</label>
+            <input type="text" id="teamId" placeholder="Enter formatted team ID">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Save Player</button>
+            <button type="button" class="btn btn-secondary" onclick="hideCreateForm('players')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="lineups" class="content-section">
+      <h2>Team Lineups</h2>
+      <div class="form-actions">
+        <button class="btn" onclick="loadLineups()">Load All Lineups</button>
+        <button class="btn btn-secondary" onclick="showCreateForm('lineups')">Create New Lineup</button>
+      </div>
+      <div id="lineups-content"></div>
+      <div id="lineup-detail" class="detail-view" style="display: none;"></div>
+      <div id="lineups-form" class="form-container">
+        <h3 id="lineups-form-title">Create New Team Lineup</h3>
+        <form id="lineups-form-element">
+          <div class="form-group">
+            <label for="lineupTeamId">Team ID:</label>
+            <input type="text" id="lineupTeamId" placeholder="Enter formatted team ID" required>
+          </div>
+          <div class="form-group">
+            <label for="captain">Captain ID:</label>
+            <input type="text" id="captain" placeholder="Enter formatted player ID" required>
+          </div>
+          <div class="form-group">
+            <label for="wicketKeeper">Wicket Keeper ID:</label>
+            <input type="text" id="wicketKeeper" placeholder="Enter formatted player ID" required>
+          </div>
+          <div class="form-group">
+            <label for="players">Player IDs (comma-separated):</label>
+            <textarea id="players" placeholder="Enter formatted player IDs separated by commas" required></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn">Save Lineup</button>
+            <button type="button" class="btn btn-secondary" onclick="hideCreateForm('lineups')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
+
+  <script>
+    let currentData = {};
+    let editingId = null;
+    let selectedPlayers = [];
+
+    // Merge functionality
+    function togglePlayerSelection(playerId) {
+      console.log('togglePlayerSelection called with:', playerId);
+      const checkbox = document.getElementById(`player-${playerId}`);
+      console.log('Checkbox found:', checkbox);
+      if (checkbox.checked) {
+        if (!selectedPlayers.includes(playerId)) {
+          selectedPlayers.push(playerId);
+        }
+      } else {
+        selectedPlayers = selectedPlayers.filter(id => id !== playerId);
+      }
+      console.log('Selected players now:', selectedPlayers);
+      updateMergeUI();
+    }
+
+    function clearSelection() {
+      selectedPlayers.forEach(playerId => {
+        const checkbox = document.getElementById(`player-${playerId}`);
+        if (checkbox) checkbox.checked = false;
+      });
+      selectedPlayers = [];
+      updateMergeUI();
+    }
+
+    function updateMergeUI() {
+      console.log('updateMergeUI called, selectedPlayers:', selectedPlayers);
+      const mergeActions = document.getElementById('merge-actions');
+      const selectionCount = document.getElementById('selection-count');
+
+      console.log('mergeActions element:', mergeActions);
+      if (selectedPlayers.length > 0) {
+        mergeActions.style.display = 'block';
+        selectionCount.textContent = `${selectedPlayers.length} player${selectedPlayers.length > 1 ? 's' : ''} selected`;
+        console.log('Showing merge actions');
+      } else {
+        mergeActions.style.display = 'none';
+        console.log('Hiding merge actions');
+      }
+    }
+
+    function showMergeModal() {
+      console.log('showMergeModal called, selectedPlayers:', selectedPlayers);
+      alert('Merge modal called with ' + selectedPlayers.length + ' players'); // Temporary debug
+      if (selectedPlayers.length < 2) {
+        alert('Please select at least 2 players to merge.');
+        return;
+      }
+
+      console.log('Creating merge modal...');
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Merge Players</h3>
+            <span class="modal-close" onclick="this.closest('.modal').remove()">&times;</span>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to merge these players?</p>
+            <div class="merge-preview">
+              <h4>Primary Player (will be kept):</h4>
+              <div class="primary-player">
+                ${getPlayerById(selectedPlayers[0]).name}
+              </div>
+              <h4>Players to merge (${selectedPlayers.length - 1}):</h4>
+              <ul>
+                ${selectedPlayers.slice(1).map(id => {
+                  const player = getPlayerById(id);
+                  return `<li>${player.name} (${player.matchesPlayed || 0} matches, ${player.totalRuns || 0} runs, ${player.totalWickets || 0} wickets)</li>`;
+                }).join('')}
+              </ul>
+            </div>
+            <div class="merge-info">
+              <h4>What happens during merge:</h4>
+              <ul>
+                <li>✅ Player statistics will be combined</li>
+                <li>✅ All match references will be updated</li>
+                <li>✅ Team lineups will be updated</li>
+                <li>✅ Duplicate players will be deactivated</li>
+              </ul>
+            </div>
+            <p class="warning"><strong>This action cannot be undone!</strong></p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+            <button class="btn btn-danger" onclick="performMerge()">Merge Players</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      console.log('Modal added to body');
+    }
+
+    function getPlayerById(playerId) {
+      return currentData.players.find(p => p.id === playerId);
+    }
+
+    async function performMerge() {
+      if (selectedPlayers.length < 2) return;
+
+      const primaryPlayerId = selectedPlayers[0];
+      const playersToMerge = selectedPlayers.slice(1);
+
+      try {
+        const result = await apiCall('/api/players/merge', 'POST', {
+          primaryPlayerId,
+          playersToMerge
+        });
+
+        document.querySelector('.modal').remove();
+        showSuccess('players-content', `Players merged successfully! ${result.stats.playersDeactivated} players deactivated, ${result.stats.teamLineupsUpdated} team lineups updated, ${result.stats.matchesUpdated} matches updated.`);
+        clearSelection();
+        loadPlayers();
+      } catch (error) {
+        showError('players-content', error);
+      }
+    }
+
+    // Form management functions
+    function showCreateForm(section) {
+      hideAllForms();
+      document.getElementById(`${section}-form`).classList.add('active');
+      document.getElementById(`${section}-content`).style.display = 'none';
+      document.getElementById(`${section}-form-title`).textContent = 'Create New ' + section.charAt(0).toUpperCase() + section.slice(1).slice(0, -1);
+      editingId = null;
+      clearForm(section);
+
+      // Reset form state for lineups
+      if (section === 'lineups') {
+        const form = document.getElementById('lineups-form-element');
+        form.removeAttribute('data-mode');
+        form.removeAttribute('data-lineup-id');
+        document.getElementById('lineups-form-title').textContent = 'Create New Team Lineup';
+      }
+    }
+
+    function hideCreateForm(section) {
+      const form = document.getElementById(`${section}-form`);
+      form.classList.remove('active');
+      form.style.display = 'none'; // Clear any inline styles
+      document.getElementById(`${section}-content`).style.display = 'block';
+      editingId = null;
+    }
+
+    function hideAllForms() {
+      document.querySelectorAll('.form-container').forEach(form => {
+        form.classList.remove('active');
+      });
+    }
+
+    function clearForm(section) {
+      const form = document.getElementById(`${section}-form-element`);
+      form.reset();
+    }
+
+    // CRUD API functions
+    async function apiCall(endpoint, method = 'GET', data = null) {
+      const config = {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+
+      if (data && method !== 'GET') {
+        config.body = JSON.stringify(data);
+      }
+
+      try {
+        const response = await fetch(endpoint, config);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('API Call Failed:', error);
+        throw error;
+      }
+    }
+    window.onload = function() {
+      checkApiStatus();
+    };
+
+    function showSection(sectionId) {
+      // Hide all sections
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Show selected section
+      document.getElementById(sectionId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    async function checkApiStatus() {
+      try {
+        const response = await fetch('/api/matches');
+        if (response.ok) {
+          document.getElementById('api-status').innerHTML = '✅ API Server Running';
+          document.getElementById('db-status').innerHTML = '✅ Firestore Connected';
+        } else {
+          throw new Error('API not responding');
+        }
+      } catch (error) {
+        document.getElementById('api-status').innerHTML = '❌ API Server Error';
+        document.getElementById('db-status').innerHTML = '❌ Database Connection Failed';
+        console.error('API Status Check Failed:', error);
+      }
+    }
+
+    function showLoading(elementId) {
+      document.getElementById(elementId).innerHTML = '<div class="loading">Loading...</div>';
+    }
+
+    function showError(elementId, error) {
+      document.getElementById(elementId).innerHTML = `<div class="error">Error: ${error.message}</div>`;
+    }
+
+    // Utility functions
+    function showSuccess(message) {
+      const successDiv = document.createElement('div');
+      successDiv.className = 'success';
+      successDiv.textContent = message;
+      document.querySelector('.container').insertBefore(successDiv, document.querySelector('.nav-tabs'));
+
+      setTimeout(() => {
+        successDiv.remove();
+      }, 3000);
+    }
+
+    // CRUD Operations
+
+    // Teams CRUD
+    async function createTeam(teamData) {
+      return await apiCall('/api/teams', 'POST', teamData);
+    }
+
+    async function updateTeam(teamId, teamData) {
+      return await apiCall(`/api/teams/${teamId}`, 'PUT', teamData);
+    }
+
+    async function deleteTeam(teamId) {
+      return await apiCall(`/api/teams/${teamId}`, 'DELETE');
+    }
+
+    // Form handlers
+    document.getElementById('teams-form-element').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const teamData = {
+        name: document.getElementById('teamName').value,
+        shortName: document.getElementById('shortName').value,
+        captainId: document.getElementById('captainId').value || null,
+        homeGround: document.getElementById('homeGround').value || null,
+        foundedYear: document.getElementById('foundedYear').value ? parseInt(document.getElementById('foundedYear').value) : null
+      };
+
+      try {
+        if (editingId) {
+          // Update existing team
+          await apiCall(`/api/teams/${editingId}`, 'PUT', teamData);
+          showSuccess('teams-content', 'Team updated successfully!');
+        } else {
+          // Create new team
+          await apiCall('/api/teams', 'POST', teamData);
+          showSuccess('teams-content', 'Team created successfully!');
+        }
+        hideCreateForm('teams');
+        loadTeams(); // Refresh the list
+      } catch (error) {
+        showError('teams-content', error);
+      }
+    });
+
+    // Edit/Delete handlers
+    function editTeam(teamId, event) {
+      event.stopPropagation();
+      const team = currentData.teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      editingId = teamId;
+      showCreateForm('teams');
+      document.getElementById('teams-form-title').textContent = 'Edit Team';
+
+      // Populate form
+      document.getElementById('teamName').value = team.name || '';
+      document.getElementById('shortName').value = team.shortName || '';
+      document.getElementById('captainId').value = team.captainId || '';
+      document.getElementById('homeGround').value = team.homeGround || '';
+      document.getElementById('foundedYear').value = team.foundedYear || '';
+    }
+
+    async function deleteTeam(teamId, event) {
+      event.stopPropagation();
+
+      if (!confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        await apiCall(`/api/teams/${teamId}`, 'DELETE');
+        showSuccess('teams-content', 'Team deleted successfully!');
+        loadTeams(); // Refresh the list
+      } catch (error) {
+        showError('teams-content', error);
+      }
+    }
+
+    // Form handlers for APIs that don't support operations yet
+    document.getElementById('matches-form-element').addEventListener('submit', function(e) {
+      e.preventDefault();
+      showError('matches-content', new Error('Match creation not implemented yet'));
+    });
+
+    document.getElementById('players-form-element').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const formData = {
+        name: document.getElementById('playerName').value.trim(),
+        role: document.getElementById('role').value,
+        battingStyle: document.getElementById('battingStyle').value || null,
+        bowlingStyle: document.getElementById('bowlingStyle').value.trim() || null,
+        teamId: document.getElementById('teamId').value.trim() || null
+      };
+
+      const mode = this.getAttribute('data-mode') || 'create';
+      const playerId = this.getAttribute('data-player-id');
+
+      try {
+        let result;
+        if (mode === 'edit' && playerId) {
+          // Update existing player
+          result = await apiCall(`/api/players/${playerId}`, 'PUT', formData);
+          showSuccess('players-content', `Player "${formData.name}" updated successfully!`);
+        } else {
+          // Create new player
+          result = await apiCall('/api/players', 'POST', formData);
+          showSuccess('players-content', `Player "${formData.name}" created successfully!`);
+        }
+
+        // Reset form and hide it
+        this.reset();
+        this.removeAttribute('data-mode');
+        this.removeAttribute('data-player-id');
+        document.getElementById('players-form-title').textContent = 'Create New Player';
+        hideCreateForm('players');
+
+        // Reload players list
+        await loadPlayers();
+
+      } catch (error) {
+        showError('players-content', error);
+      }
+    });
+
+    document.getElementById('lineups-form-element').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const playerIds = document.getElementById('players').value
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id.length > 0);
+
+      const lineupData = {
+        teamId: document.getElementById('lineupTeamId').value.trim(),
+        teamName: '', // Will be resolved by API
+        captainId: document.getElementById('captain').value.trim(),
+        wicketKeeperId: document.getElementById('wicketKeeper').value.trim(),
+        playerIds: playerIds,
+        playingXI: playerIds.slice(0, 11) // First 11 players as playing XI
+      };
+
+      const mode = this.getAttribute('data-mode') || 'create';
+      const lineupId = this.getAttribute('data-lineup-id');
+
+      try {
+        let result;
+        if (mode === 'edit' && lineupId) {
+          // Update existing lineup
+          result = await apiCall(`/api/teamLineups/${lineupId}`, 'PUT', lineupData);
+          showSuccess('lineups-content', 'Team lineup updated successfully!');
+        } else {
+          // Create new lineup
+          result = await apiCall('/api/teamLineups', 'POST', lineupData);
+          showSuccess('lineups-content', 'Team lineup created successfully!');
+        }
+
+        // Reset form and hide it
+        this.reset();
+        this.removeAttribute('data-mode');
+        this.removeAttribute('data-lineup-id');
+        document.getElementById('lineups-form-title').textContent = 'Create New Team Lineup';
+        hideCreateForm('lineups');
+
+        // Reload lineups list
+        await loadLineups();
+
+      } catch (error) {
+        showError('lineups-content', error);
+      }
+    });
+
+    // Placeholder CRUD functions for APIs that don't support operations yet
+    function editMatch(matchId, event) {
+      event.stopPropagation();
+      showError('matches-content', new Error('Match editing not implemented yet'));
+    }
+
+    async function deleteMatch(matchId, event) {
+      event.stopPropagation();
+      showError('matches-content', new Error('Match deletion not implemented yet'));
+    }
+
+    function editPlayer(playerId, event) {
+      event.stopPropagation();
+
+      // Find the player data
+      const player = currentData.players.find(p => p.id === playerId);
+      if (!player) {
+        showError('players-content', new Error('Player not found'));
+        return;
+      }
+
+      // Populate the form with player data
+      document.getElementById('playerName').value = player.name || '';
+      document.getElementById('role').value = player.role || 'all-rounder';
+      document.getElementById('battingStyle').value = player.battingStyle || '';
+      document.getElementById('bowlingStyle').value = player.bowlingStyle || '';
+      document.getElementById('teamId').value = player.teamId || '';
+
+      // Update form title and set editing mode
+      document.getElementById('players-form-title').textContent = 'Edit Player';
+      document.getElementById('players-form-element').setAttribute('data-mode', 'edit');
+      document.getElementById('players-form-element').setAttribute('data-player-id', playerId);
+
+      // Show the form
+      document.getElementById('players-form').classList.add('active');
+      document.getElementById('players-content').style.display = 'none';
+    }
+
+    async function deletePlayer(playerId, event) {
+      event.stopPropagation();
+
+      // Find the player data for confirmation
+      const player = currentData.players.find(p => p.id === playerId);
+      if (!player) {
+        showError('players-content', new Error('Player not found'));
+        return;
+      }
+
+      // Show confirmation dialog
+      if (!confirm(`Are you sure you want to delete player "${player.name}"? This will deactivate the player.`)) {
+        return;
+      }
+
+      try {
+        await apiCall(`/api/players/${playerId}`, 'DELETE');
+        showSuccess('players-content', `Player "${player.name}" deactivated successfully!`);
+
+        // Reload players list
+        await loadPlayers();
+
+      } catch (error) {
+        showError('players-content', error);
+      }
+    }
+
+    function editLineup(lineupId, event) {
+      event.stopPropagation();
+
+      // Find the lineup data
+      const lineup = currentData.lineups.find(l => l.id === lineupId);
+      if (!lineup) {
+        showError('lineups-content', new Error('Lineup not found'));
+        return;
+      }
+
+      // Populate the form with lineup data
+      document.getElementById('lineupTeamId').value = lineup.teamId || '';
+      document.getElementById('captain').value = lineup.captainId || '';
+      document.getElementById('wicketKeeper').value = lineup.wicketKeeperId || '';
+      document.getElementById('players').value = (lineup.playerIds || []).join(', ');
+
+      // Update form title and set editing mode
+      document.getElementById('lineups-form-title').textContent = 'Edit Team Lineup';
+      document.getElementById('lineups-form-element').setAttribute('data-mode', 'edit');
+      document.getElementById('lineups-form-element').setAttribute('data-lineup-id', lineupId);
+
+      // Show the form
+      document.getElementById('lineups-form').classList.add('active');
+      document.getElementById('lineups-content').style.display = 'none';
+    }
+
+    async function deleteLineup(lineupId, event) {
+      event.stopPropagation();
+
+      if (!confirm('Are you sure you want to delete this team lineup? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        await apiCall(`/api/teamLineups/${lineupId}`, 'DELETE');
+        showSuccess('lineups-content', 'Team lineup deleted successfully!');
+        await loadLineups(); // Refresh the list
+      } catch (error) {
+        showError('lineups-content', error);
+      }
+    }
+
+    // Matches functions
+    async function loadMatches() {
+      const contentId = 'matches-content';
+      showLoading(contentId);
+
+      try {
+        const data = await apiCall('/api/matches');
+        currentData.matches = data.data;
+        displayMatches(data.data, contentId);
+      } catch (error) {
+        showError(contentId, error);
+      }
+    }
+
+    function displayMatches(matches, containerId) {
+      if (!matches || matches.length === 0) {
+        document.getElementById(containerId).innerHTML = '<p>No matches found.</p>';
+        return;
+      }
+
+      let html = `<p>Found ${matches.length} matches:</p>`;
+      html += '<div class="data-grid">';
+
+      matches.forEach(match => {
+        const statusClass = match.status === 'live' ? 'status-live' :
+                           match.status === 'completed' ? 'status-completed' : 'status-upcoming';
+
+        html += `
+          <div class="data-card" onclick="showMatchDetail('${match.id}')">
+            <div class="card-actions">
+              <button class="btn btn-small btn-edit" onclick="editMatch('${match.id}', event)">Edit</button>
+              <button class="btn btn-small btn-delete" onclick="deleteMatch('${match.id}', event)">Delete</button>
+            </div>
+            <h3>${match.displayId || match.id}</h3>
+            <p><span class="status-indicator ${statusClass}"></span>${match.status || 'Unknown'}</p>
+            <p><strong>Teams:</strong> ${match.team1 ? match.team1.name : 'TBD'} vs ${match.team2 ? match.team2.name : 'TBD'}</p>
+            <p><strong>Score:</strong> ${match.team1Score || 0} - ${match.team2Score || 0}</p>
+            <p><strong>Result:</strong> ${match.result || 'N/A'}</p>
+            <p><strong>Type:</strong> ${match.matchType || 'N/A'}</p>
+            <p><strong>Venue:</strong> ${match.venue || 'N/A'}</p>
+            ${match.scheduledDate ? `<p><strong>Date:</strong> ${new Date(match.scheduledDate).toLocaleDateString()}</p>` : ''}
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    // Load detailed innings data using new API structure
+    async function loadMatchInningsData(matchId) {
+      try {
+        // First get the list of innings for this match
+        const inningsListResponse = await fetch(`/api/matches/${matchId}/innings`);
+        if (!inningsListResponse.ok) {
+          throw new Error('Failed to load innings list');
+        }
+
+        const inningsListData = await inningsListResponse.json();
+        if (!inningsListData.success || !inningsListData.data) {
+          throw new Error('Invalid innings list response');
+        }
+
+        const innings = [];
+
+        // For each inning, get the detailed data
+        for (const inningSummary of inningsListData.data) {
+          try {
+            const detailedResponse = await fetch(`/api/matches/${matchId}/innings/${inningSummary.id}`);
+            if (detailedResponse.ok) {
+              const detailedData = await detailedResponse.json();
+              if (detailedData.success && detailedData.data) {
+                // Transform the data to match the expected format
+                const inning = detailedData.data;
+                const match = currentData.matches?.find(m => m.id === matchId);
+                const teamName = match?.team1?.id === inning.battingTeam ?
+                               match?.team1?.name || 'Team 1' :
+                               match?.team2?.name || 'Team 2';
+
+                const transformedInning = {
+                  team: teamName,
+                  score: `${inning.totalRuns}/${inning.totalWickets}`,
+                  overs: `${Math.floor(inning.totalOvers)}.${inning.totalBalls % 6}`,
+                  batsmen: inning.batsmen?.map(b => ({
+                    name: b.player?.name || `Player ${b.playerId}`,
+                    runs: b.runs || 0,
+                    balls: b.balls || 0,
+                    fours: b.fours || 0,
+                    sixes: b.sixes || 0,
+                    sr: b.strikeRate || 0,
+                    status: b.status || 'not out'
+                  })) || [],
+                  bowling: inning.bowling?.map(b => ({
+                    name: b.player?.name || `Player ${b.playerId}`,
+                    overs: b.overs || 0,
+                    maidens: b.maidens || 0,
+                    runs: b.runs || 0,
+                    wickets: b.wickets || 0,
+                    econ: b.economy || 0,
+                    dots: b.dots || 0,
+                    fours: b.fours || 0,
+                    sixes: b.sixes || 0
+                  })) || []
+                };
+                innings.push(transformedInning);
+              }
+            }
+          } catch (error) {
+            console.log(`Failed to load detailed data for inning ${inningSummary.id}:`, error);
+          }
+        }
+
+        return innings.length > 0 ? innings : null;
+
+      } catch (error) {
+        console.log('API endpoints not available, trying direct file access');
+      }
+
+      // Fallback: try to load from a static JSON endpoint
+      try {
+        const response = await fetch('/reports/cricket_matches_summary_full.json');
+        if (response.ok) {
+          const matchesData = await response.json();
+          const matchData = matchesData.find(m => m.match_id === matchId || m.match_id === currentData.matches?.find(m => m.id === matchId)?.originalId);
+          return matchData ? matchData.innings : null;
+        }
+      } catch (error) {
+        console.log('Could not load innings data from JSON file');
+      }
+
+      return null;
+    }
+
+    async function showMatchDetail(matchId) {
+      const detailDiv = document.getElementById('match-detail');
+      detailDiv.style.display = 'block';
+      detailDiv.innerHTML = '<div class="loading">Loading match details...</div>';
+
+      try {
+        const data = await apiCall(`/api/matches/${matchId}`);
+        const match = data.data;
+
+        let html = `<h3>Match Details: ${match.displayId || match.id}</h3>`;
+        html += '<div class="detail-grid">';
+
+        // Basic info
+        html += `<div class="detail-item"><strong>Status:</strong> ${match.status || 'Unknown'}</div>`;
+        html += `<div class="detail-item"><strong>Type:</strong> ${match.matchType || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Venue:</strong> ${match.venue || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Current Innings:</strong> ${match.currentInnings || 'N/A'}</div>`;
+
+        // Teams
+        if (match.team1) {
+          html += `<div class="detail-item"><strong>Team 1:</strong> ${match.team1.name} (${match.team1.shortName})</div>`;
+        }
+        if (match.team2) {
+          html += `<div class="detail-item"><strong>Team 2:</strong> ${match.team2.name} (${match.team2.shortName})</div>`;
+        }
+
+        // Scores
+        html += `<div class="detail-item"><strong>Team 1 Score:</strong> ${match.team1Score || 0}</div>`;
+        html += `<div class="detail-item"><strong>Team 2 Score:</strong> ${match.team2Score || 0}</div>`;
+
+        // Result
+        if (match.winner && match.team1 && match.team2) {
+          const winnerName = match.winner === match.team1.id ? match.team1.name :
+                           match.winner === match.team2.id ? match.team2.name : 'Unknown';
+          html += `<div class="detail-item"><strong>Winner:</strong> ${winnerName}</div>`;
+        }
+        html += `<div class="detail-item"><strong>Result:</strong> ${match.result || 'N/A'}</div>`;
+
+        html += '</div>';
+
+        // Load detailed innings data from JSON
+        try {
+          const inningsData = await loadMatchInningsData(matchId);
+          if (inningsData && inningsData.length > 0) {
+            html += '<h4>Detailed Innings</h4>';
+
+            inningsData.forEach((inning, index) => {
+              const inningNumber = index + 1;
+              html += `<div class="inning-details">`;
+              html += `<h5>Inning ${inningNumber}: ${inning.team} - ${inning.score} (${inning.overs})</h5>`;
+
+              // Batting table
+              if (inning.batsmen && inning.batsmen.length > 0) {
+                html += '<h6>Batting</h6>';
+                html += '<table class="innings-table">';
+                html += '<tr><th>Batsman</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th><th>SR</th><th>Dismissal</th></tr>';
+
+                inning.batsmen.forEach(batsman => {
+                  html += `<tr>
+                    <td>${batsman.name}</td>
+                    <td>${batsman.runs}</td>
+                    <td>${batsman.balls}</td>
+                    <td>${batsman.fours || 0}</td>
+                    <td>${batsman.sixes || 0}</td>
+                    <td>${batsman.sr || 'N/A'}</td>
+                    <td>${batsman.status}</td>
+                  </tr>`;
+                });
+
+                html += '</table>';
+              }
+
+              // Bowling table
+              if (inning.bowling && inning.bowling.length > 0) {
+                html += '<h6>Bowling</h6>';
+                html += '<table class="innings-table">';
+                html += '<tr><th>Bowler</th><th>Overs</th><th>Maidens</th><th>Runs</th><th>Wickets</th><th>Econ</th><th>Dots</th><th>4s</th><th>6s</th></tr>';
+
+                inning.bowling.forEach(bowler => {
+                  html += `<tr>
+                    <td>${bowler.name}</td>
+                    <td>${bowler.overs}</td>
+                    <td>${bowler.maidens || 0}</td>
+                    <td>${bowler.runs}</td>
+                    <td>${bowler.wickets}</td>
+                    <td>${bowler.eco || 'N/A'}</td>
+                    <td>${bowler.dots || 0}</td>
+                    <td>${bowler.fours || 0}</td>
+                    <td>${bowler.sixes || 0}</td>
+                  </tr>`;
+                });
+
+                html += '</table>';
+              }
+
+              // Fall of wickets
+              if (inning.fall_of_wickets && inning.fall_of_wickets.length > 0) {
+                html += '<h6>Fall of Wickets</h6>';
+                html += '<table class="innings-table">';
+                html += '<tr><th>Wicket</th><th>Score</th><th>Player Out</th><th>Over</th></tr>';
+
+                inning.fall_of_wickets.forEach(fow => {
+                  html += `<tr>
+                    <td>${fow.wicket_number}</td>
+                    <td>${fow.score}</td>
+                    <td>${fow.player_out}</td>
+                    <td>${fow.over}</td>
+                  </tr>`;
+                });
+
+                html += '</table>';
+              }
+
+              html += '</div>';
+            });
+          } else {
+            // Fallback to basic innings summary
+            if (match.innings && match.innings.length > 0) {
+              html += '<h4>Innings Summary</h4>';
+              html += '<table class="innings-table">';
+              html += '<tr><th>Inning</th><th>Runs</th><th>Wickets</th><th>Overs</th><th>Run Rate</th><th>Batting Team</th><th>Bowling Team</th></tr>';
+
+              match.innings.forEach(inning => {
+                const battingTeam = match.team1 && match.team1.id === inning.battingTeam ? match.team1.name :
+                                  match.team2 && match.team2.id === inning.battingTeam ? match.team2.name : inning.battingTeam;
+                const bowlingTeam = match.team1 && match.team1.id === inning.bowlingTeam ? match.team1.name :
+                                  match.team2 && match.team2.id === inning.bowlingTeam ? match.team2.name : inning.bowlingTeam;
+
+                html += `<tr>
+                  <td>${inning.id}</td>
+                  <td>${inning.totalRuns}</td>
+                  <td>${inning.totalWickets}</td>
+                  <td>${inning.totalOvers}</td>
+                  <td>${inning.runRate ? inning.runRate.toFixed(2) : 'N/A'}</td>
+                  <td>${battingTeam}</td>
+                  <td>${bowlingTeam}</td>
+                </tr>`;
+              });
+
+              html += '</table>';
+            }
+          }
+        } catch (inningsError) {
+          console.error('Error loading innings data:', inningsError);
+          // Fallback to basic innings summary
+          if (match.innings && match.innings.length > 0) {
+            html += '<h4>Innings Summary</h4>';
+            html += '<table class="innings-table">';
+            html += '<tr><th>Inning</th><th>Runs</th><th>Wickets</th><th>Overs</th><th>Run Rate</th><th>Batting Team</th><th>Bowling Team</th></tr>';
+
+            match.innings.forEach(inning => {
+              const battingTeam = match.team1 && match.team1.id === inning.battingTeam ? match.team1.name :
+                                match.team2 && match.team2.id === inning.battingTeam ? match.team2.name : inning.battingTeam;
+              const bowlingTeam = match.team1 && match.team1.id === inning.bowlingTeam ? match.team1.name :
+                                match.team2 && match.team2.id === inning.bowlingTeam ? match.team2.name : inning.bowlingTeam;
+
+              html += `<tr>
+                <td>${inning.id}</td>
+                <td>${inning.totalRuns}</td>
+                <td>${inning.totalWickets}</td>
+                <td>${inning.totalOvers}</td>
+                <td>${inning.runRate ? inning.runRate.toFixed(2) : 'N/A'}</td>
+                <td>${battingTeam}</td>
+                <td>${bowlingTeam}</td>
+              </tr>`;
+            });
+
+            html += '</table>';
+          }
+        }
+
+        html += '<br><button class="btn btn-secondary" onclick="hideMatchDetail()">Close Details</button>';
+
+        detailDiv.innerHTML = html;
+        detailDiv.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (error) {
+        detailDiv.innerHTML = `<div class="error">Error loading match details: ${error.message}</div>`;
+      }
+    }
+
+    function hideMatchDetail() {
+      document.getElementById('match-detail').style.display = 'none';
+    }
+
+    // Teams functions
+    async function loadTeams() {
+      const contentId = 'teams-content';
+      showLoading(contentId);
+
+      try {
+        const data = await apiCall('/api/teams');
+        currentData.teams = data.data;
+        displayTeams(data.data, contentId);
+      } catch (error) {
+        showError(contentId, error);
+      }
+    }
+
+    function displayTeams(teams, containerId) {
+      if (!teams || teams.length === 0) {
+        document.getElementById(containerId).innerHTML = '<p>No teams found.</p>';
+        return;
+      }
+
+      let html = `<p>Found ${teams.length} teams:</p>`;
+      html += '<div class="data-grid">';
+
+      teams.forEach(team => {
+        html += `
+          <div class="data-card" onclick="showTeamDetail('${team.id}')">
+            <div class="card-actions">
+              <button class="btn btn-small btn-edit" onclick="editTeam('${team.id}', event)">Edit</button>
+              <button class="btn btn-small btn-delete" onclick="deleteTeam('${team.id}', event)">Delete</button>
+            </div>
+            <h3>${team.name}</h3>
+            <p><strong>Short Name:</strong> ${team.shortName || 'N/A'}</p>
+            <p><strong>ID:</strong> ${team.displayId || team.id}</p>
+            <p><strong>Players:</strong> ${team.playersCount || 0}</p>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    async function showTeamDetail(teamId) {
+      const detailDiv = document.getElementById('team-detail');
+      detailDiv.style.display = 'block';
+      detailDiv.innerHTML = '<div class="loading">Loading team details...</div>';
+
+      try {
+        const data = await apiCall(`/api/teams/${teamId}`);
+        const team = data.data;
+
+        let html = `<h3>Team Details: ${team.name}</h3>`;
+        html += '<div class="detail-grid">';
+
+        html += `<div class="detail-item"><strong>Name:</strong> ${team.name}</div>`;
+        html += `<div class="detail-item"><strong>Short Name:</strong> ${team.shortName || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>ID:</strong> ${team.displayId || team.id}</div>`;
+        html += `<div class="detail-item"><strong>Created:</strong> ${team.createdAt ? new Date(team.createdAt).toLocaleDateString() : 'N/A'}</div>`;
+
+        html += '</div>';
+
+        html += '<br><button class="btn btn-secondary" onclick="hideTeamDetail()">Close Details</button>';
+
+        detailDiv.innerHTML = html;
+        detailDiv.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (error) {
+        detailDiv.innerHTML = `<div class="error">Error loading team details: ${error.message}</div>`;
+      }
+    }
+
+    function hideTeamDetail() {
+      document.getElementById('team-detail').style.display = 'none';
+    }
+
+    // Players functions
+    async function loadPlayers() {
+      const contentId = 'players-content';
+      showLoading(contentId);
+
+      try {
+        const data = await apiCall('/api/players');
+        currentData.players = data.data;
+        displayPlayers(data.data, contentId);
+      } catch (error) {
+        showError(contentId, error);
+      }
+    }
+
+    function displayPlayers(players, containerId) {
+      if (!players || players.length === 0) {
+        document.getElementById(containerId).innerHTML = '<p>No players found.</p>';
+        return;
+      }
+
+      let html = `<p>Found ${players.length} players:</p>`;
+      html += '<div class="merge-actions" id="merge-actions" style="display: none;">';
+      html += '<button class="btn btn-warning" onclick="showMergeModal()">Merge Selected Players</button>';
+      html += '<button class="btn btn-secondary" onclick="clearSelection()">Clear Selection</button>';
+      html += '<button class="btn" onclick="alert(\'Test button works!\')">Test Button</button>';
+      html += '<span id="selection-count">0 players selected</span>';
+      html += '</div>';
+      html += '<div class="data-grid">';
+
+      players.forEach(player => {
+        html += `
+          <div class="data-card">
+            <div class="card-checkbox">
+              <input type="checkbox" id="player-${player.id}" onchange="togglePlayerSelection('${player.id}')" onclick="console.log('Checkbox clicked for ${player.id}')">
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-small btn-edit" onclick="editPlayer('${player.id}', event)">Edit</button>
+              <button class="btn btn-small btn-delete" onclick="deletePlayer('${player.id}', event)">Delete</button>
+            </div>
+            <h3>${player.name}</h3>
+            <p><strong>Role:</strong> ${player.role || 'N/A'}</p>
+            <p><strong>ID:</strong> ${player.displayId || player.id}</p>
+            <p><strong>Team:</strong> ${player.teamName || 'N/A'}</p>
+            <p><strong>Matches:</strong> ${player.matchesPlayed || 0}</p>
+            <p><strong>Runs:</strong> ${player.totalRuns || 0} | <strong>Wickets:</strong> ${player.totalWickets || 0}</p>
+            <p><strong>Overs Bowled:</strong> ${player.oversBowled || 0} | <strong>Runs Conceded:</strong> ${player.runsConceded || 0}</p>
+            <p><strong>Batting Avg:</strong> ${player.battingAverage ? player.battingAverage.toFixed(2) : 'N/A'} | <strong>Bowling Avg:</strong> ${player.bowlingAverage ? player.bowlingAverage.toFixed(2) : 'N/A'}</p>
+            <p><strong>Strike Rate:</strong> ${player.battingStrikeRate ? player.battingStrikeRate.toFixed(2) : 'N/A'} | <strong>Economy:</strong> ${player.bowlingEconomy ? player.bowlingEconomy.toFixed(2) : 'N/A'}</p>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    async function showPlayerDetail(playerId) {
+      const detailDiv = document.getElementById('player-detail');
+      detailDiv.style.display = 'block';
+      detailDiv.innerHTML = '<div class="loading">Loading player details...</div>';
+
+      try {
+        const data = await apiCall(`/api/players/${playerId}`);
+        const player = data.data;
+
+        let html = `<h3>Player Details: ${player.name}</h3>`;
+        html += '<div class="detail-grid">';
+
+        html += `<div class="detail-item"><strong>Name:</strong> ${player.name}</div>`;
+        html += `<div class="detail-item"><strong>Role:</strong> ${player.role || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>ID:</strong> ${player.displayId || player.id}</div>`;
+        html += `<div class="detail-item"><strong>Team:</strong> ${player.teamName || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Batting Style:</strong> ${player.battingStyle || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Bowling Style:</strong> ${player.bowlingStyle || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Matches Played:</strong> ${player.matchesPlayed || 0}</div>`;
+        html += `<div class="detail-item"><strong>Total Runs:</strong> ${player.totalRuns || 0}</div>`;
+        html += `<div class="detail-item"><strong>Total Balls:</strong> ${player.totalBalls || 0}</div>`;
+        html += `<div class="detail-item"><strong>Total Wickets:</strong> ${player.totalWickets || 0}</div>`;
+        html += `<div class="detail-item"><strong>Overs Bowled:</strong> ${player.oversBowled || 0}</div>`;
+        html += `<div class="detail-item"><strong>Runs Conceded:</strong> ${player.runsConceded || 0}</div>`;
+        html += `<div class="detail-item"><strong>Batting Average:</strong> ${player.battingAverage ? player.battingAverage.toFixed(2) : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Bowling Average:</strong> ${player.bowlingAverage ? player.bowlingAverage.toFixed(2) : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Batting Strike Rate:</strong> ${player.battingStrikeRate ? player.battingStrikeRate.toFixed(2) : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Bowling Economy:</strong> ${player.bowlingEconomy ? player.bowlingEconomy.toFixed(2) : 'N/A'}</div>`;
+
+        html += '</div>';
+
+        html += '<br><button class="btn btn-secondary" onclick="hidePlayerDetail()">Close Details</button>';
+
+        detailDiv.innerHTML = html;
+        detailDiv.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (error) {
+        detailDiv.innerHTML = `<div class="error">Error loading player details: ${error.message}</div>`;
+      }
+    }
+
+    function hidePlayerDetail() {
+      document.getElementById('player-detail').style.display = 'none';
+    }
+
+    async function recalculatePlayerStats() {
+      console.log('🔄 recalculatePlayerStats called');
+
+      // First, get the preview mapping
+      const contentId = 'players-content';
+      showLoading(contentId, 'Getting player mapping preview...');
+
+      try {
+        console.log('📡 Making API call to /api/players/preview-recalculate-stats');
+        const previewResult = await apiCall('/api/players/preview-recalculate-stats', 'GET');
+        console.log('📊 Preview result:', previewResult);
+
+        // Transform API response to expected format
+        const transformedStats = {
+          playerMapping: previewResult.data.playerMapping,
+          databasePlayers: [], // We'll populate this from playerMapping
+          jsonPlayers: [], // We'll populate this from playerMapping
+          playersInDatabase: previewResult.data.totalPlayersInDatabase,
+          jsonPlayersFound: previewResult.data.playerMapping.length,
+          matchesProcessed: previewResult.data.matchesProcessed
+        };
+
+        // Extract unique database players from mapping
+        const dbPlayerMap = new Map();
+        previewResult.data.playerMapping.forEach(mapping => {
+          if (mapping.databasePlayerId && !dbPlayerMap.has(mapping.databasePlayerId)) {
+            dbPlayerMap.set(mapping.databasePlayerId, {
+              id: mapping.databasePlayerId,
+              name: mapping.databasePlayerName,
+              numericId: mapping.databasePlayerId, // Assuming ID is numeric for display
+              role: 'N/A' // We don't have role info in mapping
+            });
+          }
+        });
+        transformedStats.databasePlayers = Array.from(dbPlayerMap.values());
+
+        // Extract unique JSON players from mapping
+        const jsonPlayerMap = new Map();
+        previewResult.data.playerMapping.forEach(mapping => {
+          if (!jsonPlayerMap.has(mapping.matchPlayerName)) {
+            // Find if there's a suggested match
+            const suggestedMatch = previewResult.data.playerMapping.find(m => 
+              m.matchPlayerName === mapping.matchPlayerName && m.databasePlayerId
+            );
+            
+            jsonPlayerMap.set(mapping.matchPlayerName, {
+              name: mapping.matchPlayerName,
+              matchCount: mapping.matchCount,
+              suggestedMatch: suggestedMatch ? {
+                id: suggestedMatch.databasePlayerId,
+                name: suggestedMatch.databasePlayerName
+              } : null
+            });
+          }
+        });
+        transformedStats.jsonPlayers = Array.from(jsonPlayerMap.values());
+
+        // Show preview modal
+        showRecalculationPreviewModal(transformedStats);
+
+      } catch (error) {
+        console.error('❌ Preview failed:', error);
+        showError(contentId, error);
+      }
+    }
+
+    function showRecalculationPreviewModal(stats) {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.id = 'recalculation-preview-modal';
+
+      const matched = stats.playerMapping.filter(p => p.status === 'matched');
+      const unmatched = stats.playerMapping.filter(p => p.status === 'unmatched');
+
+      let html = `
+        <div class="modal-content" style="max-width: 1400px; max-height: 90vh; overflow-y: auto;">
+          <div class="modal-header">
+            <h3>📊 Player Statistics Recalculation - Manual Mapping</h3>
+            <span class="modal-close" onclick="closeRecalculationPreviewModal()">&times;</span>
+          </div>
+          <div class="modal-body">
+            <div class="preview-summary">
+              <div class="summary-item">
+                <strong>Matches to Process:</strong> ${stats.matchesProcessed}
+              </div>
+              <div class="summary-item">
+                <strong>Players in Database:</strong> ${stats.playersInDatabase}
+              </div>
+              <div class="summary-item">
+                <strong>Players in Match Data:</strong> ${stats.jsonPlayersFound}
+              </div>
+              <div class="summary-item">
+                <strong>Auto-Matched:</strong> <span style="color: #28a745;">${matched.length}</span>
+              </div>
+              <div class="summary-item">
+                <strong>Need Manual Mapping:</strong> <span style="color: #ffc107;">${unmatched.length}</span>
+              </div>
+            </div>
+
+            <div class="mapping-interface">
+              <div class="mapping-instructions">
+                <h4>How to Map Players:</h4>
+                <ul>
+                  <li><strong>Auto-matched players</strong> are already linked (green background)</li>
+                  <li><strong>Click on unmatched JSON players</strong> to select them</li>
+                  <li><strong>Click on database players</strong> to map the selected JSON player to them</li>
+                  <li><strong>Unmapped players</strong> will be skipped during recalculation</li>
+                  <li><strong>Suggested matches</strong> are shown with dashed borders</li>
+                </ul>
+              </div>
+
+              <div class="mapping-columns">
+                <div class="mapping-column">
+                  <h4>📋 Database Players (${stats.databasePlayers.length})</h4>
+                  <div class="player-list" id="database-players-list">`;
+
+      // Database players list
+      stats.databasePlayers.forEach(player => {
+        const isMapped = stats.playerMapping.some(m => m.databasePlayerId === player.id && m.status === 'matched');
+        const mappingClass = isMapped ? 'mapped-player' : 'unmapped-player';
+        html += `<div class="player-card ${mappingClass}" data-player-id="${player.id}" onclick="selectDatabasePlayer('${player.id}')">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-details">
+                      ID: ${player.numericId || player.id} |
+                      Role: ${player.role || 'N/A'}
+                    </div>
+                  </div>`;
+      });
+
+      html += `</div>
+                </div>
+
+                <div class="mapping-column">
+                  <h4>📄 JSON Match Players (${stats.jsonPlayers.length})</h4>
+                  <div class="player-list" id="json-players-list">`;
+
+      // JSON players list
+      stats.jsonPlayers.forEach(jsonPlayer => {
+        const isMapped = jsonPlayer.suggestedMatch !== null;
+        const mappingClass = isMapped ? 'suggested-match' : 'unmapped-player';
+        const suggestedDbId = jsonPlayer.suggestedMatch ? jsonPlayer.suggestedMatch.id : '';
+        html += `<div class="player-card ${mappingClass}" data-json-name="${jsonPlayer.name}" data-suggested-db="${suggestedDbId}" onclick="selectJsonPlayer('${jsonPlayer.name}')">
+                    <div class="player-name">${jsonPlayer.name}</div>
+                    <div class="player-details">
+                      Matches: ${jsonPlayer.matchCount}
+                      ${jsonPlayer.suggestedMatch ? `<br>Suggested: ${jsonPlayer.suggestedMatch.name}` : ''}
+                    </div>
+                  </div>`;
+      });
+
+      html += `</div>
+                </div>
+              </div>
+
+              <div class="mapping-actions">
+                <button class="btn btn-secondary" onclick="clearAllMappings()">Clear All Mappings</button>
+                <button class="btn btn-info" onclick="autoMapSuggested()">Auto-Map Suggested</button>
+                <div class="mapping-status">
+                  <span id="mapping-status">Selected: None</span>
+                </div>
+              </div>
+
+              <div class="current-mappings">
+                <h4>Current Mappings (${matched.length})</h4>
+                <div id="current-mappings-list">`;
+
+      // Show current mappings
+      matched.forEach(mapping => {
+        html += `<div class="mapping-item">
+                    <span class="json-player">${mapping.matchPlayerName}</span>
+                    <span class="arrow">→</span>
+                    <span class="db-player">${mapping.databasePlayerName}</span>
+                    <button class="btn-small btn-danger" onclick="removeMapping('${mapping.matchPlayerName}')">Remove</button>
+                  </div>`;
+      });
+
+      html += `</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeRecalculationPreviewModal()">Cancel</button>
+            <button class="btn btn-success" onclick="proceedWithRecalculation()">
+              Proceed with Recalculation (${matched.length} players will be updated)
+            </button>
+          </div>
+        </div>
+      `;
+
+      modal.innerHTML = html;
+      document.body.appendChild(modal);
+
+      // Store the preview data for later use
+      window.recalculationPreviewData = stats;
+      window.currentMappings = new Map(); // jsonPlayerName -> databasePlayerId
+
+      // Initialize mappings from auto-matched players
+      matched.forEach(mapping => {
+        window.currentMappings.set(mapping.matchPlayerName, mapping.databasePlayerId);
+      });
+
+      // Initialize selected players
+      window.selectedJsonPlayer = null;
+      window.selectedDatabasePlayer = null;
+    }
+
+    function closeRecalculationPreviewModal() {
+      const modal = document.getElementById('recalculation-preview-modal');
+      if (modal) {
+        modal.remove();
+      }
+      delete window.recalculationPreviewData;
+      delete window.currentMappings;
+      delete window.selectedJsonPlayer;
+      delete window.selectedDatabasePlayer;
+    }
+
+    // Player mapping functions
+    function selectJsonPlayer(jsonPlayerName) {
+      // Clear previous selection
+      document.querySelectorAll('.player-card.selected-json').forEach(card => {
+        card.classList.remove('selected-json');
+      });
+
+      // Select new JSON player
+      const jsonCard = document.querySelector(`[data-json-name="${jsonPlayerName}"]`);
+      if (jsonCard) {
+        jsonCard.classList.add('selected-json');
+        window.selectedJsonPlayer = jsonPlayerName;
+        updateMappingStatus();
+      }
+    }
+
+    function selectDatabasePlayer(databasePlayerId) {
+      if (!window.selectedJsonPlayer) {
+        alert('Please select a JSON player first');
+        return;
+      }
+
+      // Create the mapping
+      window.currentMappings.set(window.selectedJsonPlayer, databasePlayerId);
+
+      // Update UI
+      updateMappingsDisplay();
+      updatePlayerCardStyles();
+
+      // Clear selection
+      document.querySelectorAll('.player-card.selected-json').forEach(card => {
+        card.classList.remove('selected-json');
+      });
+      window.selectedJsonPlayer = null;
+      updateMappingStatus();
+    }
+
+    function removeMapping(jsonPlayerName) {
+      window.currentMappings.delete(jsonPlayerName);
+      updateMappingsDisplay();
+      updatePlayerCardStyles();
+    }
+
+    function clearAllMappings() {
+      if (confirm('Are you sure you want to clear all manual mappings? Auto-matched players will remain.')) {
+        // Keep only auto-matched mappings
+        const autoMatched = new Map();
+        const stats = window.recalculationPreviewData;
+        const matched = stats.playerMapping.filter(p => p.status === 'matched');
+        matched.forEach(mapping => {
+          autoMatched.set(mapping.matchPlayerName, mapping.databasePlayerId);
+        });
+        window.currentMappings = autoMatched;
+        updateMappingsDisplay();
+        updatePlayerCardStyles();
+      }
+    }
+
+    function autoMapSuggested() {
+      const stats = window.recalculationPreviewData;
+      stats.jsonPlayers.forEach(jsonPlayer => {
+        if (jsonPlayer.suggestedMatch && !window.currentMappings.has(jsonPlayer.name)) {
+          window.currentMappings.set(jsonPlayer.name, jsonPlayer.suggestedMatch.id);
+        }
+      });
+      updateMappingsDisplay();
+      updatePlayerCardStyles();
+    }
+
+    function updateMappingStatus() {
+      const statusEl = document.getElementById('mapping-status');
+      if (window.selectedJsonPlayer) {
+        statusEl.textContent = `Selected: ${window.selectedJsonPlayer} - Click a database player to map`;
+        statusEl.style.color = '#007bff';
+      } else {
+        statusEl.textContent = 'Selected: None';
+        statusEl.style.color = '#6c757d';
+      }
+    }
+
+    function updateMappingsDisplay() {
+      const mappingsList = document.getElementById('current-mappings-list');
+      const stats = window.recalculationPreviewData;
+
+      let html = '';
+      let count = 0;
+
+      window.currentMappings.forEach((dbPlayerId, jsonPlayerName) => {
+        const dbPlayer = stats.databasePlayers.find(p => p.id === dbPlayerId);
+        if (dbPlayer) {
+          html += `<div class="mapping-item">
+                      <span class="json-player">${jsonPlayerName}</span>
+                      <span class="arrow">→</span>
+                      <span class="db-player">${dbPlayer.name}</span>
+                      <button class="btn-small btn-danger" onclick="removeMapping('${jsonPlayerName}')">Remove</button>
+                    </div>`;
+          count++;
+        }
+      });
+
+      mappingsList.innerHTML = html;
+
+      // Update the header count
+      const header = mappingsList.previousElementSibling;
+      header.textContent = `Current Mappings (${count})`;
+
+      // Update proceed button
+      const proceedBtn = document.querySelector('#recalculation-preview-modal .btn-success');
+      if (proceedBtn) {
+        proceedBtn.textContent = `Proceed with Recalculation (${count} players will be updated)`;
+      }
+    }
+
+    function updatePlayerCardStyles() {
+      // Update database player cards
+      document.querySelectorAll('#database-players-list .player-card').forEach(card => {
+        const playerId = card.dataset.playerId;
+        const isMapped = Array.from(window.currentMappings.values()).includes(playerId);
+        card.classList.toggle('mapped-player', isMapped);
+        card.classList.toggle('unmapped-player', !isMapped);
+      });
+
+      // Update JSON player cards
+      document.querySelectorAll('#json-players-list .player-card').forEach(card => {
+        const jsonName = card.dataset.jsonName;
+        const isMapped = window.currentMappings.has(jsonName);
+        card.classList.toggle('mapped-player', isMapped);
+        card.classList.toggle('unmapped-player', !isMapped);
+      });
+    }
+
+    async function proceedWithRecalculation() {
+      closeRecalculationPreviewModal();
+
+      if (!confirm('This will update statistics for all mapped players. Continue?')) {
+        return;
+      }
+
+      const contentId = 'players-content';
+      showLoading(contentId);
+
+      try {
+        console.log('📡 Making API call to /api/players/recalculate-stats');
+
+        // Send custom mappings if they exist
+        const requestBody = {};
+        if (window.currentMappings && window.currentMappings.size > 0) {
+          requestBody.customMappings = Object.fromEntries(window.currentMappings);
+        }
+
+        const result = await apiCall('/api/players/recalculate-stats', 'POST', requestBody);
+        console.log('📊 Recalculation result:', result);
+
+        // Display success message with mapping
+        let message = `Statistics recalculated successfully! Updated ${result.data.playersUpdated} players with data from ${result.data.matchesProcessed} matches.`;
+        message += `<br><br><strong>Player Mapping Summary:</strong>`;
+        message += `<br>• Total players in database: ${result.data.totalPlayersInDatabase}`;
+        message += `<br>• Players with updated statistics: ${result.data.playersUpdated}`;
+
+        // Create detailed mapping display
+        if (result.data.playerMapping && result.data.playerMapping.length > 0) {
+          const matched = result.data.playerMapping.filter(p => p.status === 'matched');
+          const unmatched = result.data.playerMapping.filter(p => p.status === 'unmatched');
+
+          message += `<br>• Players matched from match data: ${matched.length}`;
+          message += `<br>• Players from match data with no database match: ${unmatched.length}`;
+
+          // Add detailed mapping table
+          message += `<br><br><div class="player-mapping-container">`;
+          message += `<h4>Player Statistics Mapping Details</h4>`;
+          message += `<div class="mapping-tabs">`;
+          message += `<button class="mapping-tab active" onclick="showMappingTab('matched')">Matched Players (${matched.length})</button>`;
+          message += `<button class="mapping-tab" onclick="showMappingTab('unmatched')">Unmatched Players (${unmatched.length})</button>`;
+          message += `</div>`;
+
+          message += `<div id="matched-mapping" class="mapping-content active">`;
+          message += `<table class="mapping-table">`;
+          message += `<thead><tr><th>Match Player Name</th><th>Database Player</th><th>Match Appearances</th></tr></thead>`;
+          message += `<tbody>`;
+          matched.slice(0, 50).forEach(player => { // Show first 50 to avoid overwhelming display
+            message += `<tr>`;
+            message += `<td>${player.matchPlayerName}</td>`;
+            message += `<td>${player.databasePlayerName} (${player.databasePlayerId})</td>`;
+            message += `<td>${player.matchCount}</td>`;
+            message += `</tr>`;
+          });
+          if (matched.length > 50) {
+            message += `<tr><td colspan="3"><em>... and ${matched.length - 50} more matched players</em></td></tr>`;
+          }
+          message += `</tbody></table></div>`;
+
+          message += `<div id="unmatched-mapping" class="mapping-content">`;
+          message += `<table class="mapping-table">`;
+          message += `<thead><tr><th>Match Player Name</th><th>Status</th><th>Match Appearances</th></tr></thead>`;
+          message += `<tbody>`;
+          unmatched.slice(0, 50).forEach(player => { // Show first 50
+            message += `<tr>`;
+            message += `<td>${player.matchPlayerName}</td>`;
+            message += `<td><span class="status-unmatched">No match found</span></td>`;
+            message += `<td>${player.matchCount}</td>`;
+            message += `</tr>`;
+          });
+          if (unmatched.length > 50) {
+            message += `<tr><td colspan="3"><em>... and ${unmatched.length - 50} more unmatched players</em></td></tr>`;
+          }
+          message += `</tbody></table></div>`;
+
+          message += `</div>`;
+        }
+
+        showSuccess(contentId, message);
+        loadPlayers(); // Refresh the list
+      } catch (error) {
+        console.error('❌ Recalculation failed:', error);
+        showError(contentId, error);
+      }
+    }
+
+    // Lineups functions
+    async function loadLineups() {
+      const contentId = 'lineups-content';
+      showLoading(contentId);
+
+      try {
+        const data = await apiCall('/api/teamLineups');
+        currentData.lineups = data.data;
+        displayLineups(data.data, contentId);
+      } catch (error) {
+        showError(contentId, error);
+      }
+    }
+
+    function displayLineups(lineups, containerId) {
+      if (!lineups || lineups.length === 0) {
+        document.getElementById(containerId).innerHTML = '<p>No lineups found.</p>';
+        return;
+      }
+
+      let html = `<p>Found ${lineups.length} team lineups:</p>`;
+      html += '<div class="data-grid">';
+
+      lineups.forEach(lineup => {
+        html += `
+          <div class="data-card" onclick="showLineupDetail('${lineup.id}')">
+            <div class="card-actions">
+              <button class="btn btn-small btn-edit" onclick="editLineup('${lineup.id}', event)">Edit</button>
+              <button class="btn btn-small btn-delete" onclick="deleteLineup('${lineup.id}', event)">Delete</button>
+            </div>
+            <h3>${lineup.teamName || 'Unknown Team'}</h3>
+            <p><strong>Players:</strong> ${lineup.playersCount || 0}</p>
+            <p><strong>Captain:</strong> ${lineup.captainName || 'N/A'}</p>
+            <p><strong>Wicket Keeper:</strong> ${lineup.wicketKeeperName || 'N/A'}</p>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    async function showLineupDetail(lineupId) {
+      const detailDiv = document.getElementById('lineup-detail');
+      detailDiv.style.display = 'block';
+      detailDiv.innerHTML = '<div class="loading">Loading lineup details...</div>';
+
+      try {
+        const data = await apiCall(`/api/teamLineups/${lineupId}`);
+        const lineup = data.data;
+
+        let html = `<h3>Lineup Details: ${lineup.teamName || 'Unknown Team'}</h3>`;
+        html += '<div class="detail-grid">';
+
+        html += `<div class="detail-item"><strong>Team:</strong> ${lineup.teamName || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Players Count:</strong> ${lineup.playersCount || 0}</div>`;
+        html += `<div class="detail-item"><strong>Captain:</strong> ${lineup.captainName || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Wicket Keeper:</strong> ${lineup.wicketKeeperName || 'N/A'}</div>`;
+
+        html += '</div>';
+
+        html += '<br><button class="btn btn-secondary" onclick="hideLineupDetail()">Close Details</button>';
+
+        detailDiv.innerHTML = html;
+        detailDiv.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (error) {
+        detailDiv.innerHTML = `<div class="error">Error loading lineup details: ${error.message}</div>`;
+      }
+    }
+
+    function hideLineupDetail() {
+      document.getElementById('lineup-detail').style.display = 'none';
+    }
+
+    // Player mapping tab switching
+    function showMappingTab(tabName) {
+      // Hide all mapping content
+      const contents = document.querySelectorAll('.mapping-content');
+      contents.forEach(content => content.classList.remove('active'));
+
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.mapping-tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      // Show selected content and activate tab
+      document.getElementById(tabName + '-mapping').classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
 </body>
 </html>

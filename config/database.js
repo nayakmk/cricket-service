@@ -33,7 +33,8 @@ const collections = {
   teamLineups: db.collection('teamLineups'),
   innings: db.collection('innings'),
   balls: db.collection('balls'),
-  users: db.collection('users')
+  users: db.collection('users'),
+  sequences: db.collection('sequences')
 };
 
 module.exports = {

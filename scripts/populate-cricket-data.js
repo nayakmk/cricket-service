@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { collections, db, admin } = require('../config/database');
+const { sequenceManager } = require('../utils/sequenceManager');
 
 class CricketDataPopulator {
   constructor() {
@@ -36,8 +37,15 @@ class CricketDataPopulator {
         return teamId;
       }
 
+      // Generate numeric ID for the team
+      const numericId = await sequenceManager.getNextId('teams');
+
+      // Generate formatted document ID
+      const documentId = await sequenceManager.generateDocumentId('teams');
+
       // Create new team
       const teamData = {
+        numericId: numericId,
         name: teamName,
         shortName: teamName.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 3),
         isActive: true,
@@ -49,10 +57,10 @@ class CricketDataPopulator {
         }
       };
 
-      const docRef = await collections.teams.add(teamData);
-      this.teamsMap.set(teamName, docRef.id);
-      console.log(`Created team: ${teamName} (${docRef.id})`);
-      return docRef.id;
+      await collections.teams.doc(documentId).set(teamData);
+      this.teamsMap.set(teamName, documentId);
+      console.log(`Created team: ${teamName} (numericId: ${numericId}, documentId: ${documentId})`);
+      return documentId;
     } catch (error) {
       console.error(`Error upserting team ${teamName}:`, error);
       return null;
@@ -73,8 +81,15 @@ class CricketDataPopulator {
         return playerId;
       }
 
+      // Generate numeric ID for the player
+      const numericId = await sequenceManager.getNextId('players');
+
+      // Generate formatted document ID
+      const documentId = await sequenceManager.generateDocumentId('players');
+
       // Create new player
       const playerData = {
+        numericId: numericId,
         name: playerName,
         email: `${playerName.toLowerCase().replace(/\s+/g, '.')}@cricketclub.com`,
         isActive: true,
@@ -89,10 +104,10 @@ class CricketDataPopulator {
         }
       };
 
-      const docRef = await collections.players.add(playerData);
-      this.playersMap.set(playerName, docRef.id);
-      console.log(`Created player: ${playerName} (${docRef.id})`);
-      return docRef.id;
+      await collections.players.doc(documentId).set(playerData);
+      this.playersMap.set(playerName, documentId);
+      console.log(`Created player: ${playerName} (numericId: ${numericId}, documentId: ${documentId})`);
+      return documentId;
     } catch (error) {
       console.error(`Error upserting player ${playerName}:`, error);
       return null;
@@ -122,7 +137,7 @@ class CricketDataPopulator {
     return { overs: 0, balls: 0 };
   }
 
-  async createInning(matchRef, inningData, inningNumber) {
+  async createInning(matchId, inningData, inningNumber) {
     try {
       const { score, overs } = inningData;
       const scoreData = this.parseScore(score);
@@ -133,8 +148,15 @@ class CricketDataPopulator {
         inningData.team === this.currentMatchTeams.team1 ? this.currentMatchTeams.team2 : this.currentMatchTeams.team1
       );
 
+      // Generate numeric ID for the inning
+      const numericId = await sequenceManager.getNextId('innings');
+
+      // Generate formatted document ID
+      const documentId = await sequenceManager.generateDocumentId('innings');
+
       const inningDoc = {
-        match: matchRef.id,
+        numericId: numericId,
+        match: matchId,
         battingTeam: battingTeamId,
         bowlingTeam: bowlingTeamId,
         inningNumber,
@@ -146,33 +168,43 @@ class CricketDataPopulator {
         runRate: oversData.overs > 0 ? (scoreData.runs / oversData.overs) : 0
       };
 
-      const inningRef = await matchRef.collection('innings').add(inningDoc);
+      // Store inning as subcollection of the match
+      await collections.matches.doc(matchId).collection('innings').doc(documentId).set(inningDoc);
 
-      // Add batsmen data
+  // Add batsmen data as subcollection of the inning
       if (inningData.batsmen) {
         for (const batsman of inningData.batsmen) {
-          const playerId = await this.upsertPlayer(batsman.name);
-          await inningRef.collection('batsmen').add({
-            player: playerId,
+          const playerDocId = await this.upsertPlayer(batsman.name);
+          // Get the numeric ID from the player document
+          const playerDoc = await collections.players.doc(playerDocId).get();
+          const playerNumericId = playerDoc.data().numericId;
+
+          const batsmanDoc = {
+            playerId: playerNumericId, // Store numeric ID instead of document ID
             runs: batsman.runs || 0,
             balls: batsman.balls || 0,
             fours: batsman.fours || 0,
             sixes: batsman.sixes || 0,
             strikeRate: batsman.sr || 0,
             status: batsman.status || 'not out'
-          });
+          };
+          await collections.matches.doc(matchId).collection('innings').doc(documentId).collection('batsmen').doc(playerNumericId.toString()).set(batsmanDoc);
         }
       }
 
       // Add bowling data
       if (inningData.bowling) {
         for (const bowler of inningData.bowling) {
-          const playerId = await this.upsertPlayer(bowler.name);
-          const oversData = this.parseOvers(bowler.overs);
-          await inningRef.collection('bowling').add({
-            player: playerId,
-            overs: oversData.overs,
-            balls: oversData.balls,
+          const playerDocId = await this.upsertPlayer(bowler.name);
+          // Get the numeric ID from the player document
+          const playerDoc = await collections.players.doc(playerDocId).get();
+          const playerNumericId = playerDoc.data().numericId;
+
+          const oversDataParsed = this.parseOvers(bowler.overs);
+          const bowlingDoc = {
+            playerId: playerNumericId, // Store numeric ID instead of document ID
+            overs: oversDataParsed.overs,
+            balls: oversDataParsed.balls,
             maidens: bowler.maidens || 0,
             runs: bowler.runs || 0,
             wickets: bowler.wickets || 0,
@@ -182,25 +214,31 @@ class CricketDataPopulator {
             sixes: bowler.sixes || 0,
             wides: bowler.wides || 0,
             noballs: bowler.noballs || 0
-          });
+          };
+          await collections.matches.doc(matchId).collection('innings').doc(documentId).collection('bowling').doc(playerNumericId.toString()).set(bowlingDoc);
         }
       }
 
       // Add fall of wickets
       if (inningData.fall_of_wickets) {
         for (const fow of inningData.fall_of_wickets) {
-          const playerId = await this.upsertPlayer(fow.player_out);
-          await inningRef.collection('fallOfWickets').add({
+          const playerDocId = await this.upsertPlayer(fow.player_out);
+          // Get the numeric ID from the player document
+          const playerDoc = await collections.players.doc(playerDocId).get();
+          const playerNumericId = playerDoc.data().numericId;
+
+          const fowDoc = {
             score: fow.score,
             wicketNumber: fow.wicket_number,
-            playerOut: playerId,
+            playerOutId: playerNumericId, // Store numeric ID instead of document ID
             over: fow.over
-          });
+          };
+          await collections.matches.doc(matchId).collection('innings').doc(documentId).collection('fallOfWickets').doc(fow.wicket_number.toString()).set(fowDoc);
         }
       }
 
-      console.log(`Created inning ${inningNumber} for match ${matchRef.id}`);
-      return inningRef.id;
+      console.log(`Created inning ${inningNumber} for match ${matchId} (numericId: ${numericId}, documentId: ${documentId})`);
+      return documentId;
     } catch (error) {
       console.error(`Error creating inning ${inningNumber}:`, error);
       return null;
@@ -233,8 +271,15 @@ class CricketDataPopulator {
         }
       }
 
+      // Generate numeric ID for the match
+      const numericId = await sequenceManager.getNextId('matches');
+
+      // Generate formatted document ID
+      const documentId = await sequenceManager.generateDocumentId('matches');
+
       // Create match document
       const matchDoc = {
+        numericId: numericId,
         title: `${matchData.teams.team1} vs ${matchData.teams.team2}`,
         venue: matchData.ground || 'Unknown Ground',
         date: new Date(matchData.date),
@@ -248,17 +293,19 @@ class CricketDataPopulator {
         result: result,
         notes: matchData.tournament || '',
         startTime: new Date(matchData.date),
-        endTime: new Date(matchData.date)
+        endTime: new Date(matchData.date),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
 
-      const matchRef = await collections.matches.add(matchDoc);
-      console.log(`Created match: ${matchData.match_id} (${matchRef.id})`);
+      await collections.matches.doc(documentId).set(matchDoc);
+      console.log(`Created match: ${matchData.match_id} (numericId: ${numericId}, documentId: ${documentId})`);
 
       // Create innings subcollections
       const inningsIds = [];
       if (matchData.innings) {
         for (let i = 0; i < matchData.innings.length; i++) {
-          const inningId = await this.createInning(matchRef, matchData.innings[i], i + 1);
+          const inningId = await this.createInning(documentId, matchData.innings[i], i + 1);
           if (inningId) {
             inningsIds.push(inningId);
           }
@@ -266,13 +313,13 @@ class CricketDataPopulator {
       }
 
       // Update match with innings references
-      await matchRef.update({
+      await collections.matches.doc(documentId).update({
         innings: inningsIds,
         currentInning: matchData.innings ? matchData.innings.length : 1
       });
 
       return {
-        matchId: matchRef.id,
+        matchId: documentId,
         team1Id,
         team2Id,
         inningsCount: inningsIds.length

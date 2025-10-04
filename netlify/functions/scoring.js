@@ -1,4 +1,5 @@
 const { collections } = require('../../config/database');
+const { sequenceManager } = require('../../utils/sequenceManager');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,7 +57,14 @@ exports.handler = async (event, context) => {
       //   };
       // }
 
+      // Generate numeric ID for the inning
+      const numericId = await sequenceManager.getNextId('innings');
+
+      // Generate formatted document ID
+      const documentId = await sequenceManager.generateDocumentId('innings');
+
       const newInning = {
+        numericId,
         matchId,
         battingTeamId,
         bowlingTeamId,
@@ -78,14 +86,15 @@ exports.handler = async (event, context) => {
         updatedAt: new Date().toISOString()
       };
 
-      const docRef = await collections.innings.add(newInning);
+      // Store inning as subcollection of the match
+      await collections.matches.doc(matchId).collection('innings').doc(documentId).set(newInning);
 
       return {
         statusCode: 201,
         headers: corsHeaders,
         body: JSON.stringify({
           success: true,
-          data: { id: docRef.id, ...newInning },
+          data: { id: documentId, ...newInning },
           message: 'Inning started successfully'
         })
       };
@@ -96,6 +105,7 @@ exports.handler = async (event, context) => {
       const ballData = JSON.parse(event.body);
 
       const {
+        matchId,
         inningId,
         runs,
         wicket,
@@ -105,39 +115,31 @@ exports.handler = async (event, context) => {
         nonStrikerId
       } = ballData;
 
-      if (!inningId || !bowlerId || !batsmanId) {
+      if (!matchId || !inningId || !bowlerId || !batsmanId) {
         return {
           statusCode: 400,
           headers: corsHeaders,
           body: JSON.stringify({
             success: false,
-            message: 'inningId, bowlerId, and batsmanId are required'
+            message: 'matchId, inningId, bowlerId, and batsmanId are required'
           })
         };
       }
 
-      // Get inning (commented out for testing)
-      // const inningDoc = await collections.innings.doc(inningId).get();
-      // if (!inningDoc.exists) {
-      //   return {
-      //     statusCode: 404,
-      //     headers: corsHeaders,
-      //     body: JSON.stringify({
-      //       success: false,
-      //       message: 'Inning not found'
-      //     })
-      //   };
-      // }
+      // Get inning
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
+      if (!inningDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Inning not found'
+          })
+        };
+      }
 
-      // const inning = inningDoc.data();
-      // Use mock inning data for testing
-      const inning = {
-        balls: 0,
-        runs: 0,
-        wickets: 0,
-        overs: 0,
-        extras: { noBalls: 0, wides: 0, byes: 0, legByes: 0 }
-      };
+      const inning = inningDoc.data();
       let updatedInning = { ...inning };
 
       // Create ball record
@@ -201,8 +203,8 @@ exports.handler = async (event, context) => {
 
       updatedInning.updatedAt = new Date().toISOString();
 
-      // Update inning (commented out for testing)
-      // await collections.innings.doc(inningId).update(updatedInning);
+      // Update inning
+      await collections.matches.doc(matchId).collection('innings').doc(inningId).update(updatedInning);
 
       // Update player statistics
       if (batsmanId && runs && !extraType) {
@@ -249,9 +251,20 @@ exports.handler = async (event, context) => {
     // PUT /api/scoring/innings/:inningId/batsmen - Set current batsmen
     if (method === 'PUT' && path.match(/^\/innings\/[^\/]+\/batsmen$/)) {
       const inningId = path.split('/')[2];
-      const { strikerId, nonStrikerId } = JSON.parse(event.body);
+      const { matchId, strikerId, nonStrikerId } = JSON.parse(event.body);
 
-      const inningDoc = await collections.innings.doc(inningId).get();
+      if (!matchId) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'matchId is required'
+          })
+        };
+      }
+
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
       if (!inningDoc.exists) {
         return {
           statusCode: 404,
@@ -263,7 +276,7 @@ exports.handler = async (event, context) => {
         };
       }
 
-      await collections.innings.doc(inningId).update({
+      await collections.matches.doc(matchId).collection('innings').doc(inningId).update({
         currentBatsmen: [strikerId, nonStrikerId],
         updatedAt: new Date().toISOString()
       });
@@ -281,9 +294,20 @@ exports.handler = async (event, context) => {
     // PUT /api/scoring/innings/:inningId/bowler - Set current bowler
     if (method === 'PUT' && path.match(/^\/innings\/[^\/]+\/bowler$/)) {
       const inningId = path.split('/')[2];
-      const { bowlerId } = JSON.parse(event.body);
+      const { matchId, bowlerId } = JSON.parse(event.body);
 
-      const inningDoc = await collections.innings.doc(inningId).get();
+      if (!matchId) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'matchId is required'
+          })
+        };
+      }
+
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
       if (!inningDoc.exists) {
         return {
           statusCode: 404,
@@ -295,7 +319,7 @@ exports.handler = async (event, context) => {
         };
       }
 
-      await collections.innings.doc(inningId).update({
+      await collections.matches.doc(matchId).collection('innings').doc(inningId).update({
         currentBowler: bowlerId,
         updatedAt: new Date().toISOString()
       });
@@ -313,8 +337,20 @@ exports.handler = async (event, context) => {
     // PUT /api/scoring/innings/:inningId/end - End inning
     if (method === 'PUT' && path.match(/^\/innings\/[^\/]+\/end$/)) {
       const inningId = path.split('/')[2];
+      const { matchId } = JSON.parse(event.body);
 
-      const inningDoc = await collections.innings.doc(inningId).get();
+      if (!matchId) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'matchId is required'
+          })
+        };
+      }
+
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
       if (!inningDoc.exists) {
         return {
           statusCode: 404,
@@ -326,7 +362,7 @@ exports.handler = async (event, context) => {
         };
       }
 
-      await collections.innings.doc(inningId).update({
+      await collections.matches.doc(matchId).collection('innings').doc(inningId).update({
         status: 'completed',
         updatedAt: new Date().toISOString()
       });
@@ -344,8 +380,20 @@ exports.handler = async (event, context) => {
     // GET /api/scoring/innings/:inningId - Get inning details
     if (method === 'GET' && path.match(/^\/innings\/[^\/]+$/)) {
       const inningId = path.split('/')[2];
+      const matchId = event.queryStringParameters?.matchId;
 
-      const inningDoc = await collections.innings.doc(inningId).get();
+      if (!matchId) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'matchId query parameter is required'
+          })
+        };
+      }
+
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
       if (!inningDoc.exists) {
         return {
           statusCode: 404,

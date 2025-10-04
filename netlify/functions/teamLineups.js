@@ -1,4 +1,5 @@
 const { collections } = require('../../config/database');
+const { sequenceManager } = require('../../utils/sequenceManager');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,7 +40,12 @@ exports.handler = async (event, context) => {
 
       const lineups = [];
       for (const doc of snapshot.docs) {
-        const lineupData = { id: doc.id, ...doc.data() };
+        const lineupData = {
+          id: doc.id,
+          numericId: doc.data().numericId,
+          displayId: doc.data().numericId || doc.id,
+          ...doc.data()
+        };
         
         // Fetch team details
         if (lineupData.teamId) {
@@ -156,7 +162,12 @@ exports.handler = async (event, context) => {
         };
       }
 
-      const lineupData = { id: lineupDoc.id, ...lineupDoc.data() };
+      const lineupData = {
+        id: lineupDoc.id,
+        numericId: lineupDoc.data().numericId,
+        displayId: lineupDoc.data().numericId || lineupDoc.id,
+        ...lineupDoc.data()
+      };
       
       // Fetch team details
       if (lineupData.teamId) {
@@ -270,16 +281,23 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Add timestamps
+      // Generate numeric ID for the team lineup
+      const numericId = await sequenceManager.getNextId('teamLineups');
+
+      // Generate formatted document ID
+      const documentId = await sequenceManager.generateDocumentId('teamLineups');
+
+      // Add timestamps and numeric ID
       const timestamp = new Date().toISOString();
       const lineup = {
         ...lineupData,
+        numericId: numericId,
         createdAt: timestamp,
         updatedAt: timestamp
       };
 
-      const docRef = await collections.teamLineups.add(lineup);
-      const createdLineup = { id: docRef.id, ...lineup };
+      await collections.teamLineups.doc(documentId).set(lineup);
+      const createdLineup = { id: documentId, ...lineup };
 
       return {
         statusCode: 201,

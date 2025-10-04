@@ -1,4 +1,5 @@
 const { collections } = require('../../config/database');
+const { sequenceManager } = require('../../utils/sequenceManager');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,7 +39,12 @@ exports.handler = async (event, context) => {
       const teams = [];
       
       for (const doc of teamsSnapshot.docs) {
-        const teamData = { id: doc.id, ...doc.data() };
+        const teamData = {
+          id: doc.id,
+          numericId: doc.data().numericId,
+          displayId: doc.data().numericId || doc.id,
+          ...doc.data()
+        };
         
         // Fetch captain details if captainId exists
         if (teamData.captainId) {
@@ -81,7 +87,12 @@ exports.handler = async (event, context) => {
         };
       }
 
-      const teamData = { id: teamDoc.id, ...teamDoc.data() };
+      const teamData = {
+        id: teamDoc.id,
+        numericId: teamDoc.data().numericId,
+        displayId: teamDoc.data().numericId || teamDoc.id,
+        ...teamDoc.data()
+      };
       
       // Fetch captain details if captainId exists
       if (teamData.captainId) {
@@ -121,7 +132,14 @@ exports.handler = async (event, context) => {
         };
       }
 
-      const docRef = await collections.teams.add({
+      // Generate numeric ID for the team
+      const numericId = await sequenceManager.getNextId('teams');
+
+      // Generate formatted document ID
+      const documentId = await sequenceManager.generateDocumentId('teams');
+
+      const docRef = await collections.teams.doc(documentId).set({
+        numericId: numericId,
         name: teamData.name,
         captainId: teamData.captainId || null,
         logo: teamData.logo || null,
@@ -131,7 +149,7 @@ exports.handler = async (event, context) => {
         updatedAt: new Date().toISOString()
       });
 
-      const newTeam = await docRef.get();
+      const newTeam = await collections.teams.doc(documentId).get();
       
       return {
         statusCode: 201,
