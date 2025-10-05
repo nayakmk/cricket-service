@@ -26,7 +26,141 @@ async function mergeDuplicatePlayers() {
     // Test cases for interactive demo
     "202510040918170000030": "202510040918240000060", // Ashutosh Sahoo (c) -> Ashutosh Sahoo
     "202510040918170000029": "202510040918220000051", // SUBHAJIT SARKAR -> Subajit
+    // User requested merges: Merge players 48 and 52 into player 8
+    "202510051436140000049": "202510051435580000009", // Sundar Raman hit wkt -> Sundar Raman
+    "202510051436160000053": "202510051435580000009", // Sundar Raman (c & ) -> Sundar Raman
   };
+
+  // Process manual merges first
+  console.log('🔄 Processing manual merge mappings...');
+  const manualMergeMappings = {};
+  let manualMergeCount = 0;
+
+  for (const [oldPlayerId, newPlayerId] of Object.entries(manualMerges)) {
+    // Find the players
+    const oldPlayer = players.find(p => p.id === oldPlayerId);
+    const newPlayer = players.find(p => p.id === newPlayerId);
+
+    if (!oldPlayer) {
+      console.log(`⚠️  Manual merge: Old player ${oldPlayerId} not found, skipping`);
+      continue;
+    }
+    if (!newPlayer) {
+      console.log(`⚠️  Manual merge: New player ${newPlayerId} not found, skipping`);
+      continue;
+    }
+
+    manualMergeMappings[oldPlayerId] = newPlayerId;
+    manualMergeCount++;
+    console.log(`✅ Manual merge: ${oldPlayer.name} (${oldPlayerId}) -> ${newPlayer.name} (${newPlayerId})`);
+  }
+
+  console.log(`📋 Processed ${manualMergeCount} manual merge mappings`);
+
+  // Function to process merges (manual or automatic)
+  async function processMerges(mergeMapping, mergeType) {
+    let totalReferencesUpdated = 0;
+
+    console.log(`🔄 Processing ${Object.keys(mergeMapping).length} ${mergeType} merges...`);
+
+    // Update references in teamLineups
+    const teamLineupsSnapshot = await collections.teamLineups.get();
+    let teamLineupUpdates = 0;
+
+    for (const lineupDoc of teamLineupsSnapshot.docs) {
+      const lineupData = lineupDoc.data();
+      let needsUpdate = false;
+      const updatedData = { ...lineupData };
+
+      // Update playerIds array
+      if (lineupData.playerIds && Array.isArray(lineupData.playerIds)) {
+        updatedData.playerIds = lineupData.playerIds.map(playerId =>
+          mergeMapping[playerId] || playerId
+        );
+        if (JSON.stringify(updatedData.playerIds) !== JSON.stringify(lineupData.playerIds)) {
+          needsUpdate = true;
+        }
+      }
+
+      // Update playingXI array
+      if (lineupData.playingXI && Array.isArray(lineupData.playingXI)) {
+        updatedData.playingXI = lineupData.playingXI.map(playerId =>
+          mergeMapping[playerId] || playerId
+        );
+        if (JSON.stringify(updatedData.playingXI) !== JSON.stringify(lineupData.playingXI)) {
+          needsUpdate = true;
+        }
+      }
+
+      if (needsUpdate) {
+        await collections.teamLineups.doc(lineupDoc.id).update(updatedData);
+        teamLineupUpdates++;
+      }
+    }
+
+    console.log(`Updated ${teamLineupUpdates} team lineups for ${mergeType} merges`);
+
+    // Update references in innings data
+    const matchesSnapshot = await collections.matches.get();
+    let inningsUpdates = 0;
+
+    for (const matchDoc of matchesSnapshot.docs) {
+      const inningsSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').get();
+
+      for (const inningDoc of inningsSnapshot.docs) {
+        // Update batsmen
+        const batsmenSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('batsmen').get();
+        for (const batsmanDoc of batsmenSnapshot.docs) {
+          const batsmanData = batsmanDoc.data();
+          if (batsmanData.player && mergeMapping[batsmanData.player]) {
+            await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('batsmen').doc(batsmanDoc.id).update({
+              player: mergeMapping[batsmanData.player]
+            });
+            inningsUpdates++;
+          }
+        }
+
+        // Update bowling
+        const bowlingSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('bowling').get();
+        for (const bowlingDoc of bowlingSnapshot.docs) {
+          const bowlingData = bowlingDoc.data();
+          if (bowlingData.player && mergeMapping[bowlingData.player]) {
+            await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('bowling').doc(bowlingDoc.id).update({
+              player: mergeMapping[bowlingData.player]
+            });
+            inningsUpdates++;
+          }
+        }
+
+        // Update fall of wickets
+        const fowSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('fallOfWickets').get();
+        for (const fowDoc of fowSnapshot.docs) {
+          const fowData = fowDoc.data();
+          if (fowData.playerOut && mergeMapping[fowData.playerOut]) {
+            await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('fallOfWickets').doc(fowDoc.id).update({
+              playerOut: mergeMapping[fowData.playerOut]
+            });
+            inningsUpdates++;
+          }
+        }
+      }
+    }
+
+    console.log(`Updated ${inningsUpdates} innings references for ${mergeType} merges`);
+
+    // Delete merged players
+    for (const [oldPlayerId, newPlayerId] of Object.entries(mergeMapping)) {
+      const oldPlayer = players.find(p => p.id === oldPlayerId);
+      if (oldPlayer) {
+        await collections.players.doc(oldPlayerId).delete();
+        console.log(`Deleted ${mergeType} merged player: ${oldPlayerId} (${oldPlayer.name})`);
+      }
+    }
+
+    totalReferencesUpdated = teamLineupUpdates + inningsUpdates;
+    console.log(`✅ ${mergeType} merges complete: Updated ${totalReferencesUpdated} references, deleted ${Object.keys(mergeMapping).length} players`);
+    return totalReferencesUpdated;
+  }
 
   // Group by normalized name (remove spaces and special chars)
   const nameGroups = {};
@@ -157,6 +291,12 @@ async function mergeDuplicatePlayers() {
 
   rl.close();
 
+  // Process manual merges globally
+  if (Object.keys(manualMergeMappings).length > 0) {
+    console.log('\n🔄 Processing manual merges globally...');
+    await processMerges(manualMergeMappings, 'manual');
+  }
+
   let totalMerged = 0;
   let totalReferencesUpdated = 0;
 
@@ -168,16 +308,24 @@ async function mergeDuplicatePlayers() {
   for (const group of groupsToProcess) {
     console.log(`\nProcessing group: ${group.players[0].name} (${group.players.length} players)`);
 
+    // Filter out players that were already merged manually
+    const availablePlayers = group.players.filter(player => !manualMergeMappings[player.id]);
+
+    if (availablePlayers.length <= 1) {
+      console.log(`Skipping group - all players already merged manually`);
+      continue;
+    }
+
     // Sort by ID to keep the first one (deterministic)
-    group.players.sort((a, b) => a.id.localeCompare(b.id));
-    const keepPlayer = group.players[0];
-    const duplicatePlayers = group.players.slice(1);
+    availablePlayers.sort((a, b) => a.id.localeCompare(b.id));
+    const keepPlayer = availablePlayers[0];
+    const duplicatePlayers = availablePlayers.slice(1);
 
     console.log(`Keeping player: ${keepPlayer.id} (${keepPlayer.name})`);
     console.log(`Merging ${duplicatePlayers.length} duplicates...`);
 
-    // Create mapping for this merge
-    const mergeMapping = {};
+    // Create mapping for this merge (combine automatic and manual)
+    const mergeMapping = { ...manualMergeMappings };
     duplicatePlayers.forEach(player => {
       mergeMapping[player.id] = keepPlayer.id;
     });
@@ -278,7 +426,8 @@ async function mergeDuplicatePlayers() {
   }
 
   console.log(`\nDeduplication complete!`);
-  console.log(`Merged ${totalMerged} duplicate players`);
+  console.log(`Merged ${totalMerged} automatic duplicate players`);
+  console.log(`Processed ${Object.keys(manualMergeMappings).length} manual merges`);
   console.log(`Updated ${totalReferencesUpdated} references across collections`);
 }
 

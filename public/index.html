@@ -110,6 +110,45 @@
     .btn-delete:hover {
       background: #c82333;
     }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .status-active {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-suspended {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .data-card.status-suspended {
+      border-left: 4px solid #dc3545;
+      opacity: 0.8;
+    }
+    .data-card.status-active {
+      border-left: 4px solid #28a745;
+    }
+    .filter-controls {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      margin-bottom: 20px;
+    }
+    .filter-controls select {
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      background: white;
+    }
     .form-container {
       background: #f8f9fa;
       padding: 20px;
@@ -525,6 +564,51 @@
       margin: 15px 0;
     }
 
+    /* Player selection for merge */
+    .primary-player-selection {
+      margin: 20px 0;
+    }
+
+    .player-option {
+      margin: 10px 0;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      transition: border-color 0.2s;
+    }
+
+    .player-option:hover {
+      border-color: #007bff;
+    }
+
+    .player-radio-label {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .player-radio-label input[type="radio"] {
+      margin-right: 15px;
+      transform: scale(1.2);
+    }
+
+    .player-info strong {
+      display: block;
+      font-size: 16px;
+      color: #007bff;
+      margin-bottom: 5px;
+    }
+
+    .player-stats {
+      font-size: 14px;
+      color: #6c757d;
+    }
+
+    .player-radio-label input[type="radio"]:checked + .player-info strong {
+      color: #28a745;
+    }
+
     .modal-footer {
       padding: 20px;
       border-top: 1px solid #dee2e6;
@@ -903,6 +987,40 @@
       th, td {
         padding: 8px 6px;
         white-space: nowrap;
+      }
+
+      /* Matches table styles */
+      .matches-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+      }
+
+      .matches-table-container table {
+        min-width: 800px;
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .matches-table-container th,
+      .matches-table-container td {
+        padding: 12px 8px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .matches-table-container th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        position: sticky;
+        top: 0;
+      }
+
+      .matches-table-container tbody tr:hover {
+        background-color: #f8f9fa;
       }
 
       /* Button adjustments for mobile */
@@ -1322,9 +1440,38 @@
       }
     }
 
+    function filterPlayersByStatus() {
+      const filterValue = document.getElementById('player-status-filter').value;
+      const playerCards = document.querySelectorAll('.data-card');
+      
+      playerCards.forEach(card => {
+        const isActive = card.classList.contains('status-active');
+        const isSuspended = card.classList.contains('status-suspended');
+        
+        switch(filterValue) {
+          case 'active':
+            card.style.display = isActive ? 'block' : 'none';
+            break;
+          case 'suspended':
+            card.style.display = isSuspended ? 'block' : 'none';
+            break;
+          default: // 'all'
+            card.style.display = 'block';
+            break;
+        }
+      });
+      
+      // Update the count display
+      const visibleCards = Array.from(playerCards).filter(card => card.style.display !== 'none');
+      const countText = document.querySelector('#players-content p');
+      if (countText) {
+        const totalText = countText.textContent.replace(/\d+/, visibleCards.length);
+        countText.textContent = totalText;
+      }
+    }
+
     function showMergeModal() {
       console.log('showMergeModal called, selectedPlayers:', selectedPlayers);
-      alert('Merge modal called with ' + selectedPlayers.length + ' players'); // Temporary debug
       if (selectedPlayers.length < 2) {
         alert('Please select at least 2 players to merge.');
         return;
@@ -1340,30 +1487,37 @@
             <span class="modal-close" onclick="this.closest('.modal').remove()">&times;</span>
           </div>
           <div class="modal-body">
-            <p>Are you sure you want to merge these players?</p>
+            <p>Select which player profile should be the final merged profile:</p>
             <div class="merge-preview">
-              <h4>Primary Player (will be kept):</h4>
-              <div class="primary-player">
-                ${getPlayerById(selectedPlayers[0]).name}
-              </div>
-              <h4>Players to merge (${selectedPlayers.length - 1}):</h4>
-              <ul>
-                ${selectedPlayers.slice(1).map(id => {
-                  const player = getPlayerById(id);
-                  return `<li>${player.name} (${player.matchesPlayed || 0} matches, ${player.totalRuns || 0} runs, ${player.totalWickets || 0} wickets)</li>`;
+              <div class="primary-player-selection">
+                ${selectedPlayers.map((playerId, index) => {
+                  const player = getPlayerById(playerId);
+                  return `
+                    <div class="player-option">
+                      <label class="player-radio-label">
+                        <input type="radio" name="primaryPlayer" value="${playerId}" ${index === 0 ? 'checked' : ''}>
+                        <div class="player-info">
+                          <strong>${player.name}</strong>
+                          <div class="player-stats">
+                            ${player.matchesPlayed || 0} matches • ${player.totalRuns || 0} runs • ${player.totalWickets || 0} wickets
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  `;
                 }).join('')}
-              </ul>
+              </div>
+              <div class="merge-info">
+                <h4>What happens during merge:</h4>
+                <ul>
+                  <li>✅ Player statistics will be combined</li>
+                  <li>✅ All match references will be updated</li>
+                  <li>✅ Team lineups will be updated</li>
+                  <li>✅ Duplicate players will be deactivated</li>
+                </ul>
+              </div>
+              <p class="warning"><strong>This action cannot be undone!</strong></p>
             </div>
-            <div class="merge-info">
-              <h4>What happens during merge:</h4>
-              <ul>
-                <li>✅ Player statistics will be combined</li>
-                <li>✅ All match references will be updated</li>
-                <li>✅ Team lineups will be updated</li>
-                <li>✅ Duplicate players will be deactivated</li>
-              </ul>
-            </div>
-            <p class="warning"><strong>This action cannot be undone!</strong></p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
@@ -1382,8 +1536,15 @@
     async function performMerge() {
       if (selectedPlayers.length < 2) return;
 
-      const primaryPlayerId = selectedPlayers[0];
-      const playersToMerge = selectedPlayers.slice(1);
+      // Get the selected primary player from radio buttons
+      const primaryPlayerRadio = document.querySelector('input[name="primaryPlayer"]:checked');
+      if (!primaryPlayerRadio) {
+        alert('Please select a primary player.');
+        return;
+      }
+
+      const primaryPlayerId = primaryPlayerRadio.value;
+      const playersToMerge = selectedPlayers.filter(id => id !== primaryPlayerId);
 
       try {
         const result = await apiCall('/api/players/merge', 'POST', {
@@ -2014,16 +2175,16 @@
                     maidens: b.maidens || 0,
                     runs: b.runs || 0,
                     wickets: b.wickets || 0,
-                    econ: b.economy || 0,
+                    economy: b.economy || 0,
                     dots: b.dots || 0,
                     fours: b.fours || 0,
                     sixes: b.sixes || 0
                   })) || [],
                   fall_of_wickets: inning.fallOfWickets?.map(fow => ({
-                    wicket_number: fow.wicketNumber || 0,
+                    wicket_number: fow.wicket || 0,
                     score: fow.score || 0,
-                    player_out: fow.batsmanName || 'Unknown',
-                    over: fow.overs || 0
+                    player_out: fow.playerName || fow.player || 'Unknown',
+                    over: fow.over || 0
                   })) || []
                 };
                 innings.push(transformedInning);
@@ -2143,7 +2304,7 @@
                     <td>${bowler.maidens || 0}</td>
                     <td>${bowler.runs}</td>
                     <td>${bowler.wickets}</td>
-                    <td>${bowler.eco || 'N/A'}</td>
+                    <td>${bowler.economy || 'N/A'}</td>
                     <td>${bowler.dots || 0}</td>
                     <td>${bowler.fours || 0}</td>
                     <td>${bowler.sixes || 0}</td>
@@ -2346,6 +2507,17 @@
       }
 
       let html = `<p>Found ${players.length} players:</p>`;
+      
+      // Add filter controls
+      html += '<div class="filter-controls" style="margin-bottom: 20px;">';
+      html += '<label for="player-status-filter" style="margin-right: 10px;"><strong>Filter by Status:</strong></label>';
+      html += '<select id="player-status-filter" onchange="filterPlayersByStatus()">';
+      html += '<option value="all">All Players</option>';
+      html += '<option value="active">Active Only</option>';
+      html += '<option value="suspended">Suspended Only</option>';
+      html += '</select>';
+      html += '</div>';
+      
       html += '<div class="merge-actions" id="merge-actions" style="display: none;">';
       html += '<button class="btn btn-warning" onclick="showMergeModal()">Merge Selected Players</button>';
       html += '<button class="btn btn-secondary" onclick="clearSelection()">Clear Selection</button>';
@@ -2355,16 +2527,20 @@
       html += '<div class="data-grid">';
 
       players.forEach(player => {
+        const status = player.isActive === false ? 'Suspended' : 'Active';
+        const statusClass = player.isActive === false ? 'status-suspended' : 'status-active';
+        
         html += `
-          <div class="data-card">
+          <div class="data-card ${statusClass}" onclick="showPlayerDetail('${player.id}')">
             <div class="card-checkbox">
-              <input type="checkbox" id="player-${player.id}" onchange="togglePlayerSelection('${player.id}')" onclick="console.log('Checkbox clicked for ${player.id}')">
+              <input type="checkbox" id="player-${player.id}" onchange="togglePlayerSelection('${player.id}')" onclick="event.stopPropagation(); console.log('Checkbox clicked for ${player.id}')">
             </div>
             <div class="card-actions">
               <button class="btn btn-small btn-edit" onclick="editPlayer('${player.id}', event)">Edit</button>
               <button class="btn btn-small btn-delete" onclick="deletePlayer('${player.id}', event)">Delete</button>
             </div>
             <h3>${player.name}</h3>
+            <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${status}</span></p>
             <p><strong>Role:</strong> ${player.role || 'N/A'}</p>
             <p><strong>ID:</strong> ${player.displayId || player.id}</p>
             <p><strong>Team:</strong> ${player.teamName || 'N/A'}</p>
@@ -2387,8 +2563,17 @@
       detailDiv.innerHTML = '<div class="loading">Loading player details...</div>';
 
       try {
-        const data = await apiCall(`/api/players/${playerId}`);
-        const player = data.data;
+        // Get basic player info
+        const playerData = await apiCall(`/api/players/${playerId}`);
+        const player = playerData.data;
+
+        // Get detailed match performance
+        const matchData = await apiCall(`/api/players/${playerId}/matches`);
+        const matchDetails = matchData.data;
+        
+        console.log('Player match data:', matchDetails);
+        console.log('Matches array:', matchDetails.matches);
+        console.log('Matches length:', matchDetails.matches ? matchDetails.matches.length : 'undefined');
 
         let html = `<h3>Player Details: ${player.name}</h3>`;
         html += '<div class="detail-grid">';
@@ -2399,18 +2584,113 @@
         html += `<div class="detail-item"><strong>Team:</strong> ${player.teamName || 'N/A'}</div>`;
         html += `<div class="detail-item"><strong>Batting Style:</strong> ${player.battingStyle || 'N/A'}</div>`;
         html += `<div class="detail-item"><strong>Bowling Style:</strong> ${player.bowlingStyle || 'N/A'}</div>`;
-        html += `<div class="detail-item"><strong>Matches Played:</strong> ${player.matchesPlayed || 0}</div>`;
-        html += `<div class="detail-item"><strong>Total Runs:</strong> ${player.totalRuns || 0}</div>`;
-        html += `<div class="detail-item"><strong>Total Balls:</strong> ${player.totalBalls || 0}</div>`;
-        html += `<div class="detail-item"><strong>Total Wickets:</strong> ${player.totalWickets || 0}</div>`;
-        html += `<div class="detail-item"><strong>Overs Bowled:</strong> ${player.oversBowled || 0}</div>`;
-        html += `<div class="detail-item"><strong>Runs Conceded:</strong> ${player.runsConceded || 0}</div>`;
-        html += `<div class="detail-item"><strong>Batting Average:</strong> ${player.battingAverage ? player.battingAverage.toFixed(2) : 'N/A'}</div>`;
-        html += `<div class="detail-item"><strong>Bowling Average:</strong> ${player.bowlingAverage ? player.bowlingAverage.toFixed(2) : 'N/A'}</div>`;
-        html += `<div class="detail-item"><strong>Batting Strike Rate:</strong> ${player.battingStrikeRate ? player.battingStrikeRate.toFixed(2) : 'N/A'}</div>`;
-        html += `<div class="detail-item"><strong>Bowling Economy:</strong> ${player.bowlingEconomy ? player.bowlingEconomy.toFixed(2) : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Matches Played:</strong> ${matchDetails.summary.totalMatches}</div>`;
+        html += `<div class="detail-item"><strong>Total Runs:</strong> ${matchDetails.summary.totalRuns}</div>`;
+        html += `<div class="detail-item"><strong>Total Wickets:</strong> ${matchDetails.summary.totalWickets}</div>`;
+        html += `<div class="detail-item"><strong>Total Catches:</strong> ${matchDetails.summary.totalCatches}</div>`;
+
+        if (player.battingAverage) {
+          html += `<div class="detail-item"><strong>Batting Average:</strong> ${player.battingAverage.toFixed(2)}</div>`;
+        }
+        if (player.bowlingAverage) {
+          html += `<div class="detail-item"><strong>Bowling Average:</strong> ${player.bowlingAverage.toFixed(2)}</div>`;
+        }
+        if (player.battingStrikeRate) {
+          html += `<div class="detail-item"><strong>Batting Strike Rate:</strong> ${player.battingStrikeRate.toFixed(2)}</div>`;
+        }
+        if (player.bowlingEconomy) {
+          html += `<div class="detail-item"><strong>Bowling Economy:</strong> ${player.bowlingEconomy.toFixed(2)}</div>`;
+        }
 
         html += '</div>';
+
+        // Match Performance Details
+        if (matchDetails.matches && matchDetails.matches.length > 0) {
+          html += '<h4>Match Performance Details</h4>';
+          html += '<div class="matches-table-container">';
+          html += '<table class="data-table">';
+          html += '<thead>';
+          html += '<tr>';
+          html += '<th>Date</th>';
+          html += '<th>Match</th>';
+          html += '<th>Batting</th>';
+          html += '<th>Bowling</th>';
+          html += '<th>Fielding</th>';
+          html += '</tr>';
+          html += '</thead>';
+          html += '<tbody>';
+
+          for (const match of matchDetails.matches) {
+            // Handle different date formats
+            let matchDate = 'N/A';
+            if (match.matchDate) {
+              if (typeof match.matchDate === 'object' && match.matchDate.seconds) {
+                // Firestore timestamp
+                matchDate = new Date(match.matchDate.seconds * 1000).toLocaleDateString();
+              } else if (typeof match.matchDate === 'object' && match.matchDate._seconds) {
+                // Firestore timestamp with _seconds
+                matchDate = new Date(match.matchDate._seconds * 1000).toLocaleDateString();
+              } else if (typeof match.matchDate === 'string') {
+                // ISO string or other string format
+                matchDate = new Date(match.matchDate).toLocaleDateString();
+              }
+            }
+            
+            const matchTitle = `${match.team1 || 'Team 1'} vs ${match.team2 || 'Team 2'}`;
+
+            // Parse contributions array to extract batting, bowling, and fielding data
+            let battingInfo = '-';
+            let bowlingInfo = '-';
+            let fieldingInfo = '-';
+
+            if (match.contributions && Array.isArray(match.contributions)) {
+              // Aggregate batting contributions
+              const battingContributions = match.contributions.filter(c => c.type === 'batting');
+              if (battingContributions.length > 0) {
+                const totalRuns = battingContributions.reduce((sum, c) => sum + (c.runs || 0), 0);
+                const totalBalls = battingContributions.reduce((sum, c) => sum + (c.balls || 0), 0);
+                const dismissals = battingContributions.map(c => c.dismissal).filter(d => d && d !== 'not out');
+                battingInfo = `${totalRuns}(${totalBalls})`;
+                if (dismissals.length > 0) {
+                  battingInfo += '*';
+                }
+              }
+
+              // Aggregate bowling contributions
+              const bowlingContributions = match.contributions.filter(c => c.type === 'bowling');
+              if (bowlingContributions.length > 0) {
+                const totalOvers = bowlingContributions.reduce((sum, c) => sum + (parseFloat(c.overs) || 0), 0);
+                const totalMaidens = bowlingContributions.reduce((sum, c) => sum + (c.maidens || 0), 0);
+                const totalRuns = bowlingContributions.reduce((sum, c) => sum + (c.runs || 0), 0);
+                const totalWickets = bowlingContributions.reduce((sum, c) => sum + (c.wickets || 0), 0);
+                bowlingInfo = `${totalOvers.toFixed(1)}-${totalMaidens}-${totalRuns}-${totalWickets}`;
+              }
+
+              // Aggregate fielding contributions
+              const fieldingContributions = match.contributions.filter(c => c.type === 'fielding' && c.action === 'catch');
+              if (fieldingContributions.length > 0) {
+                const totalCatches = fieldingContributions.reduce((sum, c) => sum + (c.count || 0), 0);
+                if (totalCatches > 0) {
+                  fieldingInfo = `${totalCatches} catch${totalCatches > 1 ? 'es' : ''}`;
+                }
+              }
+            }
+
+            html += '<tr>';
+            html += `<td>${matchDate}</td>`;
+            html += `<td>${matchTitle}</td>`;
+            html += `<td>${battingInfo}</td>`;
+            html += `<td>${bowlingInfo}</td>`;
+            html += `<td>${fieldingInfo}</td>`;
+            html += '</tr>';
+          }
+
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        } else {
+          html += '<p>No match data available for this player.</p>';
+        }
 
         html += '<br><button class="btn btn-secondary" onclick="hidePlayerDetail()">Close Details</button>';
 

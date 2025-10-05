@@ -12,7 +12,7 @@ class CricketDataPopulator {
   }
 
   loadMatchesData() {
-    const filePath = path.join(__dirname, '..', 'reports', 'cricket_matches_summary_full.json');
+    const filePath = path.join(__dirname, '..', 'reports', 'cricket_matches_summary_new.json');
     if (!fs.existsSync(filePath)) {
       throw new Error(`Matches data file not found: ${filePath}`);
     }
@@ -127,8 +127,14 @@ class CricketDataPopulator {
   }
 
   parseOvers(oversStr) {
+    // Handle both string and number formats
+    let oversValue = oversStr;
+    if (typeof oversStr === 'number') {
+      oversValue = oversStr.toString();
+    }
+    
     // Parse "13.2" or "12.1" format
-    const match = oversStr.match(/^(\d+)\.?(\d+)?$/);
+    const match = oversValue.match(/^(\d+)\.?(\d+)?$/);
     if (match) {
       const overs = parseInt(match[1]);
       const balls = match[2] ? parseInt(match[2]) : 0;
@@ -139,20 +145,46 @@ class CricketDataPopulator {
 
   async createInning(matchId, inningData, inningNumber) {
     try {
+      console.log(`Creating inning ${inningNumber} for match ${matchId}`);
+      console.log('Inning data:', JSON.stringify(inningData, null, 2));
+
+      if (!matchId) {
+        throw new Error(`Invalid matchId: ${matchId}`);
+      }
+
       const { score, overs } = inningData;
       const scoreData = this.parseScore(score);
       const oversData = this.parseOvers(overs);
 
+      if (!inningData.team || inningData.team.trim() === '') {
+        throw new Error(`Invalid batting team name: ${inningData.team}`);
+      }
+
       const battingTeamId = await this.upsertTeam(inningData.team);
-      const bowlingTeamId = await this.upsertTeam(
-        inningData.team === this.currentMatchTeams.team1 ? this.currentMatchTeams.team2 : this.currentMatchTeams.team1
-      );
+      if (!battingTeamId) {
+        throw new Error(`Failed to upsert batting team: ${inningData.team}`);
+      }
+
+      const opposingTeam = inningData.team === this.currentMatchTeams.team1 ? this.currentMatchTeams.team2 : this.currentMatchTeams.team1;
+      if (!opposingTeam || opposingTeam.trim() === '') {
+        throw new Error(`Invalid bowling team name: ${opposingTeam}`);
+      }
+
+      const bowlingTeamId = await this.upsertTeam(opposingTeam);
+      if (!bowlingTeamId) {
+        throw new Error(`Failed to upsert bowling team: ${opposingTeam}`);
+      }
+
+      console.log(`Batting team: ${inningData.team} (ID: ${battingTeamId})`);
+      console.log(`Bowling team: ${inningData.team === this.currentMatchTeams.team1 ? this.currentMatchTeams.team2 : this.currentMatchTeams.team1} (ID: ${bowlingTeamId})`);
 
       // Generate numeric ID for the inning
       const numericId = await sequenceManager.getNextId('innings');
 
       // Generate formatted document ID
       const documentId = await sequenceManager.generateDocumentId('innings');
+
+      console.log(`Generated inning documentId: ${documentId}`);
 
       const inningDoc = {
         numericId: numericId,
@@ -168,13 +200,25 @@ class CricketDataPopulator {
         runRate: oversData.overs > 0 ? (scoreData.runs / oversData.overs) : 0
       };
 
+      console.log(`Storing inning at path: matches/${matchId}/innings/${documentId}`);
+
       // Store inning as subcollection of the match
       await collections.matches.doc(matchId).collection('innings').doc(documentId).set(inningDoc);
 
   // Add batsmen data as subcollection of the inning
       if (inningData.batsmen) {
         for (const batsman of inningData.batsmen) {
+          if (!batsman.name || batsman.name.trim() === '') {
+            console.log(`Skipping batsman with invalid name: ${batsman.name}`);
+            continue;
+          }
+
           const playerDocId = await this.upsertPlayer(batsman.name);
+          if (!playerDocId) {
+            console.log(`Failed to upsert batsman ${batsman.name}, skipping`);
+            continue;
+          }
+
           // Get the numeric ID from the player document
           const playerDoc = await collections.players.doc(playerDocId).get();
           const playerNumericId = playerDoc.data().numericId;
@@ -195,7 +239,17 @@ class CricketDataPopulator {
       // Add bowling data
       if (inningData.bowling) {
         for (const bowler of inningData.bowling) {
+          if (!bowler.name || bowler.name.trim() === '') {
+            console.log(`Skipping bowler with invalid name: ${bowler.name}`);
+            continue;
+          }
+
           const playerDocId = await this.upsertPlayer(bowler.name);
+          if (!playerDocId) {
+            console.log(`Failed to upsert bowler ${bowler.name}, skipping`);
+            continue;
+          }
+
           // Get the numeric ID from the player document
           const playerDoc = await collections.players.doc(playerDocId).get();
           const playerNumericId = playerDoc.data().numericId;
@@ -222,18 +276,28 @@ class CricketDataPopulator {
       // Add fall of wickets
       if (inningData.fall_of_wickets) {
         for (const fow of inningData.fall_of_wickets) {
-          const playerDocId = await this.upsertPlayer(fow.player_out);
+          if (!fow.player || fow.player.trim() === '') {
+            console.log(`Skipping fall of wicket with invalid player name: ${fow.player}`);
+            continue;
+          }
+
+          const playerDocId = await this.upsertPlayer(fow.player);
+          if (!playerDocId) {
+            console.log(`Failed to upsert player ${fow.player}, skipping fall of wicket`);
+            continue;
+          }
+
           // Get the numeric ID from the player document
           const playerDoc = await collections.players.doc(playerDocId).get();
           const playerNumericId = playerDoc.data().numericId;
 
           const fowDoc = {
             score: fow.score,
-            wicketNumber: fow.wicket_number,
+            wicketNumber: fow.wicket,
             playerOutId: playerNumericId, // Store numeric ID instead of document ID
             over: fow.over
           };
-          await collections.matches.doc(matchId).collection('innings').doc(documentId).collection('fallOfWickets').doc(fow.wicket_number.toString()).set(fowDoc);
+          await collections.matches.doc(matchId).collection('innings').doc(documentId).collection('fallOfWickets').doc(fow.wicket.toString()).set(fowDoc);
         }
       }
 

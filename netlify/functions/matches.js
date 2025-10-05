@@ -36,7 +36,7 @@ exports.handler = async (event, context) => {
     if (method === 'GET' && (!path || path === '/' || path === '')) {
       const { status, page = 1, limit = 10 } = event.queryStringParameters || {};
 
-      let query = collections.matches.orderBy('date', 'desc');
+      let query = collections.matches.orderBy('scheduledDate', 'desc');
 
       if (status) {
         query = query.where('status', '==', status);
@@ -59,9 +59,9 @@ exports.handler = async (event, context) => {
             const inningsSnapshot = await collections.matches.doc(doc.id).collection('innings').get();
             for (const inningDoc of inningsSnapshot.docs) {
               const inningData = inningDoc.data();
-              if (inningData.battingTeam === matchData.team1Id) {
+              if (inningData.battingTeam === matchData.teams?.team1?.name) {
                 team1Score += inningData.totalRuns || 0;
-              } else if (inningData.battingTeam === matchData.team2Id) {
+              } else if (inningData.battingTeam === matchData.teams?.team2?.name) {
                 team2Score += inningData.totalRuns || 0;
               }
             }

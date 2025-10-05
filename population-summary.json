@@ -1,0 +1,113 @@
+{
+  "processedMatches": [
+    {
+      "matchId": "202510051130170000094",
+      "team1Id": "202510051034270000022",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051130240000096",
+      "team1Id": "202510051034290000026",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051130300000098",
+      "team1Id": "202510051034300000028",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051130370000100",
+      "team1Id": "202510051034310000030",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051130420000102",
+      "team1Id": "202510051034320000032",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051130470000104",
+      "team1Id": "202510051034330000034",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051130530000106",
+      "team1Id": "202510051034340000036",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051130590000108",
+      "team1Id": "202510051034350000038",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    },
+    {
+      "matchId": "202510051131030000110",
+      "team1Id": "202510051034360000040",
+      "team2Id": "202510051034270000024",
+      "inningsCount": 2
+    }
+  ],
+  "teamsMap": {
+    "Details Match Result Team Purnendu": "202510051034270000022",
+    "Toss": "202510051034270000024",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Purnendu": "202510051035000000042",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Saroj": "202510051035030000044",
+    "Details Match Result F Red": "202510051034290000026",
+    "EPL WEEKEND MAHAMUKABALA (Super Three)\nF Red": "202510051035050000046",
+    "EPL WEEKEND MAHAMUKABALA (Super Three)\nM Blue": "202510051035070000048",
+    "Details Match Result M Blue": "202510051034300000028",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nM Blue": "202510051035100000050",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nF Red": "202510051035120000052",
+    "Details Match Result Team Sundar": "202510051034310000030",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Sundar": "202510051035140000054",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Puneet": "202510051035160000056",
+    "Details Match Result Team Puneet": "202510051034320000032",
+    "Details Match Result Team Abhinas Boyyzz": "202510051034330000034",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Abhinas Boyyzz": "202510051035220000058",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Soumyak": "202510051035240000060",
+    "Details Match Result Team Soumyak": "202510051034340000036",
+    "Details Match Result Team Gaurav": "202510051034350000038",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Gaurav": "202510051126360000062",
+    "EPL WEEKEND MAHAMUKABALA (League Matches)\nTeam Anil": "202510051126370000064",
+    "Details Match Result Team Anil": "202510051034360000040"
+  },
+  "playersMap": {
+    "Akhilesh": "202510050942510000018",
+    "Rupraj M": "202510050942510000020",
+    "Nishant Kumar": "202510050942520000022",
+    "Pawan S": "202510050942520000024",
+    "SUBHAJIT SARKAR": "202510050942530000026",
+    "Kartic Sharma": "202510050942540000028",
+    "Soumyak P": "202510050942540000030",
+    "Saroj": "202510050942550000032",
+    "Abinash Subudhi": "202510050942550000034",
+    "Ashutosh Sahoo": "202510050942560000036",
+    "Malaya Nayak": "202510050942560000038",
+    "Sundar Raman": "202510050942570000040",
+    "Sridhar": "202510050942570000042",
+    "Purnendu K Patra": "202510050942580000044",
+    "Sonal Kumar": "202510050942580000046",
+    "Kumar Gaurav": "202510050943040000066",
+    "Farashi": "202510050943100000080",
+    "Ecolife Arka": "202510050943110000082",
+    "Sheetal Kulkarni": "202510050943110000084",
+    "Sambeet Sahoo": "202510050943120000086",
+    "Puneet Pandey": "202510050943130000088",
+    "Anil Bommaraju": "202510050943130000090",
+    "Ashutosh kumar": "202510050943230000106",
+    "Archana Sinha": "202510050943260000110",
+    "Norace": "202510050943310000116",
+    "Amit Jain": "202510050943320000118",
+    "Mithun Hore": "202510050943320000120",
+    "ISHAN BANERJEE": "202510050943330000122"
+  },
+  "timestamp": "2025-10-05T06:01:07.510Z"
+}

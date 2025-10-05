@@ -294,6 +294,168 @@ exports.handler = async function(event, context) {
       };
     }
 
+    // GET /api/players/:id/matches - Get detailed match performance for a player
+    if (method === 'GET' && path && path.match(/^\/[^\/]+\/matches$/)) {
+      const playerId = path.split('/')[1]; // Extract player ID from /:id/matches
+      console.log('Getting matches for player ID:', playerId);
+
+      const playerDoc = await collections.players.doc(playerId).get();
+
+      if (!playerDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: 'Player not found' }),
+        };
+      }
+
+      const player = { id: playerDoc.id, ...playerDoc.data() };
+
+      // Use cross-reference data if available, otherwise fall back to scanning matches
+      let playerMatches = [];
+      let summary = {
+        totalMatches: 0,
+        totalRuns: 0,
+        totalWickets: 0,
+        totalCatches: 0
+      };
+
+      if (player.matchHistory && Array.isArray(player.matchHistory)) {
+        // Use pre-computed cross-reference data
+        console.log(`Using cross-reference data for ${player.matchHistory.length} matches`);
+        playerMatches = player.matchHistory.map(match => ({
+          matchId: match.matchId,
+          matchDate: match.matchDate,
+          team1: match.team1,
+          team2: match.team2,
+          venue: match.venue,
+          result: match.result,
+          contributions: match.contributions
+        }));
+
+        // Calculate summary from contributions
+        for (const match of player.matchHistory) {
+          for (const contribution of match.contributions) {
+            if (contribution.type === 'batting') {
+              summary.totalRuns += contribution.runs || 0;
+            } else if (contribution.type === 'bowling') {
+              summary.totalWickets += contribution.wickets || 0;
+            } else if (contribution.type === 'fielding' && contribution.action === 'catch') {
+              summary.totalCatches += contribution.count || 0;
+            }
+          }
+        }
+        summary.totalMatches = player.matchHistory.length;
+      } else {
+        // Fall back to the original scanning method
+        console.log('No cross-reference data found, scanning matches...');
+
+        // Get all matches
+        const matchesSnapshot = await collections.matches.get();
+        const matches = matchesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        for (const match of matches) {
+          let playerFoundInMatch = false;
+          const matchDetails = {
+            matchId: match.id,
+            matchDate: match.scheduledDate || match.date,
+            team1: match.teams?.team1?.name || match.team1?.name || 'Team 1',
+            team2: match.teams?.team2?.name || match.team2?.name || 'Team 2',
+            venue: match.venue,
+            result: match.result,
+            contributions: []
+          };
+
+          // Check each inning for this player
+          const inningsSnapshot = await collections.matches.doc(match.id).collection('innings').orderBy('inningNumber').get();
+
+          for (const inningDoc of inningsSnapshot.docs) {
+            const inning = { id: inningDoc.id, ...inningDoc.data() };
+
+            // Check batting performance - arrays in inning document
+            if (inning.batsmen && Array.isArray(inning.batsmen)) {
+              const battingRecord = inning.batsmen.find(b => b.playerId === player.id); // Use document ID
+              if (battingRecord) {
+                playerFoundInMatch = true;
+                matchDetails.contributions.push({
+                  type: 'batting',
+                  inningNumber: inning.inningNumber,
+                  runs: battingRecord.runs || 0,
+                  balls: battingRecord.balls || 0,
+                  fours: battingRecord.fours || 0,
+                  sixes: battingRecord.sixes || 0,
+                  dismissal: battingRecord.statusParsed || battingRecord.status || 'not out',
+                  strikeRate: battingRecord.balls > 0 ? ((battingRecord.runs / battingRecord.balls) * 100).toFixed(2) : 0
+                });
+                summary.totalRuns += battingRecord.runs || 0;
+              }
+            }
+
+            // Check bowling performance - arrays in inning document
+            if (inning.bowlers && Array.isArray(inning.bowlers)) {
+              const bowlingRecord = inning.bowlers.find(b => b.playerId === player.id); // Use document ID
+              if (bowlingRecord) {
+                playerFoundInMatch = true;
+                matchDetails.contributions.push({
+                  type: 'bowling',
+                  inningNumber: inning.inningNumber,
+                  overs: bowlingRecord.overs || 0,
+                  maidens: bowlingRecord.maidens || 0,
+                  runs: bowlingRecord.runs || 0,
+                  wickets: bowlingRecord.wickets || 0,
+                  economy: bowlingRecord.overs > 0 ? (bowlingRecord.runs / parseFloat(bowlingRecord.overs)).toFixed(2) : 0
+                });
+                summary.totalWickets += bowlingRecord.wickets || 0;
+              }
+            }
+
+            // Check for catches (fielding) - look for this player as wicket taker in batsmen
+            if (inning.batsmen && Array.isArray(inning.batsmen)) {
+              let catchesInThisInning = 0;
+              for (const batsman of inning.batsmen) {
+                // Check if this batsman was caught by the current player
+                if (batsman.status && batsman.status.includes('c ') &&
+                    batsman.status.includes(player.name.replace(/\s*\([^)]*\)\s*/g, '').trim())) {
+                  catchesInThisInning++;
+                  playerFoundInMatch = true;
+                }
+              }
+              if (catchesInThisInning > 0) {
+                matchDetails.contributions.push({
+                  type: 'fielding',
+                  inningNumber: inning.inningNumber,
+                  action: 'catch',
+                  count: catchesInThisInning
+                });
+                summary.totalCatches += catchesInThisInning;
+              }
+            }
+          }
+
+          if (playerFoundInMatch) {
+            playerMatches.push(matchDetails);
+            summary.totalMatches++;
+          }
+        }
+      }
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          data: {
+            player: {
+              id: player.id,
+              name: player.name,
+              displayId: player.numericId || player.id
+            },
+            matches: playerMatches,
+            summary: summary
+          }
+        }),
+      };
+    }
+
     // POST /api/players - Create new player
     if (method === 'POST' && path === '/') {
       const playerData = JSON.parse(body);
@@ -755,16 +917,17 @@ exports.handler = async function(event, context) {
       for (const matchDoc of matchesSnapshot.docs) {
         let matchUpdated = false;
 
-        // Update innings subcollections
+        // Update innings subcollections (legacy structure)
         const inningsSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').get();
         for (const inningDoc of inningsSnapshot.docs) {
           // Update batsmen
           const batsmenSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('batsmen').get();
           for (const batsmanDoc of batsmenSnapshot.docs) {
             const batsmanData = batsmanDoc.data();
-            if (playersToMerge.includes(batsmanData.playerId.toString())) {
+            if (playersToMerge.includes(batsmanData.playerId)) {
               await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('batsmen').doc(batsmanDoc.id).update({
-                playerId: primaryData.numericId,
+                playerId: primaryPlayerId,
+                playerName: primaryData.name,
                 updatedAt: new Date().toISOString()
               });
               matchUpdated = true;
@@ -775,13 +938,96 @@ exports.handler = async function(event, context) {
           const bowlersSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('bowling').get();
           for (const bowlerDoc of bowlersSnapshot.docs) {
             const bowlerData = bowlerDoc.data();
-            if (playersToMerge.includes(bowlerData.playerId.toString())) {
+            if (playersToMerge.includes(bowlerData.playerId)) {
               await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('bowling').doc(bowlerDoc.id).update({
-                playerId: primaryData.numericId,
+                playerId: primaryPlayerId,
+                playerName: primaryData.name,
                 updatedAt: new Date().toISOString()
               });
               matchUpdated = true;
             }
+          }
+        }
+
+        // Update innings documents (current array-based structure)
+        for (const inningDoc of inningsSnapshot.docs) {
+          const inningData = inningDoc.data();
+          let inningUpdated = false;
+
+          // Update batsmen array
+          if (inningData.batsmen && Array.isArray(inningData.batsmen)) {
+            for (let i = 0; i < inningData.batsmen.length; i++) {
+              const batsman = inningData.batsmen[i];
+              if (batsman.playerId && playersToMerge.includes(batsman.playerId)) {
+                inningData.batsmen[i] = {
+                  ...batsman,
+                  playerId: primaryPlayerId, // Use document ID, not numeric ID
+                  playerName: primaryData.name, // Update player name too
+                  updatedAt: new Date().toISOString()
+                };
+                inningUpdated = true;
+                matchUpdated = true;
+              }
+              // Also update player name references in dismissal text
+              if (batsman.dismissal && typeof batsman.dismissal === 'string') {
+                for (const secondaryPlayerId of playersToMerge) {
+                  const secondaryPlayer = await collections.players.doc(secondaryPlayerId).get();
+                  if (secondaryPlayer.exists) {
+                    const secondaryName = secondaryPlayer.data().name;
+                    if (batsman.dismissal.includes(secondaryName)) {
+                      batsman.dismissal = batsman.dismissal.replace(new RegExp(secondaryName, 'g'), primaryData.name);
+                      inningUpdated = true;
+                      matchUpdated = true;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // Update bowling array
+          if (inningData.bowling && Array.isArray(inningData.bowling)) {
+            for (let i = 0; i < inningData.bowling.length; i++) {
+              const bowler = inningData.bowling[i];
+              if (bowler.playerId && playersToMerge.includes(bowler.playerId)) {
+                inningData.bowling[i] = {
+                  ...bowler,
+                  playerId: primaryPlayerId, // Use document ID, not numeric ID
+                  playerName: primaryData.name, // Update player name too
+                  updatedAt: new Date().toISOString()
+                };
+                inningUpdated = true;
+                matchUpdated = true;
+              }
+            }
+          }
+
+          // Update fall of wickets if it contains player names
+          if (inningData.fallOfWickets && Array.isArray(inningData.fallOfWickets)) {
+            for (let i = 0; i < inningData.fallOfWickets.length; i++) {
+              const fow = inningData.fallOfWickets[i];
+              if (fow.batsmanName && typeof fow.batsmanName === 'string') {
+                for (const secondaryPlayerId of playersToMerge) {
+                  const secondaryPlayer = await collections.players.doc(secondaryPlayerId).get();
+                  if (secondaryPlayer.exists) {
+                    const secondaryName = secondaryPlayer.data().name;
+                    if (fow.batsmanName.includes(secondaryName)) {
+                      fow.batsmanName = fow.batsmanName.replace(new RegExp(secondaryName, 'g'), primaryData.name);
+                      inningUpdated = true;
+                      matchUpdated = true;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // Update the inning document if it was modified
+          if (inningUpdated) {
+            await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).update({
+              ...inningData,
+              updatedAt: new Date().toISOString()
+            });
           }
         }
 
