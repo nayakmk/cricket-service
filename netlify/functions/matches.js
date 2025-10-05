@@ -163,8 +163,8 @@ exports.handler = async (event, context) => {
 
           // Process bowling details from array
           const bowling = [];
-          if (inningData.bowlers && Array.isArray(inningData.bowlers)) {
-            for (const bowlerData of inningData.bowlers) {
+          if (inningData.bowling && Array.isArray(inningData.bowling)) {
+            for (const bowlerData of inningData.bowling) {
               // Get player details by document ID
               const playerDoc = await collections.players.doc(bowlerData.playerId).get();
               const playerData = playerDoc.exists ? { id: playerDoc.id, ...playerDoc.data() } : null;
@@ -480,7 +480,7 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Verify teams exist
+      // Verify teams exist and get their details
       const [team1Doc, team2Doc] = await Promise.all([
         collections.teams.doc(matchData.team1Id).get(),
         collections.teams.doc(matchData.team2Id).get()
@@ -497,6 +497,9 @@ exports.handler = async (event, context) => {
         };
       }
 
+      const team1Data = team1Doc.data();
+      const team2Data = team2Doc.data();
+
       // Generate numeric ID for the match
       const numericId = await sequenceManager.getNextId('matches');
 
@@ -510,7 +513,27 @@ exports.handler = async (event, context) => {
         numericId: numericId,
         status: matchData.status || 'scheduled',
         createdAt: timestamp,
-        updatedAt: timestamp
+        updatedAt: timestamp,
+        // Embed team details for easy access (like imported data)
+        teams: {
+          team1: {
+            id: matchData.team1Id,
+            name: team1Data.name,
+            shortName: team1Data.shortName || team1Data.name.substring(0, 3).toUpperCase()
+          },
+          team2: {
+            id: matchData.team2Id,
+            name: team2Data.name,
+            shortName: team2Data.shortName || team2Data.name.substring(0, 3).toUpperCase()
+          }
+        },
+        // Initialize scoring fields
+        currentInnings: 0,
+        team1Score: 0,
+        team2Score: 0,
+        winner: null,
+        result: null,
+        innings: []
       };
 
       const docRef = await collections.matches.doc(documentId).set(newMatch);

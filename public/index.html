@@ -2443,15 +2443,171 @@
       }
     });
 
-    // Placeholder CRUD functions for APIs that don't support operations yet
-    function editMatch(matchId, event) {
+    async function editMatch(matchId, event) {
       event.stopPropagation();
-      showError('matches-content', new Error('Match editing not implemented yet'));
+
+      try {
+        // Get match details
+        const matchResponse = await apiCall(`/api/matches/${matchId}`);
+        const match = matchResponse.data;
+
+        if (match.status === 'scheduled') {
+          // Show edit form for scheduled matches
+          showEditMatchForm(match);
+        } else if (match.status === 'live' || match.status === 'completed') {
+          // For live/completed matches, show scoring view
+          showMatchScoringView(match);
+        } else {
+          // For other statuses, allow editing
+          showEditMatchForm(match);
+        }
+      } catch (error) {
+        console.error('Error loading match for editing:', error);
+        showError('matches-content', error);
+      }
+    }
+
+    function showEditMatchForm(match) {
+      const formHtml = `
+        <div class="form-container">
+          <h3>Edit Match</h3>
+          <form id="editMatchForm">
+            <div class="form-group">
+              <label for="editMatchType">Match Type:</label>
+              <input type="text" id="editMatchType" value="${match.title || ''}" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editVenue">Venue:</label>
+              <input type="text" id="editVenue" value="${match.venue || ''}" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editScheduledDate">Scheduled Date:</label>
+              <input type="datetime-local" id="editScheduledDate" value="${match.scheduledDate ? new Date(match.scheduledDate).toISOString().slice(0, 16) : ''}" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editStatus">Status:</label>
+              <select id="editStatus">
+                <option value="scheduled" ${match.status === 'scheduled' ? 'selected' : ''}>Scheduled</option>
+                <option value="live" ${match.status === 'live' ? 'selected' : ''}>Live</option>
+                <option value="completed" ${match.status === 'completed' ? 'selected' : ''}>Completed</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn" onclick="updateMatch('${match.id}')">Update Match</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+              ${match.status === 'scheduled' ? `<button type="button" class="btn btn-primary" onclick="startScoringFromEdit('${match.id}')">Start Scoring</button>` : ''}
+            </div>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('matches-content').innerHTML = formHtml;
+    }
+
+    async function updateMatch(matchId) {
+      const matchData = {
+        title: document.getElementById('editMatchType').value,
+        venue: document.getElementById('editVenue').value,
+        scheduledDate: document.getElementById('editScheduledDate').value,
+        status: document.getElementById('editStatus').value
+      };
+
+      try {
+        await apiCall(`/api/matches/${matchId}`, 'PUT', matchData);
+        showSuccess('matches-content', 'Match updated successfully!');
+        setTimeout(() => loadMatches(), 1500);
+      } catch (error) {
+        showError('matches-content', error);
+      }
+    }
+
+    function startScoringFromEdit(matchId) {
+      // Get the match data and start scoring
+      apiCall(`/api/matches/${matchId}`)
+        .then(response => {
+          const match = response.data;
+          // Load teams and players data
+          return Promise.all([
+            apiCall('/api/teams'),
+            apiCall('/api/players'),
+            Promise.resolve(match)
+          ]);
+        })
+        .then(([teamsResponse, playersResponse, match]) => {
+          currentData.teams = teamsResponse.data;
+          currentData.players = playersResponse.data;
+
+          // Get team players (this is a simplified approach - in reality you'd need team lineups)
+          const team1Players = getPlayersForTeam(match.teams?.team1?.id || match.team1Id);
+          const team2Players = getPlayersForTeam(match.teams?.team2?.id || match.team2Id);
+
+          startMatchScoring(match.id, match, team1Players, team2Players);
+        })
+        .catch(error => {
+          console.error('Error starting scoring from edit:', error);
+          showError('matches-content', error);
+        });
+    }
+
+    function getPlayersForTeam(teamId) {
+      // This is a simplified function - in a real app you'd get team lineups
+      // For now, return some default players
+      return currentData.players ? currentData.players.slice(0, 11).map(p => p.id) : [];
+    }
+
+    function showMatchScoringView(match) {
+      // For live/completed matches, show the scoring interface
+      if (match.status === 'live' || match.status === 'completed') {
+        // Load teams and players data first
+        Promise.all([
+          apiCall('/api/teams'),
+          apiCall('/api/players')
+        ])
+        .then(([teamsResponse, playersResponse]) => {
+          currentData.teams = teamsResponse.data;
+          currentData.players = playersResponse.data;
+
+          const team1Players = getPlayersForTeam(match.teams?.team1?.id || match.team1Id);
+          const team2Players = getPlayersForTeam(match.teams?.team2?.id || match.team2Id);
+
+          startMatchScoring(match.id, match, team1Players, team2Players);
+        })
+        .catch(error => {
+          console.error('Error loading data for scoring view:', error);
+          showError('matches-content', error);
+        });
+      } else {
+        showEditMatchForm(match);
+      }
+    }
+
+    function cancelEdit() {
+      loadMatches();
     }
 
     async function deleteMatch(matchId, event) {
       event.stopPropagation();
-      showError('matches-content', new Error('Match deletion not implemented yet'));
+
+      if (!confirm('Are you sure you want to delete this match? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        await apiCall(`/api/matches/${matchId}`, 'DELETE');
+
+        // Reload all matches from the server to ensure data consistency
+        await loadMatches();
+
+        // Show success message
+        showSuccess('matches-content', 'Match deleted successfully');
+
+      } catch (error) {
+        showError('matches-content', error);
+      }
     }
 
     function editPlayer(playerId, event) {
@@ -3783,6 +3939,18 @@
       // Hide the form and show scoring interface
       hideCreateForm('matches');
 
+      // Ensure players are loaded
+      if (!currentData.players || currentData.players.length === 0) {
+        try {
+          const data = await apiCall('/api/players');
+          currentData.players = data.data;
+        } catch (error) {
+          console.error('Failed to load players:', error);
+          showError('matches-content', new Error('Failed to load players for scoring interface'));
+          return;
+        }
+      }
+
       // Create scoring interface
       const scoringHtml = createScoringInterface(matchId, matchData, team1Players, team2Players);
       document.getElementById('matches-content').innerHTML = scoringHtml;
@@ -3833,40 +4001,73 @@
       `;
     }
 
-    function startInning() {
-      const battingTeamId = document.getElementById('battingTeam').value;
+    async function startInning() {
+      console.log('startInning called');
+
+      const battingTeamSelect = document.getElementById('battingTeam');
+      console.log('battingTeamSelect:', battingTeamSelect);
+
+      if (!battingTeamSelect) {
+        alert('Batting team selection not found');
+        return;
+      }
+
+      const battingTeamId = battingTeamSelect.value;
+      console.log('battingTeamId:', battingTeamId);
+
+      if (!battingTeamId) {
+        alert('Please select a batting team');
+        return;
+      }
+
       const bowlingTeamId = battingTeamId === window.currentMatch.data.team1Id ?
         window.currentMatch.data.team2Id : window.currentMatch.data.team1Id;
 
-      // Create new inning
-      const inningNumber = window.currentMatch.innings.length + 1;
-      const newInning = {
-        inningNumber: inningNumber,
-        battingTeam: battingTeamId,
-        bowlingTeam: bowlingTeamId,
-        batsmen: [],
-        bowling: [],
-        totalRuns: 0,
-        totalWickets: 0,
-        totalOvers: 0,
-        totalBalls: 0,
-        currentOver: [],
-        currentBatsman: null,
-        currentBowler: null
-      };
+      console.log('bowlingTeamId:', bowlingTeamId);
 
-      window.currentMatch.innings.push(newInning);
-      window.currentMatch.currentInning = newInning;
+      if (!window.currentMatch || !window.currentMatch.data) {
+        alert('Match data not available');
+        return;
+      }
 
-      // Show scoring interface
-      showScoringInterface();
+      console.log('Starting inning with:', { battingTeamId, bowlingTeamId, matchId: window.currentMatch.data.id });
+
+      try {
+        const result = await apiCall('/api/scoring/innings', 'POST', {
+          matchId: window.currentMatch.data.id,
+          battingTeamId: battingTeamId,
+          bowlingTeamId: bowlingTeamId
+        });
+
+        if (result.success) {
+          // Update local match data with the created inning
+          const newInning = result.data;
+          window.currentMatch.innings.push(newInning);
+          window.currentMatch.currentInning = newInning;
+
+          // Update match status
+          window.currentMatch.data.status = 'live';
+          window.currentMatch.data.currentInnings = newInning.inningNumber;
+
+          // Show scoring interface
+          showScoringInterface();
+
+          // Refresh match data in UI
+          loadMatches();
+        } else {
+          alert('Failed to start inning: ' + (result.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error starting inning:', error);
+        alert('Error starting inning: ' + error.message);
+      }
     }
 
     function showScoringInterface() {
       const inning = window.currentMatch.currentInning;
-      const battingPlayers = inning.battingTeam === window.currentMatch.data.team1Id ?
+      const battingPlayers = inning.battingTeamId === window.currentMatch.data.team1Id ?
         window.currentMatch.team1Players : window.currentMatch.team2Players;
-      const bowlingPlayers = inning.bowlingTeam === window.currentMatch.data.team1Id ?
+      const bowlingPlayers = inning.bowlingTeamId === window.currentMatch.data.team1Id ?
         window.currentMatch.team1Players : window.currentMatch.team2Players;
 
       const html = `

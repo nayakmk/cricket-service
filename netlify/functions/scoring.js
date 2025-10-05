@@ -19,19 +19,55 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('SCORING FUNCTION CALLED');
+    console.log('Event path:', event.path);
+    console.log('Event method:', event.httpMethod);
+    console.log('Event headers:', JSON.stringify(event.headers, null, 2));
+
     // Handle both direct function calls and API route calls
     let path = event.path;
-    if (path.startsWith('/.netlify/functions/scoring')) {
-      path = path.replace('/.netlify/functions/scoring', '');
-    } else if (path.startsWith('/api/scoring')) {
-      path = path.replace('/api/scoring', '');
+    console.log('Initial path processing - event.path:', event.path);
+    
+    // More robust path parsing
+    if (path.includes('/.netlify/functions/scoring')) {
+      path = path.split('/.netlify/functions/scoring')[1] || '';
+      console.log('Split on /.netlify/functions/scoring, path now:', path);
+    } else if (path.includes('/api/scoring')) {
+      path = path.split('/api/scoring')[1] || '';
+      console.log('Split on /api/scoring, path now:', path);
+    } else {
+      console.log('No path replacement applied, path remains:', path);
     }
     
+    // Normalize path by removing leading/trailing slashes
+    path = path.replace(/^\/+|\/+$/g, '');
+    if (path) path = '/' + path;
+    
+    console.log('Final parsed path:', path, 'Original path:', event.path);
     const method = event.httpMethod;
 
     // POST /api/scoring/innings - Start new inning
     if (method === 'POST' && path === '/innings') {
-      const { matchId, battingTeamId, bowlingTeamId } = JSON.parse(event.body);
+      console.log('MATCHED: POST /innings - path:', path, 'method:', method);
+      // ... existing code ...
+      
+      let requestBody;
+      try {
+        requestBody = JSON.parse(event.body);
+        console.log('Parsed request body:', requestBody);
+      } catch (error) {
+        console.error('Failed to parse request body:', error);
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Invalid JSON in request body'
+          })
+        };
+      }
+
+      const { matchId, battingTeamId, bowlingTeamId } = requestBody;
 
       if (!matchId || !battingTeamId || !bowlingTeamId) {
         return {
@@ -44,18 +80,41 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Verify match exists (commented out for testing)
-      // const matchDoc = await collections.matches.doc(matchId).get();
-      // if (!matchDoc.exists) {
-      //   return {
-      //     statusCode: 404,
-      //     headers: corsHeaders,
-      //     body: JSON.stringify({
-      //       success: false,
-      //       message: 'Match not found'
-      //     })
-      //   };
-      // }
+      // Verify match exists
+      const matchDoc = await collections.matches.doc(matchId).get();
+      if (!matchDoc.exists) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Match not found'
+          })
+        };
+      }
+
+      const matchData = matchDoc.data();
+
+      // Get team names for display
+      const [battingTeamDoc, bowlingTeamDoc] = await Promise.all([
+        collections.teams.doc(battingTeamId).get(),
+        collections.teams.doc(bowlingTeamId).get()
+      ]);
+
+      if (!battingTeamDoc.exists || !bowlingTeamDoc.exists) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'One or both teams not found'
+          })
+        };
+      }
+
+      // Determine inning number
+      const existingInnings = await collections.matches.doc(matchId).collection('innings').get();
+      const inningNumber = existingInnings.size + 1;
 
       // Generate numeric ID for the inning
       const numericId = await sequenceManager.getNextId('innings');
@@ -68,19 +127,25 @@ exports.handler = async (event, context) => {
         matchId,
         battingTeamId,
         bowlingTeamId,
-        runs: 0,
-        wickets: 0,
-        overs: 0,
-        balls: 0,
+        battingTeam: battingTeamDoc.data().name,
+        bowlingTeam: bowlingTeamDoc.data().name,
+        inningNumber,
+        totalRuns: 0,
+        totalWickets: 0,
+        totalOvers: 0,
+        totalBalls: 0,
         extras: {
-          noBalls: 0,
+          total: 0,
           wides: 0,
+          noBalls: 0,
           byes: 0,
           legByes: 0
         },
+        batsmen: [],
+        bowling: [],
+        fallOfWickets: [],
         currentBatsmen: [],
         currentBowler: null,
-        fallOfWickets: [],
         status: 'in_progress',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -89,13 +154,20 @@ exports.handler = async (event, context) => {
       // Store inning as subcollection of the match
       await collections.matches.doc(matchId).collection('innings').doc(documentId).set(newInning);
 
+      // Update match status and current inning
+      await collections.matches.doc(matchId).update({
+        status: 'live',
+        currentInnings: inningNumber,
+        updatedAt: new Date().toISOString()
+      });
+
       return {
         statusCode: 201,
         headers: corsHeaders,
         body: JSON.stringify({
           success: true,
           data: { id: documentId, ...newInning },
-          message: 'Inning started successfully'
+          message: `Inning ${inningNumber} started successfully for ${battingTeamDoc.data().name}`
         })
       };
     }
@@ -145,8 +217,8 @@ exports.handler = async (event, context) => {
       // Create ball record
       const newBall = {
         inningId,
-        over: Math.floor(inning.balls / 6),
-        ball: (inning.balls % 6) + 1,
+        over: Math.floor(inning.totalBalls / 6),
+        ball: (inning.totalBalls % 6) + 1,
         runs: runs || 0,
         wicket: wicket || null,
         extraType: extraType || null,
@@ -159,46 +231,52 @@ exports.handler = async (event, context) => {
       await collections.balls.add(newBall);
 
       // Update inning statistics
-      updatedInning.balls += 1;
+      updatedInning.totalBalls += 1;
 
       // Handle extras
       if (extraType) {
         switch (extraType) {
           case 'noBall':
             updatedInning.extras.noBalls += 1;
-            updatedInning.runs += 1;
+            updatedInning.extras.total += 1;
+            updatedInning.totalRuns += 1;
             break;
           case 'wide':
             updatedInning.extras.wides += 1;
-            updatedInning.runs += 1;
+            updatedInning.extras.total += 1;
+            updatedInning.totalRuns += 1;
             break;
           case 'bye':
             updatedInning.extras.byes += 1;
-            updatedInning.runs += runs || 0;
+            updatedInning.extras.total += runs || 0;
+            updatedInning.totalRuns += runs || 0;
             break;
           case 'legBye':
             updatedInning.extras.legByes += 1;
-            updatedInning.runs += runs || 0;
+            updatedInning.extras.total += runs || 0;
+            updatedInning.totalRuns += runs || 0;
             break;
         }
       } else {
-        updatedInning.runs += runs || 0;
+        updatedInning.totalRuns += runs || 0;
       }
 
       // Handle wickets
       if (wicket) {
-        updatedInning.wickets += 1;
+        updatedInning.totalWickets += 1;
         updatedInning.fallOfWickets.push({
+          wicketNumber: updatedInning.totalWickets,
+          score: updatedInning.totalRuns,
+          batsmanName: '', // Will be populated when we get batsman details
           batsmanId,
-          score: updatedInning.runs,
-          overs: `${Math.floor(updatedInning.balls / 6)}.${updatedInning.balls % 6}`,
+          overs: `${Math.floor(updatedInning.totalBalls / 6)}.${updatedInning.totalBalls % 6}`,
           bowlerId
         });
       }
 
       // Update overs
-      if (updatedInning.balls % 6 === 0 && !extraType) {
-        updatedInning.overs += 1;
+      if (updatedInning.totalBalls % 6 === 0 && !extraType) {
+        updatedInning.totalOvers += 1;
       }
 
       updatedInning.updatedAt = new Date().toISOString();
@@ -206,14 +284,56 @@ exports.handler = async (event, context) => {
       // Update inning
       await collections.matches.doc(matchId).collection('innings').doc(inningId).update(updatedInning);
 
-      // Update player statistics
-      if (batsmanId && runs && !extraType) {
+      // Update batsman statistics in inning
+      if (batsmanId && !extraType) {
+        // Get batsman details
         const batsmanDoc = await collections.players.doc(batsmanId).get();
+        let batsmanName = 'Unknown';
+        if (batsmanDoc.exists) {
+          batsmanName = batsmanDoc.data().name;
+        }
+
+        // Find or create batsman entry in inning
+        let batsmanEntry = updatedInning.batsmen.find(b => b.playerId === batsmanId);
+        if (!batsmanEntry) {
+          batsmanEntry = {
+            playerId: batsmanId,
+            player: { id: batsmanId, name: batsmanName },
+            runs: 0,
+            balls: 0,
+            fours: 0,
+            sixes: 0,
+            status: 'batting',
+            strikeRate: 0
+          };
+          updatedInning.batsmen.push(batsmanEntry);
+        }
+
+        // Update batsman stats
+        batsmanEntry.runs += runs || 0;
+        batsmanEntry.balls += 1;
+        if (runs === 4) batsmanEntry.fours += 1;
+        if (runs === 6) batsmanEntry.sixes += 1;
+        batsmanEntry.strikeRate = batsmanEntry.balls > 0 ? (batsmanEntry.runs / batsmanEntry.balls) * 100 : 0;
+
+        // Update fall of wickets with batsman name
+        if (wicket) {
+          const lastWicket = updatedInning.fallOfWickets[updatedInning.fallOfWickets.length - 1];
+          if (lastWicket) {
+            lastWicket.batsmanName = batsmanName;
+          }
+          batsmanEntry.status = wicket.type || 'out';
+        }
+
+        // Update global player statistics
         if (batsmanDoc.exists) {
           const batsman = batsmanDoc.data();
           const updatedStats = {
             ...batsman.statistics,
-            runs: (batsman.statistics.runs || 0) + runs
+            runs: (batsman.statistics?.runs || 0) + (runs || 0),
+            ballsFaced: (batsman.statistics?.ballsFaced || 0) + 1,
+            fours: (batsman.statistics?.fours || 0) + (runs === 4 ? 1 : 0),
+            sixes: (batsman.statistics?.sixes || 0) + (runs === 6 ? 1 : 0)
           };
           await collections.players.doc(batsmanId).update({
             statistics: updatedStats,
@@ -222,13 +342,61 @@ exports.handler = async (event, context) => {
         }
       }
 
-      if (wicket && bowlerId) {
+      // Update bowler statistics in inning
+      if (bowlerId) {
+        // Get bowler details
         const bowlerDoc = await collections.players.doc(bowlerId).get();
+        let bowlerName = 'Unknown';
+        if (bowlerDoc.exists) {
+          bowlerName = bowlerDoc.data().name;
+        }
+
+        // Find or create bowler entry in inning
+        let bowlerEntry = updatedInning.bowling.find(b => b.playerId === bowlerId);
+        if (!bowlerEntry) {
+          bowlerEntry = {
+            playerId: bowlerId,
+            player: { id: bowlerId, name: bowlerName },
+            overs: 0,
+            maidens: 0,
+            runs: 0,
+            wickets: 0,
+            economy: 0,
+            dots: 0,
+            fours: 0,
+            sixes: 0
+          };
+          updatedInning.bowling.push(bowlerEntry);
+        }
+
+        // Update bowler stats
+        bowlerEntry.runs += (extraType === 'wide' || extraType === 'noBall') ? 1 : (runs || 0);
+        if (runs === 0 && !extraType) bowlerEntry.dots += 1;
+        if (runs === 4) bowlerEntry.fours += 1;
+        if (runs === 6) bowlerEntry.sixes += 1;
+        if (wicket) bowlerEntry.wickets += 1;
+
+        // Update overs (only for valid balls)
+        if (!extraType || extraType === 'noBall') {
+          const ballsInOver = updatedInning.totalBalls % 6;
+          if (ballsInOver === 0) {
+            bowlerEntry.overs = Math.floor(updatedInning.totalBalls / 6);
+          }
+        }
+
+        // Calculate economy
+        const oversDecimal = bowlerEntry.overs + ((updatedInning.totalBalls % 6) / 6);
+        bowlerEntry.economy = oversDecimal > 0 ? bowlerEntry.runs / oversDecimal : 0;
+
+        // Update global player statistics
         if (bowlerDoc.exists) {
           const bowler = bowlerDoc.data();
           const updatedStats = {
             ...bowler.statistics,
-            wickets: (bowler.statistics.wickets || 0) + 1
+            wickets: (bowler.statistics?.wickets || 0) + (wicket ? 1 : 0),
+            runsConceded: (bowler.statistics?.runsConceded || 0) + ((extraType === 'wide' || extraType === 'noBall') ? 1 : (runs || 0)),
+            overs: (bowler.statistics?.overs || 0) + (extraType !== 'wide' ? 1 : 0) / 6,
+            maidens: (bowler.statistics?.maidens || 0) + bowlerEntry.maidens
           };
           await collections.players.doc(bowlerId).update({
             statistics: updatedStats,
@@ -777,60 +945,92 @@ exports.handler = async (event, context) => {
 
     // POST /api/scoring/end-inning - End current inning
     if (method === 'POST' && path === '/end-inning') {
-      const { inningId } = JSON.parse(event.body);
+      const { matchId, inningId } = JSON.parse(event.body);
 
-      if (!inningId) {
+      if (!matchId || !inningId) {
         return {
           statusCode: 400,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
+          headers: corsHeaders,
           body: JSON.stringify({
             success: false,
-            message: 'Inning ID is required'
-          }),
+            message: 'matchId and inningId are required'
+          })
         };
       }
 
-      const inning = await Inning.findByIdAndUpdate(
-        inningId,
-        {
-          isCompleted: true,
-          endTime: new Date()
-        },
-        { new: true }
-      );
-
-      if (!inning) {
+      // Get inning
+      const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
+      if (!inningDoc.exists) {
         return {
           statusCode: 404,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
+          headers: corsHeaders,
           body: JSON.stringify({
             success: false,
             message: 'Inning not found'
-          }),
+          })
         };
+      }
+
+      const inning = inningDoc.data();
+
+      // Mark inning as completed
+      const updatedInning = {
+        ...inning,
+        status: 'completed',
+        endTime: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      await collections.matches.doc(matchId).collection('innings').doc(inningId).update(updatedInning);
+
+      // Update match with inning score
+      const matchDoc = await collections.matches.doc(matchId).get();
+      if (matchDoc.exists) {
+        const matchData = matchDoc.data();
+        let updatedMatch = { ...matchData };
+
+        // Update team scores based on which team was batting
+        if (inning.battingTeamId === matchData.teams?.team1?.id) {
+          updatedMatch.team1Score = inning.totalRuns;
+        } else if (inning.battingTeamId === matchData.teams?.team2?.id) {
+          updatedMatch.team2Score = inning.totalRuns;
+        }
+
+        // Check if match should be completed (both innings done)
+        const allInnings = await collections.matches.doc(matchId).collection('innings').get();
+        const completedInnings = allInnings.docs.filter(doc => doc.data().status === 'completed');
+
+        if (completedInnings.length >= 2) {
+          // Determine winner
+          if (updatedMatch.team1Score > updatedMatch.team2Score) {
+            updatedMatch.winner = matchData.teams?.team1?.name;
+            updatedMatch.result = `won by ${updatedMatch.team1Score - updatedMatch.team2Score} runs`;
+          } else if (updatedMatch.team2Score > updatedMatch.team1Score) {
+            updatedMatch.winner = matchData.teams?.team2?.name;
+            updatedMatch.result = `won by ${updatedMatch.team2Score - updatedMatch.team1Score} runs`;
+          } else {
+            updatedMatch.result = 'Match tied';
+          }
+          updatedMatch.status = 'completed';
+        }
+
+        updatedMatch.updatedAt = new Date().toISOString();
+        await collections.matches.doc(matchId).update(updatedMatch);
       }
 
       return {
         statusCode: 200,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
+        headers: corsHeaders,
         body: JSON.stringify({
           success: true,
-          data: inning,
+          data: { id: inningId, ...updatedInning },
           message: 'Inning ended successfully'
-        }),
+        })
       };
     }
 
     // Method not allowed
+    console.log('METHOD NOT ALLOWED - Final path:', path, 'method:', method, 'original path:', event.path);
     return {
       statusCode: 405,
       headers: {
