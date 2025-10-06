@@ -22,7 +22,7 @@ async function findDocumentByNumericId(collection, numericId) {
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env.FRONTEND_URL || 'https://ebcl-app.github.io',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Credentials': 'false',
@@ -131,12 +131,46 @@ exports.handler = async (event, context) => {
           for (const matchDoc of matchesSnapshot.docs) {
             const matchData = matchDoc.data();
             
-            // Check if this team is team1 or team2
-            const isTeam1 = matchData.team1?.name === teamData.name;
-            const isTeam2 = matchData.team2?.name === teamData.name;
+          // Check if this team is team1 or team2 (by document ID)
+          const isTeam1 = matchData.team1 === doc.id || matchData.team1Id === doc.id;
+          const isTeam2 = matchData.team2 === doc.id || matchData.team2Id === doc.id;
             
             if (isTeam1 || isTeam2) {
-              const opponent = isTeam1 ? matchData.team2 : matchData.team1;
+              // Get opponent info
+              let opponent = null;
+              if (isTeam1 && matchData.team2) {
+                opponent = matchData.team2;
+              } else if (isTeam2 && matchData.team1) {
+                opponent = matchData.team1;
+              } else if (isTeam1 && matchData.team2Id) {
+                // Try to get opponent team by ID
+                try {
+                  const opponentDoc = await collections.teams.where('numericId', '==', matchData.team2Id).limit(1).get();
+                  if (!opponentDoc.empty) {
+                    const opponentData = opponentDoc.docs[0].data();
+                    opponent = {
+                      name: opponentData.name,
+                      shortName: opponentData.shortName
+                    };
+                  }
+                } catch (error) {
+                  console.warn(`Failed to get opponent for team2Id ${matchData.team2Id}:`, error);
+                }
+              } else if (isTeam2 && matchData.team1Id) {
+                // Try to get opponent team by ID
+                try {
+                  const opponentDoc = await collections.teams.where('numericId', '==', matchData.team1Id).limit(1).get();
+                  if (!opponentDoc.empty) {
+                    const opponentData = opponentDoc.docs[0].data();
+                    opponent = {
+                      name: opponentData.name,
+                      shortName: opponentData.shortName
+                    };
+                  }
+                } catch (error) {
+                  console.warn(`Failed to get opponent for team1Id ${matchData.team1Id}:`, error);
+                }
+              }
               
               teamData.matchHistory.push({
                 id: matchDoc.id,
@@ -425,39 +459,74 @@ exports.handler = async (event, context) => {
 
       // Fetch match history for this team
       try {
+        // Query all matches and filter in code (more reliable than nested queries)
         const matchesSnapshot = await collections.matches
-          .where('team1.name', '==', teamData.name)
+          .orderBy('scheduledDate', 'desc')
           .get();
-        
-        const matchesSnapshot2 = await collections.matches
-          .where('team2.name', '==', teamData.name)
-          .get();
-        
-        const allMatchDocs = [...matchesSnapshot.docs, ...matchesSnapshot2.docs];
         
         teamData.matchHistory = [];
-        for (const matchDoc of allMatchDocs) {
+        for (const matchDoc of matchesSnapshot.docs) {
           const matchData = matchDoc.data();
-          const opponent = matchData.team1?.name === teamData.name ? matchData.team2 : matchData.team1;
           
-          teamData.matchHistory.push({
-            id: matchDoc.id,
-            numericId: matchData.numericId,
-            displayId: matchData.numericId || matchDoc.id,
-            title: matchData.title,
-            status: matchData.status,
-            scheduledDate: matchData.scheduledDate,
-            venue: matchData.venue,
-            opponent: opponent,
-            winner: matchData.winner,
-            result: matchData.result,
-            team1Score: matchData.team1Score,
-            team2Score: matchData.team2Score
-          });
+          // Check if this team is team1 or team2 (by document ID)
+          const isTeam1 = matchData.team1 === teamDoc.id || matchData.team1Id === teamDoc.id;
+          const isTeam2 = matchData.team2 === teamDoc.id || matchData.team2Id === teamDoc.id;
+          
+          if (isTeam1 || isTeam2) {
+            // Get opponent info
+            let opponent = null;
+            if (isTeam1 && matchData.team2Id) {
+              // team2Id contains the opponent document ID
+              try {
+                const opponentDoc = await collections.teams.doc(matchData.team2Id).get();
+                if (opponentDoc.exists) {
+                  const opponentData = opponentDoc.data();
+                  opponent = {
+                    id: opponentDoc.id,
+                    name: opponentData.name,
+                    shortName: opponentData.shortName,
+                    numericId: opponentData.numericId
+                  };
+                }
+              } catch (error) {
+                console.warn(`Failed to get opponent team ${matchData.team2Id}:`, error);
+              }
+            } else if (isTeam2 && matchData.team1Id) {
+              // team1Id contains the opponent document ID
+              try {
+                const opponentDoc = await collections.teams.doc(matchData.team1Id).get();
+                if (opponentDoc.exists) {
+                  const opponentData = opponentDoc.data();
+                  opponent = {
+                    id: opponentDoc.id,
+                    name: opponentData.name,
+                    shortName: opponentData.shortName,
+                    numericId: opponentData.numericId
+                  };
+                }
+              } catch (error) {
+                console.warn(`Failed to get opponent team ${matchData.team1Id}:`, error);
+              }
+            }
+            
+            teamData.matchHistory.push({
+              id: matchDoc.id,
+              numericId: matchData.numericId,
+              displayId: matchData.numericId || matchDoc.id,
+              title: matchData.title,
+              status: matchData.status,
+              scheduledDate: matchData.scheduledDate,
+              venue: matchData.venue,
+              opponent: opponent,
+              winner: matchData.winner,
+              result: matchData.result,
+              team1Score: matchData.team1Score,
+              team2Score: matchData.team2Score
+            });
+          }
         }
         
-        // Sort matches by date (most recent first)
-        teamData.matchHistory.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+        // Sort matches by date (most recent first) - already sorted by query
         
         // Calculate team statistics from match history
         const completedMatches = teamData.matchHistory.filter(match => match.status === 'completed');
