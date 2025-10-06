@@ -53,9 +53,12 @@ exports.handler = async (event, context) => {
     
     console.log('Debug - Original path:', event.path, 'Processed path:', path, 'Method:', method);
 
-    // GET /api/matches - Get all matches
+    // GET /api/matches - Get all matches with pagination
     if (method === 'GET' && (!path || path === '/' || path === '')) {
-      const { status, page = 1, limit = 10 } = event.queryStringParameters || {};
+      const { status, page = 1, limit = 5 } = event.queryStringParameters || {};
+      const pageNum = parseInt(page);
+      const limitNum = parseInt(limit);
+      const offset = (pageNum - 1) * limitNum;
 
       let query = collections.matches.orderBy('scheduledDate', 'desc');
 
@@ -63,7 +66,13 @@ exports.handler = async (event, context) => {
         query = query.where('status', '==', status);
       }
 
-      const snapshot = await query.get();
+      // Get total count for pagination metadata
+      const totalSnapshot = await query.get();
+      const totalCount = totalSnapshot.size;
+
+      // Apply pagination
+      const paginatedQuery = query.limit(limitNum).offset(offset);
+      const snapshot = await paginatedQuery.get();
       const matches = [];
 
       // Build matches list using embedded team details
@@ -124,7 +133,15 @@ exports.handler = async (event, context) => {
         headers: corsHeaders,
         body: JSON.stringify({
           success: true,
-          data: matches
+          data: matches,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / limitNum),
+            hasNext: pageNum * limitNum < totalCount,
+            hasPrev: pageNum > 1
+          }
         })
       };
     }

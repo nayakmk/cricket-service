@@ -30,7 +30,7 @@ const corsHeaders = {
 };
 
 exports.handler = async (event, context) => {
-  const { httpMethod: method, path: originalPath, body } = event;
+  const { httpMethod: method, path: originalPath, body, queryStringParameters } = event;
   
   // Extract path from the event (handle both direct function calls and redirected API calls)
   let path = originalPath;
@@ -53,9 +53,24 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // GET /api/teams - Get all teams
+    // GET /api/teams - Get all teams with pagination
     if (method === 'GET' && path === '/') {
-      const teamsSnapshot = await collections.teams.get();
+      // Parse pagination parameters
+      const page = parseInt(queryStringParameters?.page) || 1;
+      const limit = parseInt(queryStringParameters?.limit) || 5;
+      const offset = (page - 1) * limit;
+
+      // Get total count for pagination metadata
+      const totalSnapshot = await collections.teams.get();
+      const totalCount = totalSnapshot.size;
+
+      // Get paginated teams
+      const teamsSnapshot = await collections.teams
+        .orderBy('numericId')
+        .limit(limit)
+        .offset(offset)
+        .get();
+
       const teams = [];
       
       for (const doc of teamsSnapshot.docs) {
@@ -376,9 +391,17 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           success: true,
-          data: teams 
+          data: teams,
+          pagination: {
+            page: page,
+            limit: limit,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+            hasNext: page * limit < totalCount,
+            hasPrev: page > 1
+          }
         }),
       };
     }

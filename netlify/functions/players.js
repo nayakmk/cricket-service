@@ -99,7 +99,7 @@ function getBetterBowlingFigure(figure1, figure2) {
 }
 
 exports.handler = async function(event, context) {
-  const { httpMethod: method, path: originalPath, body } = event;
+  const { httpMethod: method, path: originalPath, body, queryStringParameters } = event;
   
   // Extract path from the event (handle both direct function calls and redirected API calls)
   let path = originalPath;
@@ -121,9 +121,24 @@ exports.handler = async function(event, context) {
     };
   }
 
-  // GET /api/players - Get all players
+  // GET /api/players - Get all players with pagination
     if (method === 'GET' && path === '/') {
-      const playersSnapshot = await collections.players.get();
+      // Parse pagination parameters
+      const page = parseInt(queryStringParameters?.page) || 1;
+      const limit = parseInt(queryStringParameters?.limit) || 5;
+      const offset = (page - 1) * limit;
+
+      // Get total count for pagination metadata
+      const totalSnapshot = await collections.players.get();
+      const totalCount = totalSnapshot.docs.filter(doc => doc.data().isActive !== false).length;
+
+      // Get paginated players
+      const playersSnapshot = await collections.players
+        .orderBy('numericId')
+        .limit(limit)
+        .offset(offset)
+        .get();
+
       const players = [];
       
       playersSnapshot.forEach(doc => {
@@ -145,9 +160,17 @@ exports.handler = async function(event, context) {
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           success: true,
-          data: players 
+          data: players,
+          pagination: {
+            page: page,
+            limit: limit,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+            hasNext: page * limit < totalCount,
+            hasPrev: page > 1
+          }
         }),
       };
     }

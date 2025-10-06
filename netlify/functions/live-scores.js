@@ -54,6 +54,7 @@ function makeHttpsRequest(url, headers = {}) {
 }
 
 exports.handler = async (event, context) => {
+  const { httpMethod: method, path, queryStringParameters } = event;
   // Handle preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -118,13 +119,22 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // GET /api/live-scores - Get all live matches
+    // GET /api/live-scores - Get all live matches with pagination
     if (method === 'GET' && (!path || path === '/')) {
+      // Parse pagination parameters
+      const page = parseInt(queryStringParameters?.page) || 1;
+      const limit = parseInt(queryStringParameters?.limit) || 5;
+      const offset = (page - 1) * limit;
+
       const matchesSnapshot = await collections.matches
         .where('status', 'in', ['live', 'in_progress'])
         .get();
 
-      const liveMatches = [];
+      // Get total count for pagination metadata
+      const totalCount = matchesSnapshot.size;
+
+      // Apply pagination in memory since Firestore 'in' queries don't support limit/offset directly
+      const allLiveMatches = [];
       for (const matchDoc of matchesSnapshot.docs) {
         const match = { id: matchDoc.id, ...matchDoc.data() };
 
@@ -162,15 +172,26 @@ exports.handler = async (event, context) => {
           };
         }
 
-        liveMatches.push(match);
+        allLiveMatches.push(match);
       }
+
+      // Apply pagination
+      const liveMatches = allLiveMatches.slice(offset, offset + limit);
 
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
           success: true,
-          data: liveMatches
+          data: liveMatches,
+          pagination: {
+            page: page,
+            limit: limit,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+            hasNext: page * limit < totalCount,
+            hasPrev: page > 1
+          }
         })
       };
     }
