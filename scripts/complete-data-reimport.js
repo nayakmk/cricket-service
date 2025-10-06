@@ -108,7 +108,7 @@ class CompleteDataReimport {
 
   async loadAndImportMatchesData() {
     // Load matches data
-    const filePath = path.join(__dirname, '..', 'reports', 'cricket_matches_summary_parsed_v12.json');
+    const filePath = path.join(__dirname, '..', 'reports', 'cricket_matches_summary_parsed_new_set_v7.json');
     if (!fs.existsSync(filePath)) {
       throw new Error(`Matches data file not found: ${filePath}`);
     }
@@ -261,13 +261,27 @@ class CompleteDataReimport {
       const team2 = matchData.teams?.team2 || matchData.team2?.name || matchData.team2_name;
       const bowlingTeam = battingTeam === team1 ? team2 : team1;
 
+      // Parse score to extract runs and wickets
+      let totalRuns = 0;
+      let totalWickets = 0;
+
+      if (inningData.score && typeof inningData.score === 'string' && inningData.score.includes('/')) {
+        const [runsStr, wicketsStr] = inningData.score.split('/');
+        totalRuns = parseInt(runsStr, 10) || 0;
+        totalWickets = parseInt(wicketsStr, 10) || 0;
+      } else {
+        // Fallback to direct fields if available
+        totalRuns = inningData.total_runs || inningData.score || 0;
+        totalWickets = inningData.total_wickets || inningData.wickets || 0;
+      }
+
       // Prepare inning document
       const inningDoc = {
         inningNumber: inningNumber,
         battingTeam: battingTeam,
         bowlingTeam: bowlingTeam,
-        totalRuns: inningData.total_runs || inningData.score || 0,
-        totalWickets: inningData.total_wickets || inningData.wickets || 0,
+        totalRuns: totalRuns,
+        totalWickets: totalWickets,
         totalOvers: inningData.total_overs || inningData.overs || 0,
         totalBalls: inningData.total_balls || inningData.balls || 0,
         runRate: inningData.run_rate || 0,

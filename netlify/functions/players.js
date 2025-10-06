@@ -1,6 +1,26 @@
 ﻿const { collections } = require('../../config/database');
 const { sequenceManager } = require('../../utils/sequenceManager');
 
+// Helper function to find document by numericId
+async function findDocumentByNumericId(collection, numericId) {
+  const snapshot = await collection.where('numericId', '==', parseInt(numericId, 10)).get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  // Return the first matching document (should only be one)
+  const doc = snapshot.docs[0];
+
+  // Return an object that mimics a Firestore document
+  return {
+    id: doc.id,
+    ref: doc.ref,
+    exists: true,
+    data: () => ({ ...doc.data(), id: doc.id })
+  };
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
@@ -125,7 +145,10 @@ exports.handler = async function(event, context) {
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify({ data: players }),
+        body: JSON.stringify({ 
+          success: true,
+          data: players 
+        }),
       };
     }
 
@@ -267,12 +290,12 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // GET /api/players/:id - Get player by ID
+    // GET /api/players/:numericId - Get player by numericId
     if (method === 'GET' && path && path.match(/^\/[^\/]+$/)) {
-      const playerId = path.substring(1); // Remove leading slash
-      const playerDoc = await collections.players.doc(playerId).get();
+      const numericId = path.substring(1); // Remove leading slash
+      const playerDoc = await findDocumentByNumericId(collections.players, numericId);
       
-      if (!playerDoc.exists) {
+      if (!playerDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -284,6 +307,7 @@ exports.handler = async function(event, context) {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
+          success: true,
           data: {
             id: playerDoc.id,
             numericId: playerDoc.data().numericId,
@@ -294,14 +318,14 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // GET /api/players/:id/matches - Get detailed match performance for a player
+    // GET /api/players/:numericId/matches - Get detailed match performance for a player
     if (method === 'GET' && path && path.match(/^\/[^\/]+\/matches$/)) {
-      const playerId = path.split('/')[1]; // Extract player ID from /:id/matches
-      console.log('Getting matches for player ID:', playerId);
+      const numericId = path.split('/')[1]; // Extract player numericId from /:numericId/matches
+      console.log('Getting matches for player numericId:', numericId);
 
-      const playerDoc = await collections.players.doc(playerId).get();
+      const playerDoc = await findDocumentByNumericId(collections.players, numericId);
 
-      if (!playerDoc.exists) {
+      if (!playerDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -495,6 +519,7 @@ exports.handler = async function(event, context) {
         statusCode: 201,
         headers: corsHeaders,
         body: JSON.stringify({ 
+          success: true,
           data: {
             id: newPlayer.id,
             ...newPlayer.data()
@@ -531,6 +556,7 @@ exports.handler = async function(event, context) {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({ 
+          success: true,
           data: {
             id: updatedPlayer.id,
             ...updatedPlayer.data()

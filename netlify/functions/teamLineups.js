@@ -149,9 +149,23 @@ exports.handler = async (event, context) => {
     // GET /api/teamLineups/:id - Get team lineup by ID
     if (method === 'GET' && path && path.match(/^\/[^\/]+$/)) {
       const lineupId = path.substring(1);
-      const lineupDoc = await collections.teamLineups.doc(lineupId).get();
+      const numericId = parseInt(lineupId);
 
-      if (!lineupDoc.exists) {
+      if (isNaN(numericId)) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Invalid lineup ID format. Expected numeric ID.'
+          })
+        };
+      }
+
+      // Find document by numericId
+      const lineupQuery = await collections.teamLineups.where('numericId', '==', numericId).get();
+
+      if (lineupQuery.empty) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -162,6 +176,7 @@ exports.handler = async (event, context) => {
         };
       }
 
+      const lineupDoc = lineupQuery.docs[0];
       const lineupData = {
         id: lineupDoc.id,
         numericId: lineupDoc.data().numericId,
@@ -312,11 +327,24 @@ exports.handler = async (event, context) => {
     // PUT /api/teamLineups/:id - Update team lineup
     if (method === 'PUT' && path.match(/^\/[^\/]+$/)) {
       const lineupId = path.substring(1);
+      const numericId = parseInt(lineupId);
+
+      if (isNaN(numericId)) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Invalid lineup ID format. Expected numeric ID.'
+          })
+        };
+      }
+
       const updateData = JSON.parse(event.body);
 
-      // Check if lineup exists
-      const lineupDoc = await collections.teamLineups.doc(lineupId).get();
-      if (!lineupDoc.exists) {
+      // Find document by numericId
+      const lineupQuery = await collections.teamLineups.where('numericId', '==', numericId).get();
+      if (lineupQuery.empty) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -327,14 +355,17 @@ exports.handler = async (event, context) => {
         };
       }
 
+      const lineupDoc = lineupQuery.docs[0];
+      const documentId = lineupDoc.id;
+
       // Update with timestamp
       const updatedData = {
         ...updateData,
         updatedAt: new Date().toISOString()
       };
 
-      await collections.teamLineups.doc(lineupId).update(updatedData);
-      const updatedDoc = await collections.teamLineups.doc(lineupId).get();
+      await collections.teamLineups.doc(documentId).update(updatedData);
+      const updatedDoc = await collections.teamLineups.doc(documentId).get();
       const updatedLineup = { id: updatedDoc.id, ...updatedDoc.data() };
 
       return {
@@ -350,10 +381,22 @@ exports.handler = async (event, context) => {
     // DELETE /api/teamLineups/:id - Delete team lineup
     if (method === 'DELETE' && path.match(/^\/[^\/]+$/)) {
       const lineupId = path.substring(1);
+      const numericId = parseInt(lineupId);
 
-      // Check if lineup exists
-      const lineupDoc = await collections.teamLineups.doc(lineupId).get();
-      if (!lineupDoc.exists) {
+      if (isNaN(numericId)) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Invalid lineup ID format. Expected numeric ID.'
+          })
+        };
+      }
+
+      // Find document by numericId
+      const lineupQuery = await collections.teamLineups.where('numericId', '==', numericId).get();
+      if (lineupQuery.empty) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -364,7 +407,10 @@ exports.handler = async (event, context) => {
         };
       }
 
-      await collections.teamLineups.doc(lineupId).delete();
+      const lineupDoc = lineupQuery.docs[0];
+      const documentId = lineupDoc.id;
+
+      await collections.teamLineups.doc(documentId).delete();
 
       return {
         statusCode: 200,
@@ -397,6 +443,48 @@ exports.handler = async (event, context) => {
           data: lineups
         })
       };
+    }
+
+    // GET /api/teamLineups/match/:matchId - Get lineups by match ID
+    if (method === 'GET' && path.match(/^\/match\/[^\/]+$/)) {
+      const matchId = path.substring(7); // Remove '/match/'
+      console.log('Getting lineups for matchId:', matchId);
+
+      try {
+        const snapshot = await collections.teamLineups
+          .where('matchId', '==', matchId)
+          .get();
+
+        const lineups = [];
+        snapshot.forEach(doc => {
+          lineups.push({ id: doc.id, ...doc.data() });
+        });
+
+        // Sort by createdAt in descending order (most recent first)
+        lineups.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        console.log('Found lineups:', lineups.length);
+
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: true,
+            data: lineups
+          })
+        };
+      } catch (error) {
+        console.error('Error querying lineups by matchId:', error);
+        return {
+          statusCode: 500,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Error querying team lineups',
+            error: error.message
+          })
+        };
+      }
     }
 
     return {

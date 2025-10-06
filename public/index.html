@@ -2286,7 +2286,36 @@
         const result = await apiCall('/api/matches', 'POST', matchData);
         const matchId = result.data.id;
 
-        showSuccess('matches-content', `Match created successfully! Starting scoring interface...`);
+        // Create team lineups for the selected players
+        const lineupPromises = [];
+
+        // Get team details for the lineups
+        const [team1Data, team2Data] = await Promise.all([
+          apiCall(`/api/teams/${team1Id}`),
+          apiCall(`/api/teams/${team2Id}`)
+        ]);
+
+        lineupPromises.push(
+          apiCall('/api/teamLineups', 'POST', {
+            teamId: team1Id,
+            teamName: team1Data.data.name,
+            playerIds: team1Players,
+            matchId: matchId
+          })
+        );
+
+        lineupPromises.push(
+          apiCall('/api/teamLineups', 'POST', {
+            teamId: team2Id,
+            teamName: team2Data.data.name,
+            playerIds: team2Players,
+            matchId: matchId
+          })
+        );
+
+        await Promise.all(lineupPromises);
+
+        showSuccess('matches-content', `Match created successfully with playing 11! Starting scoring interface...`);
 
         // Start the scoring interface
         setTimeout(() => {
@@ -2302,31 +2331,61 @@
     // Function to populate team dropdowns
     async function populateTeamDropdowns() {
       try {
+        console.log('populateTeamDropdowns called');
         // Load teams if not already loaded
         if (!currentData.teams || currentData.teams.length === 0) {
+          console.log('Loading teams from API');
           const data = await apiCall('/api/teams');
           currentData.teams = data.data;
+          console.log('Loaded teams:', currentData.teams.length, 'teams');
+        } else {
+          console.log('Using cached teams:', currentData.teams.length, 'teams');
         }
 
         const teams = currentData.teams;
         const team1Select = document.getElementById('team1Id');
         const team2Select = document.getElementById('team2Id');
+        const editTeam1Select = document.getElementById('editTeam1Id');
+        const editTeam2Select = document.getElementById('editTeam2Id');
 
         // Clear existing options except the first one
-        team1Select.innerHTML = '<option value="">Choose a team...</option>';
-        team2Select.innerHTML = '<option value="">Choose a team...</option>';
+        if (team1Select) team1Select.innerHTML = '<option value="">Choose a team...</option>';
+        if (team2Select) team2Select.innerHTML = '<option value="">Choose a team...</option>';
+        if (editTeam1Select) editTeam1Select.innerHTML = '<option value="">Choose a team...</option>';
+        if (editTeam2Select) editTeam2Select.innerHTML = '<option value="">Choose a team...</option>';
 
-        // Add teams to both dropdowns
+        // Add teams to all dropdowns
         teams.forEach(team => {
-          const option1 = document.createElement('option');
-          option1.value = team.id;
-          option1.textContent = `${team.name} (${team.displayId || team.id})`;
-          team1Select.appendChild(option1);
+          console.log('Adding team to dropdown:', team.id, team.name);
+          // Regular create form dropdowns
+          if (team1Select) {
+            const option1 = document.createElement('option');
+            option1.value = team.id;
+            option1.textContent = `${team.name} (${team.displayId || team.id})`;
+            team1Select.appendChild(option1);
+          }
 
-          const option2 = document.createElement('option');
-          option2.value = team.id;
-          option2.textContent = `${team.name} (${team.displayId || team.id})`;
-          team2Select.appendChild(option2);
+          if (team2Select) {
+            const option2 = document.createElement('option');
+            option2.value = team.id;
+            option2.textContent = `${team.name} (${team.displayId || team.id})`;
+            team2Select.appendChild(option2);
+          }
+
+          // Edit form dropdowns
+          if (editTeam1Select) {
+            const editOption1 = document.createElement('option');
+            editOption1.value = team.id;
+            editOption1.textContent = `${team.name} (${team.displayId || team.id})`;
+            editTeam1Select.appendChild(editOption1);
+          }
+
+          if (editTeam2Select) {
+            const editOption2 = document.createElement('option');
+            editOption2.value = team.id;
+            editOption2.textContent = `${team.name} (${team.displayId || team.id})`;
+            editTeam2Select.appendChild(editOption2);
+          }
         });
       } catch (error) {
         console.error('Failed to load teams for dropdowns:', error);
@@ -2443,22 +2502,29 @@
       }
     });
 
-    async function editMatch(matchId, event) {
-      event.stopPropagation();
+
+
+    async function editMatch(matchId) {
+      console.log('editMatch called with matchId:', matchId);
 
       try {
         // Get match details
+        console.log('Fetching match data for:', matchId);
         const matchResponse = await apiCall(`/api/matches/${matchId}`);
         const match = matchResponse.data;
+        console.log('Match data received:', match);
 
         if (match.status === 'scheduled') {
           // Show edit form for scheduled matches
+          console.log('Match is scheduled, showing edit form');
           showEditMatchForm(match);
         } else if (match.status === 'live' || match.status === 'completed') {
           // For live/completed matches, show scoring view
+          console.log('Match is live/completed, showing scoring view');
           showMatchScoringView(match);
         } else {
           // For other statuses, allow editing
+          console.log('Match has other status, showing edit form');
           showEditMatchForm(match);
         }
       } catch (error) {
@@ -2467,24 +2533,104 @@
       }
     }
 
-    function showEditMatchForm(match) {
+    async function showEditMatchForm(match) {
+      console.log('showEditMatchForm called with match:', match);
+      // Populate team dropdowns first
+      await populateTeamDropdowns();
+
+      // Load existing team lineups for this match
+      let team1Lineup = null;
+      let team2Lineup = null;
+
+      try {
+        const lineupsResponse = await apiCall(`/api/teamLineups/match/${match.id}`);
+        const matchLineups = lineupsResponse.data;
+
+        // Find lineups for each team and enrich with player details
+        const team1LineupData = matchLineups.find(lineup => lineup.teamId === (match.team1Id || match.team1?.id));
+        const team2LineupData = matchLineups.find(lineup => lineup.teamId === (match.team2Id || match.team2?.id));
+
+        if (team1LineupData) {
+          // Fetch player details for team1 lineup
+          const playerPromises = team1LineupData.playerIds.map(playerId => apiCall(`/api/players/${playerId}`));
+          const playerResponses = await Promise.all(playerPromises);
+          team1Lineup = {
+            ...team1LineupData,
+            playersDetails: playerResponses.map(response => response.data)
+          };
+        }
+
+        if (team2LineupData) {
+          // Fetch player details for team2 lineup
+          const playerPromises = team2LineupData.playerIds.map(playerId => apiCall(`/api/players/${playerId}`));
+          const playerResponses = await Promise.all(playerPromises);
+          team2Lineup = {
+            ...team2LineupData,
+            playersDetails: playerResponses.map(response => response.data)
+          };
+        }
+
+        console.log('Found team lineups:', { team1Lineup, team2Lineup });
+      } catch (error) {
+        console.warn('Could not load team lineups:', error);
+      }
+
       const formHtml = `
         <div class="form-container">
           <h3>Edit Match</h3>
           <form id="editMatchForm">
-            <div class="form-group">
-              <label for="editMatchType">Match Type:</label>
-              <input type="text" id="editMatchType" value="${match.title || ''}" required>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editMatchType">Match Type:</label>
+                <select id="editMatchType" required>
+                  <option value="T20" ${match.matchType === 'T20' ? 'selected' : ''}>T20</option>
+                  <option value="ODI" ${match.matchType === 'ODI' ? 'selected' : ''}>ODI</option>
+                  <option value="Test" ${match.matchType === 'Test' ? 'selected' : ''}>Test</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editVenue">Venue:</label>
+                <input type="text" id="editVenue" value="${match.venue || ''}" required>
+              </div>
             </div>
-
-            <div class="form-group">
-              <label for="editVenue">Venue:</label>
-              <input type="text" id="editVenue" value="${match.venue || ''}" required>
-            </div>
-
             <div class="form-group">
               <label for="editScheduledDate">Scheduled Date:</label>
               <input type="datetime-local" id="editScheduledDate" value="${match.scheduledDate ? new Date(match.scheduledDate).toISOString().slice(0, 16) : ''}" required>
+            </div>
+
+            <div class="team-selection-section">
+              <h4>Select Teams & Players</h4>
+              <div class="team-selection-grid">
+                <div class="team-panel">
+                  <h5>Team 1</h5>
+                  <div class="form-group">
+                    <label for="editTeam1Id">Select Team:</label>
+                    <select id="editTeam1Id" required onchange="onEditTeamChange('team1')">
+                      <option value="">Choose a team...</option>
+                      <!-- Teams will be populated by populateTeamDropdowns() -->
+                    </select>
+                    <button type="button" class="btn btn-small" onclick="loadEditTeamPlayers('team1')" id="editLoadTeam1Btn">Load Players</button>
+                  </div>
+                  <div id="edit-team1-players" class="player-selection-list">
+                    <p>Select team and click "Load Players"</p>
+                  </div>
+                </div>
+
+                <div class="team-panel">
+                  <h5>Team 2</h5>
+                  <div class="form-group">
+                    <label for="editTeam2Id">Select Team:</label>
+                    <select id="editTeam2Id" required onchange="onEditTeamChange('team2')">
+                      <option value="">Choose a team...</option>
+                      <!-- Teams will be populated by populateTeamDropdowns() -->
+                    </select>
+                    <button type="button" class="btn btn-small" onclick="loadEditTeamPlayers('team2')" id="editLoadTeam2Btn">Load Players</button>
+                  </div>
+                  <div id="edit-team2-players" class="player-selection-list">
+                    <p>Select team and click "Load Players"</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
@@ -2506,19 +2652,163 @@
       `;
 
       document.getElementById('matches-content').innerHTML = formHtml;
+
+      // Pre-select the teams and show existing lineups
+      console.log('Pre-selecting teams for match:', match);
+      if (match.team1Id || match.team1?.id) {
+        const team1Id = match.team1Id || match.team1?.id;
+        console.log('Setting team1Id:', team1Id);
+        const team1Select = document.getElementById('editTeam1Id');
+        console.log('team1Select options:', Array.from(team1Select.options).map(o => ({value: o.value, text: o.text})));
+        team1Select.value = team1Id;
+        console.log('team1Select value after setting:', team1Select.value);
+
+        // If team not found in dropdown, try to add it
+        if (team1Select.value !== team1Id) {
+          console.log('team1Id not found in dropdown options, trying to add it');
+          // Try to find the team in currentData.teams
+          const team = currentData.teams?.find(t => t.id === team1Id);
+          if (team) {
+            const option = document.createElement('option');
+            option.value = team.id;
+            option.textContent = `${team.name} (${team.displayId || team.id})`;
+            team1Select.appendChild(option);
+            team1Select.value = team1Id;
+            console.log('Added team1 to dropdown, value now:', team1Select.value);
+          }
+        }
+
+        // Show existing lineup if available
+        if (team1Lineup && team1Lineup.playersDetails) {
+          displayEditPlayerSelectionList(document.getElementById('edit-team1-players'), team1Lineup.playersDetails, 'team1');
+          // Pre-check the selected players
+          team1Lineup.playerIds.forEach(playerId => {
+            const checkbox = document.getElementById(`edit-team1-player-${playerId}`);
+            if (checkbox) checkbox.checked = true;
+          });
+        } else if (team1Select.value) {
+          loadEditTeamPlayers('team1');
+        }
+      }
+
+      if (match.team2Id || match.team2?.id) {
+        const team2Id = match.team2Id || match.team2?.id;
+        console.log('Setting team2Id:', team2Id);
+        const team2Select = document.getElementById('editTeam2Id');
+        console.log('team2Select options:', Array.from(team2Select.options).map(o => ({value: o.value, text: o.text})));
+        team2Select.value = team2Id;
+        console.log('team2Select value after setting:', team2Select.value);
+
+        // If team not found in dropdown, try to add it
+        if (team2Select.value !== team2Id) {
+          console.log('team2Id not found in dropdown options, trying to add it');
+          // Try to find the team in currentData.teams
+          const team = currentData.teams?.find(t => t.id === team2Id);
+          if (team) {
+            const option = document.createElement('option');
+            option.value = team.id;
+            option.textContent = `${team.name} (${team.displayId || team.id})`;
+            team2Select.appendChild(option);
+            team2Select.value = team2Id;
+            console.log('Added team2 to dropdown, value now:', team2Select.value);
+          }
+        }
+
+        // Show existing lineup if available
+        if (team2Lineup && team2Lineup.playersDetails) {
+          displayEditPlayerSelectionList(document.getElementById('edit-team2-players'), team2Lineup.playersDetails, 'team2');
+          // Pre-check the selected players
+          team2Lineup.playerIds.forEach(playerId => {
+            const checkbox = document.getElementById(`edit-team2-player-${playerId}`);
+            if (checkbox) checkbox.checked = true;
+          });
+        } else if (team2Select.value) {
+          loadEditTeamPlayers('team2');
+        }
+      }
     }
 
     async function updateMatch(matchId) {
+      const team1Id = document.getElementById('editTeam1Id').value;
+      const team2Id = document.getElementById('editTeam2Id').value;
+      const team1Players = getSelectedEditPlayers('team1');
+      const team2Players = getSelectedEditPlayers('team2');
+
+      if (!team1Players.length || !team2Players.length) {
+        showError('matches-content', new Error('Please select players for both teams'));
+        return;
+      }
+
       const matchData = {
-        title: document.getElementById('editMatchType').value,
+        matchType: document.getElementById('editMatchType').value,
         venue: document.getElementById('editVenue').value,
         scheduledDate: document.getElementById('editScheduledDate').value,
-        status: document.getElementById('editStatus').value
+        status: document.getElementById('editStatus').value,
+        team1Id: team1Id,
+        team2Id: team2Id
       };
 
       try {
+        // Update the match
         await apiCall(`/api/matches/${matchId}`, 'PUT', matchData);
-        showSuccess('matches-content', 'Match updated successfully!');
+
+        // Update or create team lineups
+        const lineupPromises = [];
+
+        // Get team details for the lineups
+        const [team1Data, team2Data] = await Promise.all([
+          apiCall(`/api/teams/${team1Id}`),
+          apiCall(`/api/teams/${team2Id}`)
+        ]);
+
+        // Check if lineups already exist for this match
+        const existingLineupsResponse = await apiCall(`/api/teamLineups/match/${matchId}`);
+        const existingLineups = existingLineupsResponse.data;
+
+        const team1Lineup = existingLineups.find(lineup => lineup.teamId === team1Id);
+        const team2Lineup = existingLineups.find(lineup => lineup.teamId === team2Id);
+
+        if (team1Lineup) {
+          // Update existing lineup
+          lineupPromises.push(
+            apiCall(`/api/teamLineups/${team1Lineup.id}`, 'PUT', {
+              playerIds: team1Players
+            })
+          );
+        } else {
+          // Create new lineup
+          lineupPromises.push(
+            apiCall('/api/teamLineups', 'POST', {
+              teamId: team1Id,
+              teamName: team1Data.data.name,
+              playerIds: team1Players,
+              matchId: matchId
+            })
+          );
+        }
+
+        if (team2Lineup) {
+          // Update existing lineup
+          lineupPromises.push(
+            apiCall(`/api/teamLineups/${team2Lineup.id}`, 'PUT', {
+              playerIds: team2Players
+            })
+          );
+        } else {
+          // Create new lineup
+          lineupPromises.push(
+            apiCall('/api/teamLineups', 'POST', {
+              teamId: team2Id,
+              teamName: team2Data.data.name,
+              playerIds: team2Players,
+              matchId: matchId
+            })
+          );
+        }
+
+        await Promise.all(lineupPromises);
+
+        showSuccess('matches-content', 'Match and team lineups updated successfully!');
         setTimeout(() => loadMatches(), 1500);
       } catch (error) {
         showError('matches-content', error);
@@ -2526,31 +2816,71 @@
     }
 
     function startScoringFromEdit(matchId) {
-      // Get the match data and start scoring
+      // Get the selected players from the edit form
+      const team1Players = getSelectedEditPlayers('team1');
+      const team2Players = getSelectedEditPlayers('team2');
+
+      console.log('Starting scoring with selected players:', {
+        team1Players: team1Players,
+        team2Players: team2Players
+      });
+
+      if (team1Players.length === 0 || team2Players.length === 0) {
+        alert('Please select players for both teams before starting scoring.');
+        return;
+      }
+
+      // Get the match data and update/create team lineups
       apiCall(`/api/matches/${matchId}`)
         .then(response => {
           const match = response.data;
-          // Load teams and players data
-          return Promise.all([
-            apiCall('/api/teams'),
-            apiCall('/api/players'),
-            Promise.resolve(match)
-          ]);
+
+          // Update or create team lineups for both teams
+          const lineupPromises = [];
+
+          if (match.team1?.id) {
+            lineupPromises.push(
+              apiCall('/api/teamLineups', 'POST', {
+                teamId: match.team1.id,
+                teamName: match.team1.name,
+                playerIds: team1Players,
+                matchId: matchId
+              }).catch(error => {
+                // If lineup already exists, try to update it
+                console.log('Creating/updating team1 lineup');
+              })
+            );
+          }
+
+          if (match.team2?.id) {
+            lineupPromises.push(
+              apiCall('/api/teamLineups', 'POST', {
+                teamId: match.team2.id,
+                teamName: match.team2.name,
+                playerIds: team2Players,
+                matchId: matchId
+              }).catch(error => {
+                // If lineup already exists, try to update it
+                console.log('Creating/updating team2 lineup');
+              })
+            );
+          }
+
+          return Promise.all(lineupPromises).then(() => match);
         })
-        .then(([teamsResponse, playersResponse, match]) => {
-          currentData.teams = teamsResponse.data;
-          currentData.players = playersResponse.data;
-
-          // Get team players (this is a simplified approach - in reality you'd need team lineups)
-          const team1Players = getPlayersForTeam(match.teams?.team1?.id || match.team1Id);
-          const team2Players = getPlayersForTeam(match.teams?.team2?.id || match.team2Id);
-
+        .then(match => {
+          // Now start the scoring with the created lineups
           startMatchScoring(match.id, match, team1Players, team2Players);
         })
         .catch(error => {
           console.error('Error starting scoring from edit:', error);
           showError('matches-content', error);
         });
+    }
+
+    function getSelectedEditPlayers(teamPrefix) {
+      const checkboxes = document.querySelectorAll(`input[id^="edit-${teamPrefix}-player-"]:checked`);
+      return Array.from(checkboxes).map(cb => cb.value);
     }
 
     function getPlayersForTeam(teamId) {
@@ -2589,9 +2919,7 @@
       loadMatches();
     }
 
-    async function deleteMatch(matchId, event) {
-      event.stopPropagation();
-
+    async function deleteMatch(matchId) {
       if (!confirm('Are you sure you want to delete this match? This action cannot be undone.')) {
         return;
       }
@@ -2739,7 +3067,7 @@
                            match.status === 'scheduled' ? 'status-scheduled' : 'status-upcoming';
 
         html += `
-          <div class="data-card" onclick="showMatchDetail('${match.id}')">
+          <div class="data-card">
             <h3>${match.title || match.displayId || match.id}</h3>
             <p><span class="status-indicator ${statusClass}"></span>${match.status || 'scheduled'}</p>
             <p><strong>Teams:</strong> ${match.team1 ? match.team1.name : 'TBD'} vs ${match.team2 ? match.team2.name : 'TBD'}</p>
@@ -2749,8 +3077,9 @@
             <p><strong>Venue:</strong> ${match.venue || 'N/A'}</p>
             ${match.scheduledDate ? `<p><strong>Date:</strong> ${new Date(match.scheduledDate).toLocaleString()}</p>` : ''}
             <div class="card-actions">
-              <button class="btn btn-small btn-edit" onclick="editMatch('${match.id}', event)">Edit</button>
-              <button class="btn btn-small btn-delete" onclick="deleteMatch('${match.id}', event)">Delete</button>
+              <button class="btn btn-small btn-view" onclick="showMatchDetail('${match.id}')">View</button>
+              <button class="btn btn-small btn-edit" onclick="editMatch('${match.id}')">Edit</button>
+              <button class="btn btn-small btn-delete" onclick="deleteMatch('${match.id}')">Delete</button>
             </div>
           </div>
         `;
@@ -4033,15 +4362,19 @@
       console.log('Starting inning with:', { battingTeamId, bowlingTeamId, matchId: window.currentMatch.data.id });
 
       try {
-        const result = await apiCall('/api/scoring/innings', 'POST', {
+        // Try direct function call first to test if function is accessible
+        console.log('Trying direct function call to /.netlify/functions/scoring/innings...');
+        const directResult = await apiCall('/.netlify/functions/scoring/innings', 'POST', {
           matchId: window.currentMatch.data.id,
           battingTeamId: battingTeamId,
           bowlingTeamId: bowlingTeamId
         });
 
-        if (result.success) {
+        console.log('Direct call result:', directResult);
+        if (directResult.success) {
+          console.log('Direct function call succeeded!');
           // Update local match data with the created inning
-          const newInning = result.data;
+          const newInning = directResult.data;
           window.currentMatch.innings.push(newInning);
           window.currentMatch.currentInning = newInning;
 
@@ -4054,13 +4387,122 @@
 
           // Refresh match data in UI
           loadMatches();
-        } else {
-          alert('Failed to start inning: ' + (result.message || 'Unknown error'));
+          return;
         }
-      } catch (error) {
-        console.error('Error starting inning:', error);
-        alert('Error starting inning: ' + error.message);
+      } catch (directError) {
+        console.log('Direct function call failed:', directError.message);
       }
+
+      // Fallback to API route
+      console.log('Trying API route /api/scoring/innings...');
+      const result = await apiCall('/api/scoring/innings', 'POST', {
+        matchId: window.currentMatch.data.id,
+        battingTeamId: battingTeamId,
+        bowlingTeamId: bowlingTeamId
+      });
+
+      if (result.success) {
+        // Update local match data with the created inning
+        const newInning = result.data;
+        window.currentMatch.innings.push(newInning);
+        window.currentMatch.currentInning = newInning;
+
+        // Update match status
+        window.currentMatch.data.status = 'live';
+        window.currentMatch.data.currentInnings = newInning.inningNumber;
+
+        // Show scoring interface
+        showScoringInterface();
+
+        // Refresh match data in UI
+        loadMatches();
+      } else {
+        alert('Failed to start inning: ' + (result.message || 'Unknown error'));
+      }
+    }
+
+    function onEditTeamChange(teamPrefix) {
+      const select = document.getElementById(`edit${teamPrefix.charAt(0).toUpperCase() + teamPrefix.slice(1)}Id`);
+      const loadBtn = document.getElementById(`editLoad${teamPrefix.charAt(0).toUpperCase() + teamPrefix.slice(1)}Btn`);
+      const selectedValue = select.value;
+
+      // Enable/disable load players button
+      loadBtn.disabled = !selectedValue;
+
+      // Clear player selection if team changed
+      const playersDiv = document.getElementById(`edit-${teamPrefix}-players`);
+      if (!selectedValue) {
+        playersDiv.innerHTML = '<p>Select team and click "Load Players"</p>';
+      }
+    }
+
+    async function loadEditTeamPlayers(teamPrefix) {
+      const teamId = document.getElementById(`edit${teamPrefix.charAt(0).toUpperCase() + teamPrefix.slice(1)}Id`).value.trim();
+      console.log(`loadEditTeamPlayers called for ${teamPrefix}, teamId:`, teamId);
+      if (!teamId) {
+        console.log('No teamId found, showing alert');
+        alert('Please select a team first');
+        return;
+      }
+
+      const playerListDiv = document.getElementById(`edit-${teamPrefix}-players`);
+      playerListDiv.innerHTML = '<div class="loading">Loading players...</div>';
+
+      try {
+        // For now, load all players and filter by teamId
+        // TODO: Add team filtering to players API
+        const result = await apiCall('/api/players');
+        const allPlayers = result.data;
+
+        // Filter players by teamId (assuming players have teamId field)
+        const teamPlayers = allPlayers.filter(player => player.teamId === teamId);
+
+        if (teamPlayers.length === 0) {
+          playerListDiv.innerHTML = '<p>No players found for this team. Players will be selectable from all available players.</p>';
+          // Show all players as selectable
+          displayEditPlayerSelectionList(playerListDiv, allPlayers, teamPrefix);
+        } else {
+          displayEditPlayerSelectionList(playerListDiv, teamPlayers, teamPrefix);
+        }
+
+      } catch (error) {
+        console.error('Failed to load team players:', error);
+        playerListDiv.innerHTML = '<p class="error">Failed to load players</p>';
+      }
+    }
+
+    function displayEditPlayerSelectionList(container, players, teamPrefix) {
+      if (!players || players.length === 0) {
+        container.innerHTML = '<p>No players available</p>';
+        return;
+      }
+
+      let html = '';
+      players.forEach(player => {
+        const checkboxId = `edit-${teamPrefix}-player-${player.id}`;
+        html += `
+          <div class="player-checkbox-item">
+            <input type="checkbox" id="${checkboxId}" value="${player.id}" onchange="updateEditPlayerSelection('${teamPrefix}')">
+            <div class="player-info">
+              <strong>${player.name}</strong>
+              <span class="player-role">${player.role || 'Player'}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updateEditPlayerSelection(teamPrefix) {
+      // This function can be used to track selected players if needed
+      // For now, just log the selection
+      const selectedPlayers = [];
+      const checkboxes = document.querySelectorAll(`input[id^="edit-${teamPrefix}-player-"]:checked`);
+      checkboxes.forEach(checkbox => {
+        selectedPlayers.push(checkbox.value);
+      });
+      console.log(`Selected players for ${teamPrefix}:`, selectedPlayers);
     }
 
     function showScoringInterface() {
@@ -4152,7 +4594,7 @@
       }
     }
 
-    function addRuns(runs) {
+    async function addRuns(runs) {
       const inning = window.currentMatch.currentInning;
       if (!inning || !inning.currentBatsman || !inning.currentBowler) {
         alert('Please select both batsman and bowler first');
@@ -4214,12 +4656,28 @@
       // Update total runs
       inning.totalRuns += runs;
 
+      // Record the ball in the backend
+      try {
+        await apiCall('/api/scoring/balls', 'POST', {
+          matchId: window.currentMatch.id,
+          inningId: inning.id,
+          runs: runs,
+          bowlerId: inning.currentBowler,
+          batsmanId: inning.currentBatsman,
+          nonStrikerId: inning.currentNonStriker || null
+        });
+        console.log('Ball recorded successfully');
+      } catch (error) {
+        console.error('Failed to record ball:', error);
+        // Continue with local updates even if backend call fails
+      }
+
       // Update display
       updateScoreDisplay();
       updateCurrentOverDisplay();
     }
 
-    function addWicket(type) {
+    async function addWicket(type) {
       const inning = window.currentMatch.currentInning;
       if (!inning || !inning.currentBatsman || !inning.currentBowler) {
         alert('Please select both batsman and bowler first');
@@ -4242,6 +4700,23 @@
       // Update totals
       inning.totalWickets += 1;
       inning.totalBalls += 1;
+
+      // Record the wicket ball in the backend
+      try {
+        await apiCall('/api/scoring/balls', 'POST', {
+          matchId: window.currentMatch.id,
+          inningId: inning.id,
+          runs: 0,
+          wicket: { type: type },
+          bowlerId: inning.currentBowler,
+          batsmanId: inning.currentBatsman,
+          nonStrikerId: inning.currentNonStriker || null
+        });
+        console.log('Wicket recorded successfully');
+      } catch (error) {
+        console.error('Failed to record wicket:', error);
+        // Continue with local updates even if backend call fails
+      }
 
       // Update over
       inning.currentOver.push('W');
@@ -4310,11 +4785,21 @@
           totalRuns: inning.totalRuns,
           totalWickets: inning.totalWickets,
           totalOvers: inning.totalOvers,
-          totalBalls: inning.totalBalls
+          totalBalls: inning.totalBalls,
+          batsmen: inning.batsmen || [],
+          bowling: inning.bowling || [],
+          fallOfWickets: inning.fallOfWickets || [],
+          extras: inning.extras || {
+            total: 0,
+            wides: 0,
+            noBalls: 0,
+            byes: 0,
+            legByes: 0
+          }
         };
 
-        // Save to matches/{matchId}/innings/{inningId}
-        await apiCall(`/api/matches/${match.id}/innings`, 'POST', inningData);
+        // Save to matches/{matchId}/innings/{inningId} via scoring API
+        await apiCall(`/api/scoring/innings/${inning.id}`, 'PUT', inningData);
 
         // Update match scores
         const currentTeam1Score = match.data.team1Score || 0;

@@ -1,5 +1,26 @@
 const { collections } = require('../../config/database');
 const { sequenceManager } = require('../../utils/sequenceManager');
+const { TeamStatisticsManager } = require('../../utils/teamStatisticsManager');
+
+// Helper function to find document by numericId
+async function findDocumentByNumericId(collection, numericId) {
+  const snapshot = await collection.where('numericId', '==', parseInt(numericId, 10)).get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  // Return the first matching document (should only be one)
+  const doc = snapshot.docs[0];
+
+  // Return an object that mimics a Firestore document
+  return {
+    id: doc.id,
+    ref: doc.ref,
+    exists: true,
+    data: () => ({ ...doc.data(), id: doc.id })
+  };
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -59,9 +80,9 @@ exports.handler = async (event, context) => {
             const inningsSnapshot = await collections.matches.doc(doc.id).collection('innings').get();
             for (const inningDoc of inningsSnapshot.docs) {
               const inningData = inningDoc.data();
-              if (inningData.battingTeam === matchData.teams?.team1?.name) {
+              if (inningData.battingTeam === matchData.team1?.name) {
                 team1Score += inningData.totalRuns || 0;
-              } else if (inningData.battingTeam === matchData.teams?.team2?.name) {
+              } else if (inningData.battingTeam === matchData.team2?.name) {
                 team2Score += inningData.totalRuns || 0;
               }
             }
@@ -81,9 +102,9 @@ exports.handler = async (event, context) => {
           scheduledDate: matchData.scheduledDate,
           createdAt: matchData.createdAt,
           updatedAt: matchData.updatedAt,
-          // Use embedded team details instead of separate queries
-          team1: matchData.teams?.team1 || null,
-          team2: matchData.teams?.team2 || null,
+          // Handle both old (matchData.teams) and new (matchData.team1/team2) formats
+          team1: matchData.team1 || matchData.teams?.team1 || null,
+          team2: matchData.team2 || matchData.teams?.team2 || null,
           // Include toss information
           toss: matchData.toss || null,
           // Include calculated score info
@@ -108,12 +129,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // GET /api/matches/:id - Get match by ID
+    // GET /api/matches/:numericId - Get match by numericId
     if (method === 'GET' && path && path.match(/^\/[^\/]+$/)) {
-      const matchId = path.substring(1);
-      const matchDoc = await collections.matches.doc(matchId).get();
+      const numericId = path.substring(1);
+      const matchDoc = await findDocumentByNumericId(collections.matches, numericId);
 
-      if (!matchDoc.exists) {
+      if (!matchDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -131,13 +152,13 @@ exports.handler = async (event, context) => {
         ...matchDoc.data()
       };
 
-      // Use embedded team details instead of separate queries
-      matchData.team1 = matchData.teams?.team1 || null;
-      matchData.team2 = matchData.teams?.team2 || null;
+      // Handle both old (matchData.teams) and new (matchData.team1/team2) formats
+      matchData.team1 = matchData.team1 || matchData.teams?.team1 || null;
+      matchData.team2 = matchData.team2 || matchData.teams?.team2 || null;
 
       // Fetch detailed innings with all player stats
       try {
-        const inningsSnapshot = await collections.matches.doc(matchId).collection('innings').orderBy('inningNumber').get();
+        const inningsSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').orderBy('inningNumber').get();
         const innings = [];
 
         for (const inningDoc of inningsSnapshot.docs) {
@@ -301,6 +322,65 @@ exports.handler = async (event, context) => {
         matchData.lineups = {};
       }
 
+      // Calculate best batsman and best bowler from innings data
+      try {
+        let bestBatsman = null;
+        let bestBowler = null;
+
+        if (matchData.innings && Array.isArray(matchData.innings)) {
+          // Find best batsman (highest runs)
+          let maxRuns = 0;
+          for (const inning of matchData.innings) {
+            if (inning.batsmen && Array.isArray(inning.batsmen)) {
+              for (const batsman of inning.batsmen) {
+                if (batsman.runs > maxRuns) {
+                  maxRuns = batsman.runs;
+                  bestBatsman = {
+                    player: batsman.player,
+                    runs: batsman.runs,
+                    balls: batsman.balls || 0,
+                    fours: batsman.fours || 0,
+                    sixes: batsman.sixes || 0,
+                    strikeRate: batsman.balls > 0 ? ((batsman.runs / batsman.balls) * 100).toFixed(2) : '0.00'
+                  };
+                }
+              }
+            }
+          }
+
+          // Find best bowler (most wickets, then least runs)
+          let maxWickets = 0;
+          let minRunsForMaxWickets = Infinity;
+          for (const inning of matchData.innings) {
+            if (inning.bowlers && Array.isArray(inning.bowlers)) {
+              for (const bowler of inning.bowlers) {
+                const wickets = bowler.wickets || 0;
+                const runs = bowler.runs || 0;
+
+                if (wickets > maxWickets || (wickets === maxWickets && runs < minRunsForMaxWickets)) {
+                  maxWickets = wickets;
+                  minRunsForMaxWickets = runs;
+                  bestBowler = {
+                    player: bowler.player,
+                    wickets: wickets,
+                    runs: runs,
+                    overs: bowler.overs || 0,
+                    economy: bowler.overs > 0 ? (runs / bowler.overs).toFixed(2) : '0.00'
+                  };
+                }
+              }
+            }
+          }
+        }
+
+        matchData.bestBatsman = bestBatsman;
+        matchData.bestBowler = bestBowler;
+      } catch (error) {
+        console.error('Error calculating best batsman/bowler:', error);
+        matchData.bestBatsman = null;
+        matchData.bestBowler = null;
+      }
+
       return {
         statusCode: 200,
         headers: corsHeaders,
@@ -311,13 +391,13 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // GET /api/matches/:matchId/innings - Get innings for a match
+    // GET /api/matches/:numericId/innings - Get innings for a match
     if (method === 'GET' && path && path.match(/^\/[^\/]+\/innings$/)) {
-      const matchId = path.split('/')[1];
+      const numericId = path.split('/')[1];
 
       // Verify match exists
-      const matchDoc = await collections.matches.doc(matchId).get();
-      if (!matchDoc.exists) {
+      const matchDoc = await findDocumentByNumericId(collections.matches, numericId);
+      if (!matchDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -329,7 +409,7 @@ exports.handler = async (event, context) => {
       }
 
       try {
-        const inningsSnapshot = await collections.matches.doc(matchId).collection('innings').orderBy('inningNumber').get();
+        const inningsSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').orderBy('inningNumber').get();
         const innings = [];
 
         for (const inningDoc of inningsSnapshot.docs) {
@@ -359,15 +439,15 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // GET /api/matches/:matchId/innings/:inningId - Get specific inning details
+    // GET /api/matches/:numericId/innings/:inningId - Get specific inning details
     if (method === 'GET' && path && path.match(/^\/[^\/]+\/innings\/[^\/]+$/)) {
       const pathParts = path.split('/');
-      const matchId = pathParts[1];
+      const numericId = pathParts[1];
       const inningId = pathParts[3];
       
       // Verify match exists
-      const matchDoc = await collections.matches.doc(matchId).get();
-      if (!matchDoc.exists) {
+      const matchDoc = await findDocumentByNumericId(collections.matches, numericId);
+      if (!matchDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -379,7 +459,7 @@ exports.handler = async (event, context) => {
       }
 
       try {
-        const inningDoc = await collections.matches.doc(matchId).collection('innings').doc(inningId).get();
+        const inningDoc = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningId).get();
         
         if (!inningDoc.exists) {
           return {
@@ -500,6 +580,45 @@ exports.handler = async (event, context) => {
       const team1Data = team1Doc.data();
       const team2Data = team2Doc.data();
 
+      // Get full team instances with players
+      const team1Instance = {
+        id: matchData.team1Id,
+        numericId: team1Data.numericId,
+        name: team1Data.name,
+        shortName: team1Data.shortName || team1Data.name.substring(0, 3).toUpperCase(),
+        captain: team1Data.captainId ? {
+          id: team1Data.captainId,
+          name: team1Data.captain?.name || 'Unknown'
+        } : null,
+        players: team1Data.players || [],
+        statistics: team1Data.statistics || {
+          totalMatches: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          winPercentage: 0
+        }
+      };
+
+      const team2Instance = {
+        id: matchData.team2Id,
+        numericId: team2Data.numericId,
+        name: team2Data.name,
+        shortName: team2Data.shortName || team2Data.name.substring(0, 3).toUpperCase(),
+        captain: team2Data.captainId ? {
+          id: team2Data.captainId,
+          name: team2Data.captain?.name || 'Unknown'
+        } : null,
+        players: team2Data.players || [],
+        statistics: team2Data.statistics || {
+          totalMatches: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          winPercentage: 0
+        }
+      };
+
       // Generate numeric ID for the match
       const numericId = await sequenceManager.getNextId('matches');
 
@@ -514,19 +633,9 @@ exports.handler = async (event, context) => {
         status: matchData.status || 'scheduled',
         createdAt: timestamp,
         updatedAt: timestamp,
-        // Embed team details for easy access (like imported data)
-        teams: {
-          team1: {
-            id: matchData.team1Id,
-            name: team1Data.name,
-            shortName: team1Data.shortName || team1Data.name.substring(0, 3).toUpperCase()
-          },
-          team2: {
-            id: matchData.team2Id,
-            name: team2Data.name,
-            shortName: team2Data.shortName || team2Data.name.substring(0, 3).toUpperCase()
-          }
-        },
+        // Store full team instances instead of just basic info
+        team1: team1Instance,
+        team2: team2Instance,
         // Initialize scoring fields
         currentInnings: 0,
         team1Score: 0,
@@ -549,14 +658,14 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // PUT /api/matches/:id - Update match
+    // PUT /api/matches/:numericId - Update match
     if (method === 'PUT' && path && path.match(/^\/[^\/]+$/)) {
-      const matchId = path.substring(1);
+      const numericId = path.substring(1);
       const updateData = JSON.parse(event.body);
 
       // Check if match exists
-      const matchDoc = await collections.matches.doc(matchId).get();
-      if (!matchDoc.exists) {
+      const matchDoc = await findDocumentByNumericId(collections.matches, numericId);
+      if (!matchDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -573,9 +682,19 @@ exports.handler = async (event, context) => {
         updatedAt: new Date().toISOString()
       };
 
-      await collections.matches.doc(matchId).update(updatedMatch);
-      const updatedDoc = await collections.matches.doc(matchId).get();
+      await collections.matches.doc(matchDoc.id).update(updatedMatch);
+      const updatedDoc = await collections.matches.doc(matchDoc.id).get();
       const result = { id: updatedDoc.id, ...updatedDoc.data() };
+
+      // If match status changed to completed, update team statistics
+      if (updateData.status === 'completed' && matchDoc.data().status !== 'completed') {
+        try {
+          await TeamStatisticsManager.updateTeamStatistics(matchDoc.id, result);
+        } catch (error) {
+          console.error(`Failed to update team statistics for completed match ${matchDoc.id}:`, error);
+          // Don't fail the request, just log the error
+        }
+      }
 
       return {
         statusCode: 200,
@@ -587,13 +706,13 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // DELETE /api/matches/:id - Delete match
+    // DELETE /api/matches/:numericId - Delete match
     if (method === 'DELETE' && path && path.match(/^\/[^\/]+$/)) {
-      const matchId = path.substring(1);
+      const numericId = path.substring(1);
 
       // Check if match exists
-      const matchDoc = await collections.matches.doc(matchId).get();
-      if (!matchDoc.exists) {
+      const matchDoc = await findDocumentByNumericId(collections.matches, numericId);
+      if (!matchDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -625,7 +744,7 @@ exports.handler = async (event, context) => {
       }
 
       // Delete the match
-      await collections.matches.doc(matchId).delete();
+      await collections.matches.doc(matchDoc.id).delete();
 
       return {
         statusCode: 200,
@@ -637,9 +756,9 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // POST /api/matches/:matchId/innings - Create new inning for a match
+    // POST /api/matches/:numericId/innings - Create new inning for a match
     if (method === 'POST' && path.match(/^\/[^\/]+\/innings$/)) {
-      const matchId = path.split('/')[1];
+      const numericId = path.split('/')[1];
       const inningData = JSON.parse(event.body);
 
       // Validate required fields
@@ -655,8 +774,8 @@ exports.handler = async (event, context) => {
       }
 
       // Verify match exists
-      const matchDoc = await collections.matches.doc(matchId).get();
-      if (!matchDoc.exists) {
+      const matchDoc = await findDocumentByNumericId(collections.matches, numericId);
+      if (!matchDoc) {
         return {
           statusCode: 404,
           headers: corsHeaders,

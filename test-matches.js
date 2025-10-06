@@ -21,6 +21,8 @@ async function checkMatchesData() {
         console.log(`\nMatch ${index + 1}:`);
         console.log('  Match ID:', match.id);
         console.log('  Status:', match.status);
+        console.log('  Team1:', match.team1);
+        console.log('  Team2:', match.team2);
         console.log('  Has innings:', !!match.innings);
         if (match.innings) {
           console.log('  Innings count:', match.innings.length);

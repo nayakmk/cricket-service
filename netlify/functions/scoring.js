@@ -28,13 +28,35 @@ exports.handler = async (event, context) => {
     let path = event.path;
     console.log('Initial path processing - event.path:', event.path);
     
-    // More robust path parsing
-    if (path.includes('/.netlify/functions/scoring')) {
-      path = path.split('/.netlify/functions/scoring')[1] || '';
-      console.log('Split on /.netlify/functions/scoring, path now:', path);
+    // Handle different routing scenarios in Netlify
+    if (path.startsWith('/.netlify/functions/scoring/')) {
+      // Direct function call like /.netlify/functions/scoring/innings
+      path = path.replace('/.netlify/functions/scoring', '');
+      console.log('Direct function call - path now:', path);
+    } else if (path.startsWith('/.netlify/functions/scoring')) {
+      // Function call without trailing slash
+      path = path.replace('/.netlify/functions/scoring', '') || '/';
+      console.log('Function call without trailing slash - path now:', path);
+    } else if (path.startsWith('/scoring/')) {
+      // Redirected from netlify.toml like /scoring/innings
+      path = path.replace('/scoring', '');
+      console.log('Redirected from netlify.toml - path now:', path);
+    } else if (path === '/scoring') {
+      // Redirected to function root
+      path = '/';
+      console.log('Redirected to function root - path now:', path);
     } else if (path.includes('/api/scoring')) {
+      // API route call (fallback)
       path = path.split('/api/scoring')[1] || '';
-      console.log('Split on /api/scoring, path now:', path);
+      console.log('API route call - path now:', path);
+    } else if (path.endsWith('/innings') || path === '/innings') {
+      // Fallback: if path ends with /innings, extract it
+      const parts = path.split('/');
+      const lastPart = parts[parts.length - 1];
+      if (lastPart === 'innings') {
+        path = '/innings';
+      }
+      console.log('Fallback innings extraction - path now:', path);
     } else {
       console.log('No path replacement applied, path remains:', path);
     }
@@ -47,8 +69,11 @@ exports.handler = async (event, context) => {
     const method = event.httpMethod;
 
     // POST /api/scoring/innings - Start new inning
-    if (method === 'POST' && path === '/innings') {
-      console.log('MATCHED: POST /innings - path:', path, 'method:', method);
+    console.log('Checking POST /innings condition - method:', method, 'path:', path, 'path === "/innings":', path === '/innings');
+    console.log('Also checking if path includes "innings":', path.includes('innings'));
+    console.log('Event body:', event.body);
+    if (method === 'POST' && path.includes('innings')) {
+      console.log('MATCHED: POST with innings in path - path:', path, 'method:', method);
       // ... existing code ...
       
       let requestBody;
