@@ -122,39 +122,40 @@ exports.handler = async (event, context) => {
 
         // Fetch match history for this team
         try {
+          // Query all matches and filter in code (more reliable than nested queries)
           const matchesSnapshot = await collections.matches
-            .where('team1.name', '==', teamData.name)
+            .orderBy('scheduledDate', 'desc')
             .get();
-          
-          const matchesSnapshot2 = await collections.matches
-            .where('team2.name', '==', teamData.name)
-            .get();
-          
-          const allMatchDocs = [...matchesSnapshot.docs, ...matchesSnapshot2.docs];
           
           teamData.matchHistory = [];
-          for (const matchDoc of allMatchDocs) {
+          for (const matchDoc of matchesSnapshot.docs) {
             const matchData = matchDoc.data();
-            const opponent = matchData.team1?.name === teamData.name ? matchData.team2 : matchData.team1;
             
-            teamData.matchHistory.push({
-              id: matchDoc.id,
-              numericId: matchData.numericId,
-              displayId: matchData.numericId || matchDoc.id,
-              title: matchData.title,
-              status: matchData.status,
-              scheduledDate: matchData.scheduledDate,
-              venue: matchData.venue,
-              opponent: opponent,
-              winner: matchData.winner,
-              result: matchData.result,
-              team1Score: matchData.team1Score,
-              team2Score: matchData.team2Score
-            });
+            // Check if this team is team1 or team2
+            const isTeam1 = matchData.team1?.name === teamData.name;
+            const isTeam2 = matchData.team2?.name === teamData.name;
+            
+            if (isTeam1 || isTeam2) {
+              const opponent = isTeam1 ? matchData.team2 : matchData.team1;
+              
+              teamData.matchHistory.push({
+                id: matchDoc.id,
+                numericId: matchData.numericId,
+                displayId: matchData.numericId || matchDoc.id,
+                title: matchData.title,
+                status: matchData.status,
+                scheduledDate: matchData.scheduledDate,
+                venue: matchData.venue,
+                opponent: opponent,
+                winner: matchData.winner,
+                result: matchData.result,
+                team1Score: matchData.team1Score,
+                team2Score: matchData.team2Score
+              });
+            }
           }
           
-          // Sort matches by date (most recent first)
-          teamData.matchHistory.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+          // Sort matches by date (most recent first) - already sorted by query
           
           // Calculate team statistics from match history
           const completedMatches = teamData.matchHistory.filter(match => match.status === 'completed');
