@@ -15,7 +15,3 @@
 
 [functions.timeout]
   value = 60
-
-[functions.environment]
-  RAPIDAPI_KEY = "e27809ce4cmsha82996c2e07a674p16c2f2jsne2eda76f3b89"
-  NEWS_API_KEY = "pub_876f4e980d524fd1bf5cc7be93a5fd60"
