@@ -21,16 +21,19 @@ class TeamStatisticsManager {
 
       // Update team1 statistics
       if (team1 && team1.id) {
-        await this.updateSingleTeamStatistics(team1.id, winner, team1.name);
+        await this.updateSingleTeamStatistics(team1.id, winner, team1.name, matchData);
       }
 
       // Update team2 statistics
       if (team2 && team2.id) {
-        await this.updateSingleTeamStatistics(team2.id, winner, team2.name);
+        await this.updateSingleTeamStatistics(team2.id, winner, team2.name, matchData);
       }
 
       // Update best players for both teams
       await this.updateBestPlayers(matchId, matchData);
+
+      // Update match history for both teams
+      await this.updateTeamMatchHistory(matchId, matchData);
 
       console.log(`Team statistics updated for match ${matchId}`);
     } catch (error) {
@@ -44,8 +47,9 @@ class TeamStatisticsManager {
    * @param {string} teamId - The team ID
    * @param {string} winner - The winner name
    * @param {string} teamName - The team name
+   * @param {Object} matchData - The complete match data
    */
-  static async updateSingleTeamStatistics(teamId, winner, teamName) {
+  static async updateSingleTeamStatistics(teamId, winner, teamName, matchData) {
     try {
       const teamDoc = await collections.teams.doc(teamId).get();
       if (!teamDoc.exists) {
@@ -59,19 +63,28 @@ class TeamStatisticsManager {
         wins: 0,
         losses: 0,
         draws: 0,
-        winPercentage: 0
+        winPercentage: 0,
+        currentStreak: { type: 'none', count: 0 },
+        longestWinStreak: 0,
+        longestLossStreak: 0,
+        recentMatches: [],
+        form: [] // Last 5 matches: W, L, D
       };
 
       // Update match count
       currentStats.totalMatches += 1;
 
-      // Update win/loss/draw based on result
+      // Determine result for this team
+      let result;
       if (winner === teamName) {
         currentStats.wins += 1;
+        result = 'W';
       } else if (winner && winner !== 'Draw') {
         currentStats.losses += 1;
+        result = 'L';
       } else {
         currentStats.draws += 1;
+        result = 'D';
       }
 
       // Calculate win percentage
@@ -79,13 +92,50 @@ class TeamStatisticsManager {
         ? (currentStats.wins / currentStats.totalMatches) * 100
         : 0;
 
+      // Update current streak
+      if (result === 'W') {
+        if (currentStats.currentStreak.type === 'win') {
+          currentStats.currentStreak.count += 1;
+        } else {
+          currentStats.currentStreak = { type: 'win', count: 1 };
+        }
+        currentStats.longestWinStreak = Math.max(currentStats.longestWinStreak, currentStats.currentStreak.count);
+      } else if (result === 'L') {
+        if (currentStats.currentStreak.type === 'loss') {
+          currentStats.currentStreak.count += 1;
+        } else {
+          currentStats.currentStreak = { type: 'loss', count: 1 };
+        }
+        currentStats.longestLossStreak = Math.max(currentStats.longestLossStreak, currentStats.currentStreak.count);
+      } else {
+        currentStats.currentStreak = { type: 'draw', count: 1 };
+      }
+
+      // Add to recent matches (keep last 10)
+      const recentMatch = {
+        matchId: matchData.id || matchData.numericId,
+        date: matchData.scheduledDate || matchData.date,
+        opponent: teamName === matchData.team1?.name ? matchData.team2?.name : matchData.team1?.name,
+        result: result,
+        winner: winner,
+        venue: matchData.venue,
+        status: matchData.status
+      };
+
+      currentStats.recentMatches.unshift(recentMatch);
+      currentStats.recentMatches = currentStats.recentMatches.slice(0, 10);
+
+      // Update form (last 5 matches)
+      currentStats.form.unshift(result);
+      currentStats.form = currentStats.form.slice(0, 5);
+
       // Update the team document
       await collections.teams.doc(teamId).update({
         statistics: currentStats,
         updatedAt: new Date().toISOString()
       });
 
-      console.log(`Updated statistics for team ${teamName}:`, currentStats);
+      console.log(`Updated comprehensive statistics for team ${teamName}:`, currentStats);
     } catch (error) {
       console.error(`Error updating statistics for team ${teamId}:`, error);
       throw error;
@@ -170,6 +220,123 @@ class TeamStatisticsManager {
 
     } catch (error) {
       console.error(`Error updating best players for match ${matchId}:`, error);
+    }
+  }
+
+  /**
+   * Update match history for teams when a match is completed
+   * @param {string} matchId - The match ID
+   * @param {Object} matchData - The match data
+   */
+  static async updateTeamMatchHistory(matchId, matchData) {
+    try {
+      console.log(`Updating match history for match ${matchId}`);
+
+      // Handle both old format (matchData.teams) and new format (matchData.team1/team2)
+      const team1 = matchData.team1 || matchData.teams?.team1;
+      const team2 = matchData.team2 || matchData.teams?.team2;
+
+      // Update team1 match history
+      if (team1 && team1.id) {
+        await this.updateSingleTeamMatchHistory(team1.id, matchId, matchData, false);
+      }
+
+      // Update team2 match history
+      if (team2 && team2.id) {
+        await this.updateSingleTeamMatchHistory(team2.id, matchId, matchData, true);
+      }
+
+      console.log(`Match history updated for match ${matchId}`);
+    } catch (error) {
+      console.error(`Error updating match history for match ${matchId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update match history for a single team
+   * @param {string} teamId - The team ID
+   * @param {string} matchId - The match ID
+   * @param {Object} matchData - The match data
+   * @param {boolean} isTeam2 - Whether this is team2 in the match
+   */
+  static async updateSingleTeamMatchHistory(teamId, matchId, matchData, isTeam2) {
+    try {
+      const teamDoc = await collections.teams.doc(teamId).get();
+      if (!teamDoc.exists) {
+        console.warn(`Team ${teamId} not found for match history update`);
+        return;
+      }
+
+      const teamData = teamDoc.data();
+      const currentMatchHistory = teamData.matchHistory || [];
+
+      // Get opponent info
+      const opponentTeam = isTeam2 ? matchData.team1 || matchData.teams?.team1 : matchData.team2 || matchData.teams?.team2;
+      let opponent = null;
+
+      if (opponentTeam?.name) {
+        opponent = {
+          name: opponentTeam.name,
+          shortName: opponentTeam.name.substring(0, 3).toUpperCase()
+        };
+      } else {
+        // Try to get opponent by ID
+        const opponentId = isTeam2 ? matchData.team1Id : matchData.team2Id;
+        if (opponentId) {
+          try {
+            const opponentDoc = await collections.teams.where('numericId', '==', opponentId).limit(1).get();
+            if (!opponentDoc.empty) {
+              const opponentData = opponentDoc.docs[0].data();
+              opponent = {
+                name: opponentData.name,
+                shortName: opponentData.shortName
+              };
+            }
+          } catch (error) {
+            console.warn(`Failed to get opponent for team ${opponentId}:`, error);
+          }
+        }
+      }
+
+      // Create match history entry
+      const matchHistoryEntry = {
+        id: matchId,
+        numericId: matchData.numericId,
+        displayId: matchData.numericId || matchId,
+        title: matchData.title,
+        status: matchData.status,
+        scheduledDate: matchData.scheduledDate,
+        venue: matchData.venue,
+        opponent: opponent,
+        winner: matchData.winner,
+        result: matchData.result,
+        team1Score: matchData.team1Score,
+        team2Score: matchData.team2Score
+      };
+
+      // Add to match history (avoid duplicates)
+      const existingIndex = currentMatchHistory.findIndex(match => match.id === matchId);
+      if (existingIndex >= 0) {
+        currentMatchHistory[existingIndex] = matchHistoryEntry;
+      } else {
+        currentMatchHistory.unshift(matchHistoryEntry); // Add to beginning
+      }
+
+      // Keep only last 20 matches and sort by date (most recent first)
+      currentMatchHistory.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+      const updatedMatchHistory = currentMatchHistory.slice(0, 20);
+
+      // Update the team document
+      await collections.teams.doc(teamId).update({
+        matchHistory: updatedMatchHistory,
+        updatedAt: new Date().toISOString()
+      });
+
+      console.log(`Updated match history for team ${teamData.name}: ${updatedMatchHistory.length} matches`);
+    } catch (error) {
+      console.error(`Error updating match history for team ${teamId}:`, error);
+      throw error;
     }
   }
 
@@ -265,8 +432,14 @@ class TeamStatisticsManager {
             wins: 0,
             losses: 0,
             draws: 0,
-            winPercentage: 0
+            winPercentage: 0,
+            currentStreak: { type: 'none', count: 0 },
+            longestWinStreak: 0,
+            longestLossStreak: 0,
+            recentMatches: [],
+            form: []
           },
+          matchHistory: [],
           bestPlayers: {
             batsman: null,
             bowler: null,
