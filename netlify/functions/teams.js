@@ -336,8 +336,15 @@ exports.handler = async (event, context) => {
         
         // Calculate team statistics from match history
         const completedMatches = teamData.matchHistory.filter(match => match.status === 'completed');
-        const wins = completedMatches.filter(match => match.result?.winner === teamData.name).length;
-        const losses = completedMatches.filter(match => match.result?.winner && match.result.winner !== teamData.name).length;
+        const wins = completedMatches.filter(match => 
+          match.result?.winner === teamData.name || 
+          match.result?.winner === teamData.captain?.name
+        ).length;
+        const losses = completedMatches.filter(match => 
+          match.result?.winner && 
+          match.result.winner !== teamData.name && 
+          match.result.winner !== teamData.captain?.name
+        ).length;
         const draws = completedMatches.filter(match => !match.result?.winner).length;
         
         teamData.statistics = {

@@ -60,7 +60,7 @@ exports.handler = async (event, context) => {
       const limitNum = parseInt(limit);
       const offset = (pageNum - 1) * limitNum;
 
-      let query = collections.matches.orderBy('scheduledDate', 'desc');
+      let query = collections.matches.orderBy('date', 'desc');
 
       if (status) {
         query = query.where('status', '==', status);
@@ -108,7 +108,7 @@ exports.handler = async (event, context) => {
           status: matchData.status,
           matchType: matchData.matchType || matchData.title, // Fallback to title if matchType not set
           venue: matchData.venue,
-          scheduledDate: matchData.scheduledDate,
+          scheduledDate: matchData.date?.toDate ? matchData.date.toDate().toISOString() : matchData.date,
           createdAt: matchData.createdAt,
           updatedAt: matchData.updatedAt,
           // Handle both old (matchData.teams) and new (matchData.team1/team2) formats
@@ -121,13 +121,28 @@ exports.handler = async (event, context) => {
           team1Score: team1Score,
           team2Score: team2Score,
           winner: matchData.winner,
-          result: matchData.result
+          result: matchData.result,
         };
 
         matches.push(essentialMatch);
       }
 
       console.log(`Returning ${matches.length} matches`);
+      
+      // Get total counts for all statuses to avoid separate API calls
+      const [liveSnapshot, scheduledSnapshot, completedSnapshot] = await Promise.all([
+        collections.matches.where('status', '==', 'live').get(),
+        collections.matches.where('status', '==', 'scheduled').get(),
+        collections.matches.where('status', '==', 'completed').get()
+      ]);
+      
+      const totalCounts = {
+        live: liveSnapshot.size,
+        scheduled: scheduledSnapshot.size,
+        completed: completedSnapshot.size,
+        all: liveSnapshot.size + scheduledSnapshot.size + completedSnapshot.size
+      };
+      
       return {
         statusCode: 200,
         headers: corsHeaders,
@@ -141,7 +156,8 @@ exports.handler = async (event, context) => {
             totalPages: Math.ceil(totalCount / limitNum),
             hasNext: pageNum * limitNum < totalCount,
             hasPrev: pageNum > 1
-          }
+          },
+          totalCounts: totalCounts
         })
       };
     }
@@ -181,6 +197,41 @@ exports.handler = async (event, context) => {
         for (const inningDoc of inningsSnapshot.docs) {
           const inningData = { id: inningDoc.id, ...inningDoc.data() };
 
+          // Resolve team names from team IDs
+          let battingTeamName = inningData.battingTeam;
+          let bowlingTeamName = inningData.bowlingTeam;
+
+          // Try to resolve batting team name
+          if (inningData.battingTeam) {
+            try {
+              const battingTeamDoc = await collections.teams.doc(inningData.battingTeam).get();
+              if (battingTeamDoc.exists) {
+                battingTeamName = battingTeamDoc.data().name;
+              }
+            } catch (error) {
+              console.warn(`Failed to resolve batting team name for ${inningData.battingTeam}:`, error);
+            }
+          }
+
+          // Try to resolve bowling team name
+          if (inningData.bowlingTeam) {
+            try {
+              const bowlingTeamDoc = await collections.teams.doc(inningData.bowlingTeam).get();
+              if (bowlingTeamDoc.exists) {
+                bowlingTeamName = bowlingTeamDoc.data().name;
+              }
+            } catch (error) {
+              console.warn(`Failed to resolve bowling team name for ${inningData.bowlingTeam}:`, error);
+            }
+          }
+
+          // Create processed inning data with resolved team names
+          const processedInning = {
+            ...inningData,
+            battingTeam: battingTeamName,
+            bowlingTeam: bowlingTeamName
+          };
+
           // Process batsmen details from array
           const batsmen = [];
           if (inningData.batsmen && Array.isArray(inningData.batsmen)) {
@@ -199,10 +250,11 @@ exports.handler = async (event, context) => {
             }
           }
 
-          // Process bowling details from array
+          // Process bowling details from array (handle both 'bowling' and 'bowlers' field names)
           const bowling = [];
-          if (inningData.bowling && Array.isArray(inningData.bowling)) {
-            for (const bowlerData of inningData.bowling) {
+          const bowlingData = inningData.bowling || inningData.bowlers;
+          if (bowlingData && Array.isArray(bowlingData)) {
+            for (const bowlerData of bowlingData) {
               // Get player details by document ID
               const playerDoc = await collections.players.doc(bowlerData.playerId).get();
               const playerData = playerDoc.exists ? { id: playerDoc.id, ...playerDoc.data() } : null;
@@ -217,9 +269,10 @@ exports.handler = async (event, context) => {
             }
           }
 
-          // Process fall of wickets details from array
+          // Process fall of wickets details from array or subcollection
           const fallOfWickets = [];
           if (inningData.fallOfWickets && Array.isArray(inningData.fallOfWickets)) {
+            // Data is stored as array in the innings document
             for (const fowData of inningData.fallOfWickets) {
               // Get player details by numeric ID if playerOutId exists
               let playerName = fowData.batsmanName || fowData.player_out || 'Unknown';
@@ -244,10 +297,41 @@ exports.handler = async (event, context) => {
                 overs: fowData.overs || fowData.over || 0
               });
             }
+          } else {
+            // Check if data is stored as subcollection
+            try {
+              const fowSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('fallOfWickets').orderBy('wicketNumber').get();
+              for (const fowDoc of fowSnapshot.docs) {
+                const fowData = fowDoc.data();
+                let playerName = fowData.batsmanName || 'Unknown';
+                if (fowData.playerOutId) {
+                  try {
+                    // Find player by numericId
+                    const playerQuery = await collections.players.where('numericId', '==', fowData.playerOutId).limit(1).get();
+                    if (!playerQuery.empty) {
+                      const playerDoc = playerQuery.docs[0];
+                      const playerData = playerDoc.data();
+                      playerName = playerData.name || playerName;
+                    }
+                  } catch (error) {
+                    console.warn(`Failed to resolve player name for fall of wickets playerOutId ${fowData.playerOutId}:`, error);
+                  }
+                }
+
+                fallOfWickets.push({
+                  wicketNumber: fowData.wicketNumber || 0,
+                  batsmanName: playerName,
+                  score: fowData.score || 0,
+                  overs: fowData.overs || fowData.over || 0
+                });
+              }
+            } catch (error) {
+              console.warn(`Error reading fall of wickets subcollection for inning ${inningDoc.id}:`, error);
+            }
           }
 
           innings.push({
-            ...inningData,
+            ...processedInning,
             batsmen: batsmen,
             bowling: bowling,
             fallOfWickets: fallOfWickets
@@ -398,6 +482,61 @@ exports.handler = async (event, context) => {
         matchData.bestBowler = null;
       }
 
+      // Calculate team scores from innings data if not stored
+      if ((!matchData.team1Score || matchData.team1Score === 0) && (!matchData.team2Score || matchData.team2Score === 0)) {
+        try {
+          let calculatedTeam1Score = 0;
+          let calculatedTeam2Score = 0;
+
+          if (matchData.innings && Array.isArray(matchData.innings)) {
+            for (const inning of matchData.innings) {
+              // Check if battingTeam is a team name or ID
+              if (typeof inning.battingTeam === 'string') {
+                // If it's a team name, compare directly
+                if (inning.battingTeam === matchData.team1?.name || inning.battingTeam === matchData.team1) {
+                  calculatedTeam1Score += inning.totalRuns || 0;
+                } else if (inning.battingTeam === matchData.team2?.name || inning.battingTeam === matchData.team2) {
+                  calculatedTeam2Score += inning.totalRuns || 0;
+                }
+              }
+            }
+          }
+
+          // Update the match data with calculated scores
+          matchData.team1Score = calculatedTeam1Score;
+          matchData.team2Score = calculatedTeam2Score;
+
+          console.log(`Calculated scores for match ${matchData.numericId}: Team1=${calculatedTeam1Score}, Team2=${calculatedTeam2Score}`);
+        } catch (error) {
+          console.warn(`Failed to calculate scores for match ${matchData.numericId}:`, error);
+        }
+      }
+
+      // Determine winner if not set and we have scores
+      if (!matchData.winner && matchData.team1Score !== undefined && matchData.team2Score !== undefined) {
+        let winner = null;
+        let margin = null;
+
+        if (matchData.team1Score > matchData.team2Score) {
+          winner = matchData.team1?.name || matchData.team1;
+          margin = `${matchData.team1Score - matchData.team2Score} runs`;
+        } else if (matchData.team2Score > matchData.team1Score) {
+          winner = matchData.team2?.name || matchData.team2;
+          margin = `${matchData.team2Score - matchData.team1Score} runs`;
+        } else {
+          winner = 'Draw';
+          margin = null;
+        }
+
+        matchData.winner = winner;
+        matchData.result = {
+          winner: winner,
+          margin: margin
+        };
+
+        console.log(`Determined winner for match ${matchData.numericId}: ${winner}${margin ? ` by ${margin}` : ''}`);
+      }
+
       return {
         statusCode: 200,
         headers: corsHeaders,
@@ -431,7 +570,73 @@ exports.handler = async (event, context) => {
 
         for (const inningDoc of inningsSnapshot.docs) {
           const inningData = { id: inningDoc.id, ...inningDoc.data() };
-          innings.push(inningData);
+
+          // Resolve team names from team IDs
+          let battingTeamName = inningData.battingTeam;
+          let bowlingTeamName = inningData.bowlingTeam;
+
+          // Try to resolve batting team name
+          if (inningData.battingTeam) {
+            try {
+              const battingTeamDoc = await collections.teams.doc(inningData.battingTeam).get();
+              if (battingTeamDoc.exists) {
+                battingTeamName = battingTeamDoc.data().name;
+              }
+            } catch (error) {
+              console.warn(`Failed to resolve batting team name for ${inningData.battingTeam}:`, error);
+            }
+          }
+
+          // Try to resolve bowling team name
+          if (inningData.bowlingTeam) {
+            try {
+              const bowlingTeamDoc = await collections.teams.doc(inningData.bowlingTeam).get();
+              if (bowlingTeamDoc.exists) {
+                bowlingTeamName = bowlingTeamDoc.data().name;
+              }
+            } catch (error) {
+              console.warn(`Failed to resolve bowling team name for ${inningData.bowlingTeam}:`, error);
+            }
+          }
+
+          // Create processed inning data with resolved team names
+          const processedInning = {
+            ...inningData,
+            battingTeam: battingTeamName,
+            bowlingTeam: bowlingTeamName
+          };
+
+          // Transform bowlers field to bowling to match API interface
+          if (processedInning.bowlers && Array.isArray(processedInning.bowlers)) {
+            processedInning.bowling = processedInning.bowlers.map(bowler => ({
+              player: bowler.player || { id: bowler.playerId, name: bowler.playerName || bowler.name },
+              playerName: bowler.playerName || bowler.name,
+              wickets: bowler.wickets || 0,
+              runs: bowler.runs || 0,
+              balls: bowler.balls || 0,
+              maidens: bowler.maidens || 0,
+              overs: bowler.overs || 0
+            }));
+            delete processedInning.bowlers; // Remove the old field
+          }
+          
+          // If fall of wickets is not in the array format, try to get it from subcollection
+          if (!processedInning.fallOfWickets || !Array.isArray(processedInning.fallOfWickets) || processedInning.fallOfWickets.length === 0) {
+            try {
+              const fowSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('fallOfWickets').orderBy('wicketNumber').get();
+              const fallOfWickets = [];
+              for (const fowDoc of fowSnapshot.docs) {
+                fallOfWickets.push({ id: fowDoc.id, ...fowDoc.data() });
+              }
+              if (fallOfWickets.length > 0) {
+                processedInning.fallOfWickets = fallOfWickets;
+              }
+            } catch (error) {
+              console.warn(`Error reading fall of wickets subcollection for inning ${inningDoc.id}:`, error);
+            }
+          }
+          
+          innings.push(processedInning);
         }
 
         return {
