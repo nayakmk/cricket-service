@@ -25,7 +25,7 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': process.env.FRONTEND_URL || 'https://ebcl-app.github.io',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Credentials': 'false',
+  'Access-Control-Allow-Credentials': 'true',
   'Content-Type': 'application/json',
 };
 
@@ -57,7 +57,7 @@ exports.handler = async (event, context) => {
     if (method === 'GET' && path === '/') {
       // Parse pagination parameters
       const page = parseInt(queryStringParameters?.page) || 1;
-      const limit = parseInt(queryStringParameters?.limit) || 5;
+      const limit = parseInt(queryStringParameters?.limit) || 1000;
       const offset = (page - 1) * limit;
 
       // Get total count for pagination metadata

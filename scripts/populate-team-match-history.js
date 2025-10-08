@@ -46,18 +46,18 @@ async function populateTeamMatchHistory() {
 
       // Create match history entries with resolved winner names
       const matchHistory = teamMatches.map(match => {
-        const isTeam1 = match.team1Id === team.id;
+        const isTeam1 = match.team1Id === team.numericId;
         const opponentId = isTeam1 ? match.team2Id : match.team1Id;
         const opponentName = teamIdToName[opponentId] || 'Unknown Team';
 
-        // Resolve winner name from result.winner
+        // Resolve winner name from result.winner (now numeric ID)
         let winnerName = 'Unknown';
         let winnerNumericId = null;
         if (match.result && match.result.winner) {
-          winnerName = match.result.winner;
-          // Find the winner team numericId by name
-          const winnerTeam = teams.find(t => t.name === winnerName);
-          winnerNumericId = winnerTeam ? winnerTeam.numericId : null;
+          winnerNumericId = match.result.winner;
+          // Find the winner team name by numericId
+          const winnerTeam = teams.find(t => t.numericId === winnerNumericId);
+          winnerName = winnerTeam ? winnerTeam.name : 'Unknown Team';
         } else if (match.result === 'Draw' || match.result === 'Abandoned') {
           winnerName = match.result;
         }

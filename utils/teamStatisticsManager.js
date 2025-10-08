@@ -6,6 +6,24 @@ const { collections } = require('../config/database');
  */
 class TeamStatisticsManager {
   /**
+   * Get team document ID from numeric ID
+   * @param {number} numericId - The numeric ID of the team
+   * @returns {string|null} The document ID or null if not found
+   */
+  static async getTeamDocumentId(numericId) {
+    try {
+      const teamQuery = await collections.teams.where('numericId', '==', numericId).limit(1).get();
+      if (!teamQuery.empty) {
+        return teamQuery.docs[0].id;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error getting document ID for team numericId ${numericId}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Update team statistics after a match is completed
    * @param {string} matchId - The match ID
    * @param {Object} matchData - The match data
@@ -23,16 +41,26 @@ class TeamStatisticsManager {
         id: matchData.team2Id,
         name: matchData.teams?.team2?.name || 'Unknown Team 2'
       };
+
+      // Get document IDs from numeric IDs
+      const team1DocId = team1.id ? await TeamStatisticsManager.getTeamDocumentId(team1.id) : null;
+      const team2DocId = team2.id ? await TeamStatisticsManager.getTeamDocumentId(team2.id) : null;
+
+      if (!team1DocId || !team2DocId) {
+        console.warn(`Could not find document IDs for teams in match ${matchId}: team1=${team1DocId}, team2=${team2DocId}`);
+        return;
+      }
+
       const winner = matchData.result?.winner;
 
       // Update team1 statistics
-      if (team1.id) {
-        await this.updateSingleTeamStatistics(team1.id, winner, team1.name, matchData);
+      if (team1DocId) {
+        await this.updateSingleTeamStatistics(team1DocId, winner, team1.name, matchData);
       }
 
       // Update team2 statistics
-      if (team2.id) {
-        await this.updateSingleTeamStatistics(team2.id, winner, team2.name, matchData);
+      if (team2DocId) {
+        await this.updateSingleTeamStatistics(team2DocId, winner, team2.name, matchData);
       }
 
       // Update best players for both teams
@@ -217,16 +245,16 @@ class TeamStatisticsManager {
       }
 
       // Update best players for team1
-      const team1 = matchData.team1 || matchData.teams?.team1;
-      const team2 = matchData.team2 || matchData.teams?.team2;
+      const team1DocId = matchData.team1Id ? await TeamStatisticsManager.getTeamDocumentId(matchData.team1Id) : null;
+      const team2DocId = matchData.team2Id ? await TeamStatisticsManager.getTeamDocumentId(matchData.team2Id) : null;
       
-      if (team1 && team1.id) {
-        await this.updateTeamBestPlayers(team1.id, playerStats);
+      if (team1DocId) {
+        await this.updateTeamBestPlayers(team1DocId, playerStats);
       }
 
       // Update best players for team2
-      if (team2 && team2.id) {
-        await this.updateTeamBestPlayers(team2.id, playerStats);
+      if (team2DocId) {
+        await this.updateTeamBestPlayers(team2DocId, playerStats);
       }
 
     } catch (error) {
@@ -243,19 +271,20 @@ class TeamStatisticsManager {
     try {
       console.log(`Updating match history for match ${matchId}`);
 
-      // Handle both old format (matchData.teams) and new format (matchData.team1/team2)
-      const team1 = matchData.team1 || matchData.teams?.team1;
-      const team2 = matchData.team2 || matchData.teams?.team2;
+      // Get document IDs from numeric IDs
+      const team1DocId = matchData.team1Id ? await TeamStatisticsManager.getTeamDocumentId(matchData.team1Id) : null;
+      const team2DocId = matchData.team2Id ? await TeamStatisticsManager.getTeamDocumentId(matchData.team2Id) : null;
+
+      if (!team1DocId || !team2DocId) {
+        console.warn(`Could not find document IDs for teams in match ${matchId}`);
+        return;
+      }
 
       // Update team1 match history
-      if (team1 && team1.id) {
-        await this.updateSingleTeamMatchHistory(team1.id, matchId, matchData, false);
-      }
+      await this.updateSingleTeamMatchHistory(team1DocId, matchId, matchData, false);
 
       // Update team2 match history
-      if (team2 && team2.id) {
-        await this.updateSingleTeamMatchHistory(team2.id, matchId, matchData, true);
-      }
+      await this.updateSingleTeamMatchHistory(team2DocId, matchId, matchData, true);
 
       console.log(`Match history updated for match ${matchId}`);
     } catch (error) {

@@ -1,0 +1,1714 @@
+{
+    "success": true,
+    "data": {
+        "id": "202510081949170000045",
+        "numericId": 44,
+        "displayId": 44,
+        "matchId": "19431191",
+        "title": "Team Anil vs Team Gaurav",
+        "tournament": "EPL WEEKEND MAHAMUKABALA (League Matches)",
+        "matchType": "T20",
+        "venue": "Olympia IVY sports academy",
+        "status": "completed",
+        "scheduledDate": "2025-10-04T12:43:00.000Z",
+        "createdAt": "2025-10-08T14:19:18.195Z",
+        "updatedAt": "2025-10-08T14:19:18.195Z",
+        "teams": {
+            "team1": {
+                "id": 34,
+                "name": "Team Anil",
+                "shortName": "TA"
+            },
+            "team2": {
+                "id": 32,
+                "name": "Team Gaurav",
+                "shortName": "TG"
+            }
+        },
+        "team1Id": 34,
+        "team2Id": 32,
+        "team1Score": 0,
+        "team2Score": 0,
+        "winner": "Team Anil",
+        "winner_id": 34,
+        "result": {
+            "winner": {
+                "id": 34,
+                "name": "Team Anil",
+                "shortName": "TA"
+            },
+            "margin": "8 runs"
+        },
+        "toss": {
+            "winner": "Team Anil",
+            "decision": "bat"
+        },
+        "currentInnings": null,
+        "team1": {
+            "id": 34,
+            "name": "Team Anil",
+            "shortName": "TA"
+        },
+        "team2": {
+            "id": 32,
+            "name": "Team Gaurav",
+            "shortName": "TG"
+        },
+        "innings": [
+            {
+                "id": "202510081949180000044",
+                "inningNumber": 1,
+                "totalRuns": 87,
+                "totalWickets": 4,
+                "totalOvers": 12,
+                "totalBalls": 0,
+                "runRate": 0,
+                "fallOfWickets": [
+                    {
+                        "score": 13,
+                        "wicket": 1,
+                        "player": "Rupraj M",
+                        "over": "2",
+                        "playerId": 32,
+                        "playerName": "Rupraj M",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 18,
+                        "wicket": 2,
+                        "player": "Kartic Sharma",
+                        "over": "2.4",
+                        "playerId": 18,
+                        "playerName": "Kartic Sharma",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 69,
+                        "wicket": 2,
+                        "player": "Soumyak P",
+                        "over": "9",
+                        "playerId": 14,
+                        "playerName": "Soumyak P",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 82,
+                        "wicket": 3,
+                        "player": "SUBHAJIT SARKAR",
+                        "over": "11",
+                        "playerId": 4,
+                        "playerName": "SUBHAJIT SARKAR",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 86,
+                        "wicket": 4,
+                        "player": "Sonal Kumar",
+                        "over": "11.4",
+                        "playerId": 30,
+                        "playerName": "Sonal Kumar",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    }
+                ],
+                "battingTeam": {
+                    "id": 34,
+                    "name": "Team Anil",
+                    "shortName": "TA"
+                },
+                "bowlingTeam": {
+                    "id": 32,
+                    "name": "Team Gaurav",
+                    "shortName": "TG"
+                },
+                "batsmen": [
+                    {
+                        "playerId": 4,
+                        "player": {
+                            "id": 4,
+                            "name": "SUBHAJIT SARKAR",
+                            "role": "all-rounder"
+                        },
+                        "runs": 47,
+                        "balls": 31,
+                        "fours": 3,
+                        "sixes": 2,
+                        "status": "run out Abinash Subudhi",
+                        "statusParsed": "run out Abinash Subudhi",
+                        "strikeRate": "151.61",
+                        "howOut": {
+                            "text": "run out Abinash Subudhi",
+                            "type": "run out",
+                            "fielder": "Abinash Subudhi",
+                            "fielders": [
+                                "Abinash Subudhi"
+                            ],
+                            "bowler": null,
+                            "fielderId": 58,
+                            "fielderName": "Abinash Subudhi",
+                            "fieldersIds": [
+                                58
+                            ],
+                            "fielderDetails": {
+                                "id": 58,
+                                "name": "Abinash Subudhi",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 58,
+                                    "name": "Abinash Subudhi",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 32,
+                        "player": {
+                            "id": 32,
+                            "name": "Rupraj M",
+                            "role": "all-rounder"
+                        },
+                        "runs": 4,
+                        "balls": 6,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "c Norace b Ashutosh kumar",
+                        "statusParsed": "c Norace b Ashutosh kumar",
+                        "strikeRate": "66.67",
+                        "howOut": {
+                            "text": "c Norace b Ashutosh kumar",
+                            "type": "caught",
+                            "fielder": "Norace",
+                            "fielders": [
+                                "Norace"
+                            ],
+                            "bowler": "Ashutosh kumar",
+                            "fielderId": 20,
+                            "fielderName": "Norace",
+                            "bowlerId": 60,
+                            "bowlerName": "Ashutosh kumar",
+                            "fieldersIds": [
+                                20
+                            ],
+                            "fielderDetails": {
+                                "id": 20,
+                                "name": "Norace",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 20,
+                                    "name": "Norace",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 18,
+                        "player": {
+                            "id": 18,
+                            "name": "Kartic Sharma",
+                            "role": "all-rounder"
+                        },
+                        "runs": 4,
+                        "balls": 3,
+                        "fours": 1,
+                        "sixes": 0,
+                        "status": "c Kumar Gaurav b Norace",
+                        "statusParsed": "c Kumar Gaurav b Norace",
+                        "strikeRate": "133.33",
+                        "howOut": {
+                            "text": "c Kumar Gaurav b Norace",
+                            "type": "caught",
+                            "fielder": "Kumar Gaurav",
+                            "fielders": [
+                                "Kumar Gaurav"
+                            ],
+                            "bowler": "Norace",
+                            "fielderId": 26,
+                            "fielderName": "Kumar Gaurav",
+                            "bowlerId": 20,
+                            "bowlerName": "Norace",
+                            "fieldersIds": [
+                                26
+                            ],
+                            "fielderDetails": {
+                                "id": 26,
+                                "name": "Kumar Gaurav",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 26,
+                                    "name": "Kumar Gaurav",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 14,
+                        "player": {
+                            "id": 14,
+                            "name": "Soumyak P",
+                            "role": "all-rounder"
+                        },
+                        "runs": 13,
+                        "balls": 21,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "retired hurt",
+                        "statusParsed": "retired hurt",
+                        "strikeRate": "61.90",
+                        "howOut": {
+                            "text": "retired hurt",
+                            "type": "retired hurt",
+                            "fielder": null,
+                            "fielders": null,
+                            "bowler": null
+                        }
+                    },
+                    {
+                        "playerId": 66,
+                        "player": {
+                            "id": 66,
+                            "name": "Mithun Hore",
+                            "role": "all-rounder"
+                        },
+                        "runs": 7,
+                        "balls": 9,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "not out",
+                        "statusParsed": "not out",
+                        "strikeRate": "77.78",
+                        "howOut": {
+                            "text": "not out",
+                            "type": "not out",
+                            "fielder": null,
+                            "fielders": null,
+                            "bowler": null
+                        }
+                    },
+                    {
+                        "playerId": 30,
+                        "player": {
+                            "id": 30,
+                            "name": "Sonal Kumar",
+                            "role": "all-rounder"
+                        },
+                        "runs": 3,
+                        "balls": 3,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "c Farashi b Kumar Gaurav",
+                        "statusParsed": "c Farashi b Kumar Gaurav",
+                        "strikeRate": "100.00",
+                        "howOut": {
+                            "text": "c Farashi b Kumar Gaurav",
+                            "type": "caught",
+                            "fielder": "Farashi",
+                            "fielders": [
+                                "Farashi"
+                            ],
+                            "bowler": "Kumar Gaurav",
+                            "fielderId": 54,
+                            "fielderName": "Farashi",
+                            "bowlerId": 26,
+                            "bowlerName": "Kumar Gaurav",
+                            "fieldersIds": [
+                                54
+                            ],
+                            "fielderDetails": {
+                                "id": 54,
+                                "name": "Farashi",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 54,
+                                    "name": "Farashi",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 38,
+                        "player": {
+                            "id": 38,
+                            "name": "Sundar Raman",
+                            "role": "all-rounder"
+                        },
+                        "runs": 1,
+                        "balls": 1,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "not out",
+                        "statusParsed": "not out",
+                        "strikeRate": "100.00",
+                        "howOut": {
+                            "text": "not out",
+                            "type": "not out",
+                            "fielder": null,
+                            "fielders": null,
+                            "bowler": null
+                        }
+                    }
+                ],
+                "bowling": [
+                    {
+                        "playerId": 24,
+                        "player": {
+                            "id": 24,
+                            "name": "Puneet Pandey",
+                            "role": "all-rounder"
+                        },
+                        "overs": "3",
+                        "maidens": 0,
+                        "runs": 11,
+                        "wickets": 0,
+                        "economy": "3.67",
+                        "dots": 8,
+                        "fours": 0,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 60,
+                        "player": {
+                            "id": 60,
+                            "name": "Ashutosh kumar",
+                            "role": "all-rounder"
+                        },
+                        "overs": "2",
+                        "maidens": 0,
+                        "runs": 16,
+                        "wickets": 1,
+                        "economy": "8.00",
+                        "dots": 5,
+                        "fours": 1,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 20,
+                        "player": {
+                            "id": 20,
+                            "name": "Norace",
+                            "role": "all-rounder"
+                        },
+                        "overs": "2",
+                        "maidens": 0,
+                        "runs": 15,
+                        "wickets": 1,
+                        "economy": "7.50",
+                        "dots": 4,
+                        "fours": 1,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 6,
+                        "player": {
+                            "id": 6,
+                            "name": "Malaya Nayak",
+                            "role": "all-rounder"
+                        },
+                        "overs": "1",
+                        "maidens": 0,
+                        "runs": 16,
+                        "wickets": 0,
+                        "economy": "16.00",
+                        "dots": 0,
+                        "fours": 1,
+                        "sixes": 1
+                    },
+                    {
+                        "playerId": 46,
+                        "player": {
+                            "id": 46,
+                            "name": "Saroj",
+                            "role": "all-rounder"
+                        },
+                        "overs": "2",
+                        "maidens": 0,
+                        "runs": 13,
+                        "wickets": 0,
+                        "economy": "6.50",
+                        "dots": 3,
+                        "fours": 0,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 26,
+                        "player": {
+                            "id": 26,
+                            "name": "Kumar Gaurav",
+                            "role": "all-rounder"
+                        },
+                        "overs": "2",
+                        "maidens": 0,
+                        "runs": 16,
+                        "wickets": 1,
+                        "economy": "8.00",
+                        "dots": 7,
+                        "fours": 1,
+                        "sixes": 1
+                    }
+                ]
+            },
+            {
+                "id": "202510081949180000045",
+                "inningNumber": 2,
+                "totalRuns": 79,
+                "totalWickets": 6,
+                "totalOvers": 12,
+                "totalBalls": 0,
+                "runRate": 0,
+                "fallOfWickets": [
+                    {
+                        "score": 2,
+                        "wicket": 1,
+                        "player": "Puneet Pandey",
+                        "over": "0.2",
+                        "playerId": 24,
+                        "playerName": "Puneet Pandey",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 25,
+                        "wicket": 2,
+                        "player": "Farashi",
+                        "over": "4.3",
+                        "playerId": 54,
+                        "playerName": "Farashi",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 27,
+                        "wicket": 3,
+                        "player": "Norace",
+                        "over": "5.1",
+                        "playerId": 20,
+                        "playerName": "Norace",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 27,
+                        "wicket": 4,
+                        "player": "Abinash Subudhi",
+                        "over": "5.3",
+                        "playerId": 58,
+                        "playerName": "Abinash Subudhi",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 57,
+                        "wicket": 5,
+                        "player": "Ashutosh kumar",
+                        "over": "8.3",
+                        "playerId": 60,
+                        "playerName": "Ashutosh kumar",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    },
+                    {
+                        "score": 79,
+                        "wicket": 6,
+                        "player": "Malaya Nayak",
+                        "over": "11.5",
+                        "playerId": 6,
+                        "playerName": "Malaya Nayak",
+                        "batsmanDetails": null,
+                        "batsmanName": "Unknown"
+                    }
+                ],
+                "battingTeam": {
+                    "id": 32,
+                    "name": "Team Gaurav",
+                    "shortName": "TG"
+                },
+                "bowlingTeam": {
+                    "id": 34,
+                    "name": "Team Anil",
+                    "shortName": "TA"
+                },
+                "batsmen": [
+                    {
+                        "playerId": 24,
+                        "player": {
+                            "id": 24,
+                            "name": "Puneet Pandey",
+                            "role": "all-rounder"
+                        },
+                        "runs": 2,
+                        "balls": 2,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "run out Rupraj M",
+                        "statusParsed": "run out Rupraj M",
+                        "strikeRate": "100.00",
+                        "howOut": {
+                            "text": "run out Rupraj M",
+                            "type": "run out",
+                            "fielder": "Rupraj M",
+                            "fielders": [
+                                "Rupraj M"
+                            ],
+                            "bowler": null,
+                            "fielderId": 32,
+                            "fielderName": "Rupraj M",
+                            "fieldersIds": [
+                                32
+                            ],
+                            "fielderDetails": {
+                                "id": 32,
+                                "name": "Rupraj M",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 32,
+                                    "name": "Rupraj M",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 54,
+                        "player": {
+                            "id": 54,
+                            "name": "Farashi",
+                            "role": "all-rounder"
+                        },
+                        "runs": 9,
+                        "balls": 15,
+                        "fours": 1,
+                        "sixes": 0,
+                        "status": "c Rupraj M b Anil Bommaraju",
+                        "statusParsed": "c Rupraj M b Anil Bommaraju",
+                        "strikeRate": "60.00",
+                        "howOut": {
+                            "text": "c Rupraj M b Anil Bommaraju",
+                            "type": "caught",
+                            "fielder": "Rupraj M",
+                            "fielders": [
+                                "Rupraj M"
+                            ],
+                            "bowler": "Anil Bommaraju",
+                            "fielderId": 32,
+                            "fielderName": "Rupraj M",
+                            "bowlerId": 22,
+                            "bowlerName": "Anil Bommaraju",
+                            "fieldersIds": [
+                                32
+                            ],
+                            "fielderDetails": {
+                                "id": 32,
+                                "name": "Rupraj M",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 32,
+                                    "name": "Rupraj M",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 20,
+                        "player": {
+                            "id": 20,
+                            "name": "Norace",
+                            "role": "all-rounder"
+                        },
+                        "runs": 12,
+                        "balls": 13,
+                        "fours": 0,
+                        "sixes": 1,
+                        "status": "c&b Soumyak P",
+                        "statusParsed": "c&b Soumyak P",
+                        "strikeRate": "92.31",
+                        "howOut": {
+                            "text": "c&b Soumyak P",
+                            "type": "caught and bowled",
+                            "fielder": "Soumyak P",
+                            "fielders": [
+                                "Soumyak P"
+                            ],
+                            "bowler": "Soumyak P",
+                            "fielderId": 14,
+                            "fielderName": "Soumyak P",
+                            "bowlerId": 14,
+                            "bowlerName": "Soumyak P",
+                            "fieldersIds": [
+                                14
+                            ],
+                            "fielderDetails": {
+                                "id": 14,
+                                "name": "Soumyak P",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 14,
+                                    "name": "Soumyak P",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 6,
+                        "player": {
+                            "id": 6,
+                            "name": "Malaya Nayak",
+                            "role": "all-rounder"
+                        },
+                        "runs": 34,
+                        "balls": 27,
+                        "fours": 2,
+                        "sixes": 1,
+                        "status": "run out Kartic Sharma",
+                        "statusParsed": "run out Kartic Sharma",
+                        "strikeRate": "125.93",
+                        "howOut": {
+                            "text": "run out Kartic Sharma",
+                            "type": "run out",
+                            "fielder": "Kartic Sharma",
+                            "fielders": [
+                                "Kartic Sharma"
+                            ],
+                            "bowler": null,
+                            "fielderId": 18,
+                            "fielderName": "Kartic Sharma",
+                            "fieldersIds": [
+                                18
+                            ],
+                            "fielderDetails": {
+                                "id": 18,
+                                "name": "Kartic Sharma",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 18,
+                                    "name": "Kartic Sharma",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 58,
+                        "player": {
+                            "id": 58,
+                            "name": "Abinash Subudhi",
+                            "role": "all-rounder"
+                        },
+                        "runs": 0,
+                        "balls": 2,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "c SUBHAJIT SARKAR b Soumyak P",
+                        "statusParsed": "c SUBHAJIT SARKAR b Soumyak P",
+                        "strikeRate": "0.00",
+                        "howOut": {
+                            "text": "c SUBHAJIT SARKAR b Soumyak P",
+                            "type": "caught",
+                            "fielder": "SUBHAJIT SARKAR",
+                            "fielders": [
+                                "SUBHAJIT SARKAR"
+                            ],
+                            "bowler": "Soumyak P",
+                            "fielderId": 4,
+                            "fielderName": "SUBHAJIT SARKAR",
+                            "bowlerId": 14,
+                            "bowlerName": "Soumyak P",
+                            "fieldersIds": [
+                                4
+                            ],
+                            "fielderDetails": {
+                                "id": 4,
+                                "name": "SUBHAJIT SARKAR",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 4,
+                                    "name": "SUBHAJIT SARKAR",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 60,
+                        "player": {
+                            "id": 60,
+                            "name": "Ashutosh kumar",
+                            "role": "all-rounder"
+                        },
+                        "runs": 11,
+                        "balls": 9,
+                        "fours": 0,
+                        "sixes": 1,
+                        "status": "c&b Kartic Sharma",
+                        "statusParsed": "c&b Kartic Sharma",
+                        "strikeRate": "122.22",
+                        "howOut": {
+                            "text": "c&b Kartic Sharma",
+                            "type": "caught and bowled",
+                            "fielder": "Kartic Sharma",
+                            "fielders": [
+                                "Kartic Sharma"
+                            ],
+                            "bowler": "Kartic Sharma",
+                            "fielderId": 18,
+                            "fielderName": "Kartic Sharma",
+                            "bowlerId": 18,
+                            "bowlerName": "Kartic Sharma",
+                            "fieldersIds": [
+                                18
+                            ],
+                            "fielderDetails": {
+                                "id": 18,
+                                "name": "Kartic Sharma",
+                                "role": "all-rounder"
+                            },
+                            "fieldersDetails": [
+                                {
+                                    "id": 18,
+                                    "name": "Kartic Sharma",
+                                    "role": "all-rounder"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "playerId": 46,
+                        "player": {
+                            "id": 46,
+                            "name": "Saroj",
+                            "role": "all-rounder"
+                        },
+                        "runs": 4,
+                        "balls": 4,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "not out",
+                        "statusParsed": "not out",
+                        "strikeRate": "100.00",
+                        "howOut": {
+                            "text": "not out",
+                            "type": "not out",
+                            "fielder": null,
+                            "fielders": null,
+                            "bowler": null
+                        }
+                    },
+                    {
+                        "playerId": 26,
+                        "player": {
+                            "id": 26,
+                            "name": "Kumar Gaurav",
+                            "role": "all-rounder"
+                        },
+                        "runs": 0,
+                        "balls": 1,
+                        "fours": 0,
+                        "sixes": 0,
+                        "status": "not out",
+                        "statusParsed": "not out",
+                        "strikeRate": "0.00",
+                        "howOut": {
+                            "text": "not out",
+                            "type": "not out",
+                            "fielder": null,
+                            "fielders": null,
+                            "bowler": null
+                        }
+                    }
+                ],
+                "bowling": [
+                    {
+                        "playerId": 4,
+                        "player": {
+                            "id": 4,
+                            "name": "SUBHAJIT SARKAR",
+                            "role": "all-rounder"
+                        },
+                        "overs": "2",
+                        "maidens": 0,
+                        "runs": 18,
+                        "wickets": 0,
+                        "economy": "9.00",
+                        "dots": 4,
+                        "fours": 1,
+                        "sixes": 1
+                    },
+                    {
+                        "playerId": 32,
+                        "player": {
+                            "id": 32,
+                            "name": "Rupraj M",
+                            "role": "all-rounder"
+                        },
+                        "overs": "1",
+                        "maidens": 0,
+                        "runs": 5,
+                        "wickets": 0,
+                        "economy": "5.00",
+                        "dots": 3,
+                        "fours": 0,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 22,
+                        "player": {
+                            "id": 22,
+                            "name": "Anil Bommaraju",
+                            "role": "all-rounder"
+                        },
+                        "overs": "3",
+                        "maidens": 0,
+                        "runs": 16,
+                        "wickets": 1,
+                        "economy": "5.33",
+                        "dots": 9,
+                        "fours": 1,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 18,
+                        "player": {
+                            "id": 18,
+                            "name": "Kartic Sharma",
+                            "role": "all-rounder"
+                        },
+                        "overs": "2",
+                        "maidens": 0,
+                        "runs": 15,
+                        "wickets": 1,
+                        "economy": "7.50",
+                        "dots": 4,
+                        "fours": 0,
+                        "sixes": 1
+                    },
+                    {
+                        "playerId": 14,
+                        "player": {
+                            "id": 14,
+                            "name": "Soumyak P",
+                            "role": "all-rounder"
+                        },
+                        "overs": "2",
+                        "maidens": 0,
+                        "runs": 11,
+                        "wickets": 2,
+                        "economy": "5.50",
+                        "dots": 6,
+                        "fours": 1,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 66,
+                        "player": {
+                            "id": 66,
+                            "name": "Mithun Hore",
+                            "role": "all-rounder"
+                        },
+                        "overs": "1",
+                        "maidens": 0,
+                        "runs": 6,
+                        "wickets": 0,
+                        "economy": "6.00",
+                        "dots": 3,
+                        "fours": 0,
+                        "sixes": 0
+                    },
+                    {
+                        "playerId": 38,
+                        "player": {
+                            "id": 38,
+                            "name": "Sundar Raman",
+                            "role": "all-rounder"
+                        },
+                        "overs": "1",
+                        "maidens": 0,
+                        "runs": 8,
+                        "wickets": 0,
+                        "economy": "8.00",
+                        "dots": 3,
+                        "fours": 0,
+                        "sixes": 1
+                    }
+                ]
+            }
+        ],
+        "lineups": {},
+        "bestBatsman": {
+            "player": {
+                "id": 4,
+                "name": "SUBHAJIT SARKAR",
+                "role": "all-rounder"
+            },
+            "runs": 47,
+            "balls": 31,
+            "fours": 3,
+            "sixes": 2,
+            "strikeRate": "151.61"
+        },
+        "bestBowler": null,
+        "playerPerformances": [
+            {
+                "player": {
+                    "id": 4,
+                    "name": "SUBHAJIT SARKAR",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 53.16,
+                "batting": {
+                    "runs": 47,
+                    "balls": 31,
+                    "fours": 3,
+                    "sixes": 2,
+                    "notOuts": 0,
+                    "strikeRate": "151.61"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 18,
+                    "overs": "2.0",
+                    "maidens": 0,
+                    "dots": 4,
+                    "fours": 1,
+                    "sixes": 1,
+                    "economy": "9.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 32,
+                    "name": "Rupraj M",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 2.67,
+                "batting": {
+                    "runs": 4,
+                    "balls": 6,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "66.67"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 5,
+                    "overs": "1.0",
+                    "maidens": 0,
+                    "dots": 3,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "5.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 18,
+                    "name": "Kartic Sharma",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 30.33,
+                "batting": {
+                    "runs": 4,
+                    "balls": 3,
+                    "fours": 1,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "133.33"
+                },
+                "bowling": {
+                    "wickets": 1,
+                    "runs": 15,
+                    "overs": "2.0",
+                    "maidens": 0,
+                    "dots": 4,
+                    "fours": 0,
+                    "sixes": 1,
+                    "economy": "7.50"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 14,
+                    "name": "Soumyak P",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 60.19,
+                "batting": {
+                    "runs": 13,
+                    "balls": 21,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "61.90"
+                },
+                "bowling": {
+                    "wickets": 2,
+                    "runs": 11,
+                    "overs": "2.0",
+                    "maidens": 0,
+                    "dots": 6,
+                    "fours": 1,
+                    "sixes": 0,
+                    "economy": "5.50"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 66,
+                    "name": "Mithun Hore",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 14.78,
+                "batting": {
+                    "runs": 7,
+                    "balls": 9,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 1,
+                    "strikeRate": "77.78"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 6,
+                    "overs": "1.0",
+                    "maidens": 0,
+                    "dots": 3,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "6.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 30,
+                    "name": "Sonal Kumar",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 15,
+                "batting": {
+                    "runs": 3,
+                    "balls": 3,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "100.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 38,
+                    "name": "Sundar Raman",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 7,
+                "batting": {
+                    "runs": 1,
+                    "balls": 1,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 1,
+                    "strikeRate": "100.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 8,
+                    "overs": "1.0",
+                    "maidens": 0,
+                    "dots": 3,
+                    "fours": 0,
+                    "sixes": 1,
+                    "economy": "8.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 24,
+                    "name": "Puneet Pandey",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 12.67,
+                "batting": {
+                    "runs": 2,
+                    "balls": 2,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "100.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 11,
+                    "overs": "3.0",
+                    "maidens": 0,
+                    "dots": 8,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "3.67"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 60,
+                    "name": "Ashutosh kumar",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 36.22,
+                "batting": {
+                    "runs": 11,
+                    "balls": 9,
+                    "fours": 0,
+                    "sixes": 1,
+                    "notOuts": 0,
+                    "strikeRate": "122.22"
+                },
+                "bowling": {
+                    "wickets": 1,
+                    "runs": 16,
+                    "overs": "2.0",
+                    "maidens": 0,
+                    "dots": 5,
+                    "fours": 1,
+                    "sixes": 0,
+                    "economy": "8.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 20,
+                    "name": "Norace",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 35.23,
+                "batting": {
+                    "runs": 12,
+                    "balls": 13,
+                    "fours": 0,
+                    "sixes": 1,
+                    "notOuts": 0,
+                    "strikeRate": "92.31"
+                },
+                "bowling": {
+                    "wickets": 1,
+                    "runs": 15,
+                    "overs": "2.0",
+                    "maidens": 0,
+                    "dots": 4,
+                    "fours": 1,
+                    "sixes": 0,
+                    "economy": "7.50"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 6,
+                    "name": "Malaya Nayak",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 20.59,
+                "batting": {
+                    "runs": 34,
+                    "balls": 27,
+                    "fours": 2,
+                    "sixes": 1,
+                    "notOuts": 0,
+                    "strikeRate": "125.93"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 16,
+                    "overs": "1.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 1,
+                    "sixes": 1,
+                    "economy": "16.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 46,
+                    "name": "Saroj",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 13,
+                "batting": {
+                    "runs": 4,
+                    "balls": 4,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 1,
+                    "strikeRate": "100.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 13,
+                    "overs": "2.0",
+                    "maidens": 0,
+                    "dots": 3,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "6.50"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 26,
+                    "name": "Kumar Gaurav",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 21,
+                "batting": {
+                    "runs": 0,
+                    "balls": 1,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 1,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 1,
+                    "runs": 16,
+                    "overs": "2.0",
+                    "maidens": 0,
+                    "dots": 7,
+                    "fours": 1,
+                    "sixes": 1,
+                    "economy": "8.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 58,
+                    "name": "Abinash Subudhi"
+                },
+                "impactScore": 12,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 1,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 20,
+                    "name": "Norace"
+                },
+                "impactScore": 17,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 1,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 26,
+                    "name": "Kumar Gaurav"
+                },
+                "impactScore": 17,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 1,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 54,
+                    "name": "Farashi"
+                },
+                "impactScore": 17,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 1,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 54,
+                    "name": "Farashi",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 18,
+                "batting": {
+                    "runs": 9,
+                    "balls": 15,
+                    "fours": 1,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "60.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 58,
+                    "name": "Abinash Subudhi",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 2,
+                "batting": {
+                    "runs": 0,
+                    "balls": 2,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 22,
+                    "name": "Anil Bommaraju",
+                    "teamName": "Unknown Team"
+                },
+                "impactScore": 22.33,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 1,
+                    "runs": 16,
+                    "overs": "3.0",
+                    "maidens": 0,
+                    "dots": 9,
+                    "fours": 1,
+                    "sixes": 0,
+                    "economy": "5.33"
+                },
+                "fielding": {
+                    "catches": 0,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 32,
+                    "name": "Rupraj M"
+                },
+                "impactScore": 32,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 1,
+                    "runOuts": 1,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 14,
+                    "name": "Soumyak P"
+                },
+                "impactScore": 17,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 1,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 18,
+                    "name": "Kartic Sharma"
+                },
+                "impactScore": 32,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 1,
+                    "runOuts": 1,
+                    "stumpings": 0
+                }
+            },
+            {
+                "player": {
+                    "id": 4,
+                    "name": "SUBHAJIT SARKAR"
+                },
+                "impactScore": 17,
+                "batting": {
+                    "runs": 0,
+                    "balls": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "notOuts": 0,
+                    "strikeRate": "0.00"
+                },
+                "bowling": {
+                    "wickets": 0,
+                    "runs": 0,
+                    "overs": "0.0",
+                    "maidens": 0,
+                    "dots": 0,
+                    "fours": 0,
+                    "sixes": 0,
+                    "economy": "0.00"
+                },
+                "fielding": {
+                    "catches": 1,
+                    "runOuts": 0,
+                    "stumpings": 0
+                }
+            }
+        ]
+    }
+}

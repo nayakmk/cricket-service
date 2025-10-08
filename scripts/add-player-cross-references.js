@@ -72,8 +72,8 @@ async function addPlayerCrossReferences() {
                 matchEntry = {
                   matchId: match.id,
                   matchDate: match.scheduledDate || match.date,
-                  team1: match.teams?.team1?.name || match.team1?.name || 'Team 1',
-                  team2: match.teams?.team2?.name || match.team2?.name || 'Team 2',
+                  team1: match.teams?.team1 ? { name: match.teams.team1.name, shortName: match.teams.team1.shortName || match.teams.team1.name.substring(0, 3).toUpperCase() } : (match.team1?.name ? { name: match.team1.name, shortName: match.team1.shortName || match.team1.name.substring(0, 3).toUpperCase() } : { name: 'Team 1', shortName: 'T1' }),
+                  team2: match.teams?.team2 ? { name: match.teams.team2.name, shortName: match.teams.team2.shortName || match.teams.team2.name.substring(0, 3).toUpperCase() } : (match.team2?.name ? { name: match.team2.name, shortName: match.team2.shortName || match.team2.name.substring(0, 3).toUpperCase() } : { name: 'Team 2', shortName: 'T2' }),
                   venue: match.venue,
                   result: match.result,
                   contributions: []
@@ -118,8 +118,8 @@ async function addPlayerCrossReferences() {
                 matchEntry = {
                   matchId: match.id,
                   matchDate: match.scheduledDate || match.date,
-                  team1: match.teams?.team1?.name || match.team1?.name || 'Team 1',
-                  team2: match.teams?.team2?.name || match.team2?.name || 'Team 2',
+                  team1: match.teams?.team1 ? { name: match.teams.team1.name, shortName: match.teams.team1.shortName || match.teams.team1.name.substring(0, 3).toUpperCase() } : (match.team1?.name ? { name: match.team1.name, shortName: match.team1.shortName || match.team1.name.substring(0, 3).toUpperCase() } : { name: 'Team 1', shortName: 'T1' }),
+                  team2: match.teams?.team2 ? { name: match.teams.team2.name, shortName: match.teams.team2.shortName || match.teams.team2.name.substring(0, 3).toUpperCase() } : (match.team2?.name ? { name: match.team2.name, shortName: match.team2.shortName || match.team2.name.substring(0, 3).toUpperCase() } : { name: 'Team 2', shortName: 'T2' }),
                   venue: match.venue,
                   result: match.result,
                   contributions: []
@@ -168,8 +168,8 @@ async function addPlayerCrossReferences() {
                     matchEntry = {
                       matchId: match.id,
                       matchDate: match.scheduledDate || match.date,
-                      team1: match.teams?.team1?.name || match.team1?.name || 'Team 1',
-                      team2: match.teams?.team2?.name || match.team2?.name || 'Team 2',
+                      team1: match.teams?.team1 ? { name: match.teams.team1.name, shortName: match.teams.team1.shortName || match.teams.team1.name.substring(0, 3).toUpperCase() } : (match.team1?.name ? { name: match.team1.name, shortName: match.team1.shortName || match.team1.name.substring(0, 3).toUpperCase() } : { name: 'Team 1', shortName: 'T1' }),
+                      team2: match.teams?.team2 ? { name: match.teams.team2.name, shortName: match.teams.team2.shortName || match.teams.team2.name.substring(0, 3).toUpperCase() } : (match.team2?.name ? { name: match.team2.name, shortName: match.team2.shortName || match.team2.name.substring(0, 3).toUpperCase() } : { name: 'Team 2', shortName: 'T2' }),
                       venue: match.venue,
                       result: match.result,
                       contributions: []

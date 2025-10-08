@@ -1,10 +1,31 @@
 const { collections } = require('../../config/database');
 const { sequenceManager } = require('../../utils/sequenceManager');
 
+// Helper function to find document by numericId
+async function findDocumentByNumericId(collection, numericId) {
+  const snapshot = await collection.where('numericId', '==', parseInt(numericId, 10)).get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  // Return the first matching document (should only be one)
+  const doc = snapshot.docs[0];
+
+  // Return an object that mimics a Firestore document
+  return {
+    id: doc.id,
+    ref: doc.ref,
+    exists: true,
+    data: () => ({ ...doc.data(), id: doc.id })
+  };
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': process.env.FRONTEND_URL || 'https://ebcl-app.github.io',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Credentials': 'true',
   'Content-Type': 'application/json',
 };
 
@@ -677,8 +698,8 @@ exports.handler = async (event, context) => {
       }
 
       // Find the match
-      const match = await Match.findById(matchId);
-      if (!match) {
+      const matchDoc = await findDocumentByNumericId(collections.matches, matchId);
+      if (!matchDoc) {
         return {
           statusCode: 404,
           headers: {
@@ -691,27 +712,71 @@ exports.handler = async (event, context) => {
           }),
         };
       }
+      const matchData = matchDoc.data();
+
+      // Get team details
+      const [battingTeamDoc, bowlingTeamDoc] = await Promise.all([
+        findDocumentByNumericId(collections.teams, battingTeamId),
+        findDocumentByNumericId(collections.teams, bowlingTeamId)
+      ]);
+
+      if (!battingTeamDoc || !bowlingTeamDoc) {
+        return {
+          statusCode: 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            success: false,
+            message: 'One or both teams not found'
+          }),
+        };
+      }
+
+      const battingTeamData = battingTeamDoc.data();
+      const bowlingTeamData = bowlingTeamDoc.data();
+
+      // Generate document ID for the inning
+      const documentId = await sequenceManager.generateDocumentId('innings');
 
       // Create new inning
-      const inning = new Inning({
-        match: matchId,
-        battingTeam: battingTeamId,
-        bowlingTeam: bowlingTeamId,
+      const newInning = {
+        id: documentId,
+        matchId: matchId,
+        battingTeam: {
+          id: battingTeamId,
+          name: battingTeamData.name,
+          shortName: battingTeamData.shortName || battingTeamData.name.substring(0, 3).toUpperCase()
+        },
+        bowlingTeam: {
+          id: bowlingTeamId,
+          name: bowlingTeamData.name,
+          shortName: bowlingTeamData.shortName || bowlingTeamData.name.substring(0, 3).toUpperCase()
+        },
         inningNumber,
-        startTime: new Date()
-      });
+        startTime: new Date().toISOString(),
+        totalRuns: 0,
+        totalWickets: 0,
+        totalOvers: 0,
+        extras: { total: 0, wides: 0, noBalls: 0, byes: 0, legByes: 0 },
+        batsmen: [],
+        bowlers: [],
+        fallOfWickets: [],
+        status: 'in-progress'
+      };
 
-      await inning.save();
+      // Save the inning
+      await collections.matches.doc(matchDoc.id).collection('innings').doc(documentId).set(newInning);
 
       // Update match with the new inning
-      match.innings.push(inning._id);
-      match.currentInning = inningNumber;
-      match.status = 'in-progress';
-      await match.save();
-
-      const populatedInning = await Inning.findById(inning._id)
-        .populate('battingTeam', 'name shortName')
-        .populate('bowlingTeam', 'name shortName');
+      const currentInnings = matchData.innings || [];
+      await collections.matches.doc(matchDoc.id).update({
+        innings: [...currentInnings, documentId],
+        currentInning: inningNumber,
+        status: 'live',
+        updatedAt: new Date().toISOString()
+      });
 
       return {
         statusCode: 201,
@@ -721,7 +786,7 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify({
           success: true,
-          data: populatedInning,
+          data: newInning,
           message: 'Inning started successfully'
         }),
       };

@@ -28,16 +28,18 @@
  * 4. Test the complete reimport process end-to-end
  * 5. Verify data integrity and relationships are maintained
  *
- * CURRENT PROCESS (9 Steps):
+ * CURRENT PROCESS (11 Steps):
  * 1. Clean up existing data
  * 2. Initialize sequences
  * 3. Load and import matches data
  * 4. Add cross-references to players
  * 5. Update player statistics
- * 6. Populate team match history
- * 7. Recalculate team statistics
- * 8. Verify data integrity
- * 9. Run comprehensive validation
+ * 6. Populate team players
+ * 7. Populate team match history
+ * 8. Recalculate team statistics
+ * 9. Run update-player-stats.js
+ * 10. Verify data integrity
+ * 11. Run comprehensive validation
  *
  * FAILURE TO UPDATE = DATA CORRUPTION RISK
  * Always run this script after major data changes to ensure consistency!
@@ -56,6 +58,7 @@ class CompleteDataReimport {
     this.matchesData = [];
     this.teamsMap = new Map(); // name -> firestore id
     this.playersMap = new Map(); // name -> firestore id
+    this.playersNumericMap = new Map(); // name -> numeric id
     this.processedMatches = [];
     this.playerMatchHistory = new Map();
   }
@@ -84,20 +87,28 @@ class CompleteDataReimport {
       console.log('📈 Step 5: Updating player statistics...');
       await this.updatePlayerStatistics();
 
-      // Step 6: Populate team match history
-      console.log('🏏 Step 6: Populating team match history...');
+      // Step 6: Populate team players
+      console.log('👥 Step 6: Populating team players...');
+      await this.populateTeamPlayers();
+
+      // Step 7: Populate team match history
+      console.log('🏏 Step 7: Populating team match history...');
       await populateTeamMatchHistory();
 
-      // Step 7: Recalculate team statistics
-      console.log('📊 Step 7: Recalculating team statistics...');
+      // Step 8: Recalculate team statistics
+      console.log('📊 Step 8: Recalculating team statistics...');
       await TeamStatisticsManager.recalculateAllTeamStatistics();
 
-      // Step 8: Verify data integrity
-      console.log('✅ Step 8: Verifying data integrity...');
+      // Step 9: Run update-player-stats.js
+      console.log('📈 Step 9: Running update-player-stats.js...');
+      await this.runUpdatePlayerStats();
+
+      // Step 10: Verify data integrity
+      console.log('✅ Step 10: Verifying data integrity...');
       await this.verifyDataIntegrity();
 
-      // Step 9: Run comprehensive validation
-      console.log('🔍 Step 9: Running comprehensive data validation...');
+      // Step 11: Run comprehensive validation
+      console.log('🔍 Step 11: Running comprehensive data validation...');
       const validator = new DataValidator();
       await validator.runValidation();
 
@@ -192,6 +203,12 @@ class CompleteDataReimport {
       const team1DocId = await this.upsertTeam(matchData.teams?.team1 || 'Team 1');
       const team2DocId = await this.upsertTeam(matchData.teams?.team2 || 'Team 2');
 
+      // Check if team creation was successful
+      if (!team1DocId || !team2DocId) {
+        console.error(`✗ Failed to create teams for match: ${matchData.title || matchData.match_id}`);
+        return;
+      }
+
       // Get team numericIds
       const team1Data = (await collections.teams.doc(team1DocId).get()).data();
       const team2Data = (await collections.teams.doc(team2DocId).get()).data();
@@ -201,6 +218,22 @@ class CompleteDataReimport {
       // Generate match document ID
       const matchNumericId = await sequenceManager.getNextId('matches');
       const matchDocumentId = await sequenceManager.generateDocumentId('matches');
+
+      if (!matchDocumentId) {
+        console.error(`✗ Failed to generate document ID for match: ${matchData.title || matchData.match_id}`);
+        return;
+      }
+
+      // Resolve winner_id from winner name first
+      let winner_id = null;
+      const winnerName = matchData.result?.winner || matchData.winner || null;
+      if (winnerName) {
+        if (winnerName === matchData.teams?.team1) {
+          winner_id = team1NumericId;
+        } else if (winnerName === matchData.teams?.team2) {
+          winner_id = team2NumericId;
+        }
+      }
 
       // Prepare match data with correct structure
       const matchDoc = {
@@ -216,12 +249,12 @@ class CompleteDataReimport {
         updatedAt: new Date().toISOString(),
         teams: {
           team1: {
-            id: team1DocId,
+            id: team1NumericId,
             name: matchData.teams?.team1 || 'Team 1',
             shortName: (matchData.teams?.team1 || 'Team 1').split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 3)
           },
           team2: {
-            id: team2DocId,
+            id: team2NumericId,
             name: matchData.teams?.team2 || 'Team 2',
             shortName: (matchData.teams?.team2 || 'Team 2').split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 3)
           }
@@ -230,21 +263,19 @@ class CompleteDataReimport {
         team2Id: team2NumericId,
         team1Score: matchData.team1_score || matchData.team1Score || 0,
         team2Score: matchData.team2_score || matchData.team2Score || 0,
-        winner: matchData.result?.winner || matchData.winner || null,
-        winner_id: null, // Will be resolved below
-        result: matchData.result || { winner: matchData.winner || '', margin: 'Match completed' },
-        toss: matchData.toss || null,
+        winner: winnerName,
+        winner_id: winner_id,
+        result: {
+          winner: winner_id,
+          margin: matchData.result?.margin || 'Match completed'
+        },
+        toss: matchData.toss ? {
+          winner: matchData.toss.winner === matchData.teams?.team1 ? team1NumericId :
+                  matchData.toss.winner === matchData.teams?.team2 ? team2NumericId : null,
+          decision: matchData.toss.decision
+        } : null,
         currentInnings: matchData.current_innings || null
       };
-
-      // Resolve winner_id from winner name
-      if (matchDoc.winner) {
-        if (matchDoc.winner === matchData.teams?.team1) {
-          matchDoc.winner_id = team1NumericId;
-        } else if (matchDoc.winner === matchData.teams?.team2) {
-          matchDoc.winner_id = team2NumericId;
-        }
-      }
 
       // Save match
       await collections.matches.doc(matchDocumentId).set(matchDoc);
@@ -295,7 +326,7 @@ class CompleteDataReimport {
 
             batsmen.push({
               playerId: playerId,
-              player: { id: playerId, name: batsmanData.name },
+              player: await this.getCompletePlayerObject(playerId),
               runs: batsmanData.runs || 0,
               balls: batsmanData.balls || 0,
               fours: batsmanData.fours || 0,
@@ -304,7 +335,7 @@ class CompleteDataReimport {
               statusParsed: dismissal,
               strikeRate: batsmanData.balls > 0 ? ((batsmanData.runs / batsmanData.balls) * 100).toFixed(2) : 0,
               // Process how_out object to convert player names to playerIds
-              howOut: batsmanData.how_out ? this.processHowOut(batsmanData.how_out, this.playersMap) : null
+              howOut: batsmanData.how_out ? this.processHowOut(batsmanData.how_out, this.playersMap, this.playersNumericMap) : null
             });
           }
         }
@@ -320,7 +351,7 @@ class CompleteDataReimport {
           if (playerId) {
             bowlers.push({
               playerId: playerId,
-              player: { id: playerId, name: bowlerData.name },
+              player: await this.getCompletePlayerObject(playerId),
               overs: bowlerData.overs || 0,
               maidens: bowlerData.maidens || 0,
               runs: bowlerData.runs || 0,
@@ -366,7 +397,7 @@ class CompleteDataReimport {
         runRate: inningData.run_rate || 0,
         batsmen: batsmen,
         bowlers: bowlers,
-        fallOfWickets: this.processFallOfWickets(inningData.fall_of_wickets, this.playersMap)
+        fallOfWickets: this.processFallOfWickets(inningData.fall_of_wickets, this.playersMap, this.playersNumericMap)
       };
 
       // Generate inning document ID
@@ -430,7 +461,7 @@ class CompleteDataReimport {
   }
 
   // Helper function to process how_out object and convert player names to playerIds
-  processHowOut(howOut, playersMap) {
+  processHowOut(howOut, playersMap, playersNumericMap) {
     if (!howOut || typeof howOut !== 'object') {
       return howOut;
     }
@@ -440,8 +471,9 @@ class CompleteDataReimport {
     // Convert fielder name to playerId
     if (processedHowOut.fielder && typeof processedHowOut.fielder === 'string') {
       const fielderId = playersMap.get(processedHowOut.fielder);
+      const fielderNumericId = this.playersNumericMap.get(processedHowOut.fielder);
       if (fielderId) {
-        processedHowOut.fielderId = fielderId;
+        processedHowOut.fielderId = fielderNumericId;
         processedHowOut.fielderName = processedHowOut.fielder; // Keep original name for display
       }
     }
@@ -449,8 +481,9 @@ class CompleteDataReimport {
     // Convert bowler name to playerId
     if (processedHowOut.bowler && typeof processedHowOut.bowler === 'string') {
       const bowlerId = playersMap.get(processedHowOut.bowler);
+      const bowlerNumericId = this.playersNumericMap.get(processedHowOut.bowler);
       if (bowlerId) {
-        processedHowOut.bowlerId = bowlerId;
+        processedHowOut.bowlerId = bowlerNumericId;
         processedHowOut.bowlerName = processedHowOut.bowler; // Keep original name for display
       }
     }
@@ -459,8 +492,8 @@ class CompleteDataReimport {
     if (processedHowOut.fielders && Array.isArray(processedHowOut.fielders)) {
       processedHowOut.fieldersIds = processedHowOut.fielders.map(fielderName => {
         if (typeof fielderName === 'string') {
-          const fielderId = playersMap.get(fielderName);
-          return fielderId || fielderName; // Return ID if found, otherwise keep name
+          const fielderNumericId = this.playersNumericMap.get(fielderName);
+          return fielderNumericId || fielderName; // Return numeric ID if found, otherwise keep name
         }
         return fielderName;
       });
@@ -470,7 +503,7 @@ class CompleteDataReimport {
   }
 
   // Helper function to process fall_of_wickets and convert player names to playerIds
-  processFallOfWickets(fallOfWickets, playersMap) {
+  processFallOfWickets(fallOfWickets, playersMap, playersNumericMap) {
     if (!fallOfWickets || !Array.isArray(fallOfWickets)) {
       return fallOfWickets || [];
     }
@@ -481,8 +514,9 @@ class CompleteDataReimport {
       // Convert player name to playerId
       if (processedFow.player && typeof processedFow.player === 'string') {
         const playerId = playersMap.get(processedFow.player);
+        const playerNumericId = this.playersNumericMap.get(processedFow.player);
         if (playerId) {
-          processedFow.playerId = playerId;
+          processedFow.playerId = playerNumericId;
           processedFow.playerName = processedFow.player; // Keep original name for display
         }
       }
@@ -522,6 +556,7 @@ class CompleteDataReimport {
         }
         
         this.playersMap.set(playerName, playerId);
+        this.playersNumericMap.set(playerName, playerData.numericId);
         return playerId;
       }
 
@@ -645,6 +680,7 @@ class CompleteDataReimport {
 
       await collections.players.doc(documentId).set(playerData);
       this.playersMap.set(playerName, documentId);
+      this.playersNumericMap.set(playerName, numericId);
       console.log(`✓ Created player: ${playerName} (ID: ${documentId})`);
       return documentId;
     } catch (error) {
@@ -699,14 +735,14 @@ class CompleteDataReimport {
                 }
 
                 const history = playerMatchHistory.get(batsman.playerId);
-                let matchEntry = history.matches.find(m => m.matchId === match.id);
+                let matchEntry = history.matches.find(m => m.matchId === match.numericId);
 
                 if (!matchEntry) {
                   matchEntry = {
-                    matchId: match.id,
+                    matchId: match.numericId,
                     matchDate: match.scheduledDate || match.createdAt,
-                    team1: match.teams?.team1?.name || 'Team 1',
-                    team2: match.teams?.team2?.name || 'Team 2',
+                    team1: match.team1Id,
+                    team2: match.team2Id,
                     venue: match.venue,
                     result: match.result,
                     contributions: []
@@ -744,14 +780,14 @@ class CompleteDataReimport {
                 }
 
                 const history = playerMatchHistory.get(bowler.playerId);
-                let matchEntry = history.matches.find(m => m.matchId === match.id);
+                let matchEntry = history.matches.find(m => m.matchId === match.numericId);
 
                 if (!matchEntry) {
                   matchEntry = {
-                    matchId: match.id,
+                    matchId: match.numericId,
                     matchDate: match.scheduledDate || match.createdAt,
-                    team1: match.teams?.team1?.name || 'Team 1',
-                    team2: match.teams?.team2?.name || 'Team 2',
+                    team1: match.team1Id,
+                    team2: match.team2Id,
                     venue: match.venue,
                     result: match.result,
                     contributions: []
@@ -773,49 +809,98 @@ class CompleteDataReimport {
           }
         }
 
-        // Process fielding (catches from batsmen dismissals)
+        // Process fielding (catches and runouts from batsmen dismissals)
         if (inning.batsmen && Array.isArray(inning.batsmen)) {
           for (const batsman of inning.batsmen) {
-            if (batsman.status && batsman.status.includes('c ')) {
-              // Try to extract fielder name from dismissal
-              const catchMatch = batsman.status.match(/c\s+([^b]+)/i);
-              if (catchMatch) {
-                const fielderName = catchMatch[1].trim();
-                // Find player by name (this is approximate)
-                for (const [playerId, player] of players) {
-                  if (player.name.toLowerCase().includes(fielderName.toLowerCase()) ||
-                      fielderName.toLowerCase().includes(player.name.toLowerCase())) {
-                    if (!playerMatchHistory.has(playerId)) {
-                      playerMatchHistory.set(playerId, {
-                        playerId: playerId,
-                        playerName: player.name,
-                        matches: []
+            if (batsman.status) {
+              // Process catches
+              if (batsman.status.includes('c ')) {
+                // Try to extract fielder name from dismissal
+                const catchMatch = batsman.status.match(/c\s+([^b]+)/i);
+                if (catchMatch) {
+                  const fielderName = catchMatch[1].trim();
+                  // Find player by name (this is approximate)
+                  for (const [playerId, player] of players) {
+                    if (player.name.toLowerCase().includes(fielderName.toLowerCase()) ||
+                        fielderName.toLowerCase().includes(player.name.toLowerCase())) {
+                      if (!playerMatchHistory.has(playerId)) {
+                        playerMatchHistory.set(playerId, {
+                          playerId: playerId,
+                          playerName: player.name,
+                          matches: []
+                        });
+                      }
+
+                      const history = playerMatchHistory.get(playerId);
+                      let matchEntry = history.matches.find(m => m.matchId === match.numericId);
+
+                      if (!matchEntry) {
+                        matchEntry = {
+                          matchId: match.numericId,
+                          matchDate: match.scheduledDate || match.createdAt,
+                          team1: match.team1Id,
+                          team2: match.team2Id,
+                          venue: match.venue,
+                          result: match.result,
+                          contributions: []
+                        };
+                        history.matches.push(matchEntry);
+                      }
+
+                      matchEntry.contributions.push({
+                        type: 'fielding',
+                        inningNumber: inning.inningNumber,
+                        action: 'catch',
+                        count: 1
                       });
+                      break;
                     }
+                  }
+                }
+              }
 
-                    const history = playerMatchHistory.get(playerId);
-                    let matchEntry = history.matches.find(m => m.matchId === match.id);
+              // Process runouts
+              if (batsman.status.includes('run out')) {
+                // Try to extract fielder name from dismissal
+                const runoutMatch = batsman.status.match(/run out\s+([^/]+)/i);
+                if (runoutMatch) {
+                  const fielderName = runoutMatch[1].trim();
+                  // Find player by name (this is approximate)
+                  for (const [playerId, player] of players) {
+                    if (player.name.toLowerCase().includes(fielderName.toLowerCase()) ||
+                        fielderName.toLowerCase().includes(player.name.toLowerCase())) {
+                      if (!playerMatchHistory.has(playerId)) {
+                        playerMatchHistory.set(playerId, {
+                          playerId: playerId,
+                          playerName: player.name,
+                          matches: []
+                        });
+                      }
 
-                    if (!matchEntry) {
-                      matchEntry = {
-                        matchId: match.id,
-                        matchDate: match.scheduledDate || match.createdAt,
-                        team1: match.teams?.team1?.name || 'Team 1',
-                        team2: match.teams?.team2?.name || 'Team 2',
-                        venue: match.venue,
-                        result: match.result,
-                        contributions: []
-                      };
-                      history.matches.push(matchEntry);
+                      const history = playerMatchHistory.get(playerId);
+                      let matchEntry = history.matches.find(m => m.matchId === match.numericId);
+
+                      if (!matchEntry) {
+                        matchEntry = {
+                          matchId: match.numericId,
+                          matchDate: match.scheduledDate || match.createdAt,
+                          team1: match.team1Id,
+                          team2: match.team2Id,
+                          venue: match.venue,
+                          result: match.result,
+                          contributions: []
+                        };
+                        history.matches.push(matchEntry);
+                      }
+
+                      matchEntry.contributions.push({
+                        type: 'fielding',
+                        inningNumber: inning.inningNumber,
+                        action: 'run out',
+                        count: 1
+                      });
+                      break;
                     }
-
-                    matchEntry.contributions.push({
-                      type: 'fielding',
-                      inningNumber: inning.inningNumber,
-                      action: 'catch',
-                      count: 1
-                    });
-                    break;
                   }
                 }
               }
@@ -855,6 +940,8 @@ class CompleteDataReimport {
         let totalOvers = 0;
         let totalRunsConceded = 0;
         let totalCatches = 0;
+        let totalRunOuts = 0;
+        let totalStumpings = 0;
         let totalMatches = player.matchHistory.length;
 
         for (const match of player.matchHistory) {
@@ -873,8 +960,14 @@ class CompleteDataReimport {
               totalWickets += contribution.wickets || 0;
               totalOvers += parseFloat(contribution.overs) || 0;
               totalRunsConceded += contribution.runs || 0;
-            } else if (contribution.type === 'fielding' && contribution.action === 'catch') {
-              totalCatches += contribution.count || 0;
+            } else if (contribution.type === 'fielding') {
+              if (contribution.action === 'catch') {
+                totalCatches += contribution.count || 0;
+              } else if (contribution.action === 'run out') {
+                totalRunOuts += contribution.count || 0;
+              } else if (contribution.action === 'stumping') {
+                totalStumpings += contribution.count || 0;
+              }
             }
           }
         }
@@ -907,8 +1000,8 @@ class CompleteDataReimport {
           ballsBowled: Math.round(totalOvers * 6),
           fieldingStats: {
             catches: totalCatches,
-            runOuts: 0,
-            stumpings: 0
+            runOuts: totalRunOuts,
+            stumpings: totalStumpings
           },
 
           // Career bests
@@ -986,6 +1079,65 @@ class CompleteDataReimport {
     console.log('✓ Player statistics updated');
   }
 
+  async populateTeamPlayers() {
+    console.log('Populating team players...');
+
+    // Get all teams
+    const teamsSnapshot = await collections.teams.get();
+
+    console.log(`Found ${teamsSnapshot.size} teams to process`);
+
+    // Process each team
+    for (const teamDoc of teamsSnapshot.docs) {
+      const teamData = teamDoc.data();
+      console.log(`Processing team: ${teamData.name} (${teamDoc.id})`);
+
+      try {
+        // Get all match squads for this team
+        const matchSquadsSnapshot = await collections.teams.doc(teamDoc.id).collection('matchSquads').get();
+
+        // Collect all unique player IDs
+        const uniquePlayerIds = new Set();
+
+        for (const squadDoc of matchSquadsSnapshot.docs) {
+          const squadData = squadDoc.data();
+          if (squadData.playerIds && Array.isArray(squadData.playerIds)) {
+            squadData.playerIds.forEach(playerId => uniquePlayerIds.add(playerId));
+          }
+        }
+
+        const playerIdsArray = Array.from(uniquePlayerIds);
+        const playersCount = playerIdsArray.length;
+
+        // Update the team document with player information
+        await collections.teams.doc(teamDoc.id).update({
+          playerIds: playerIdsArray,
+          playersCount: playersCount,
+          updatedAt: new Date().toISOString()
+        });
+
+        console.log(`✓ Updated team ${teamData.name}: ${playersCount} players`);
+
+      } catch (error) {
+        console.error(`✗ Error processing team ${teamData.name}:`, error);
+      }
+    }
+
+    console.log('✓ Team players populated');
+  }
+
+  async runUpdatePlayerStats() {
+    console.log('Running update-player-stats.js...');
+
+    // Import the updatePlayerStats function from the script
+    const updatePlayerStats = require('./update-player-stats.js');
+
+    // Call the function
+    await updatePlayerStats();
+
+    console.log('✓ update-player-stats.js completed successfully');
+  }
+
   async verifyDataIntegrity() {
     console.log('Verifying data integrity...');
 
@@ -1015,6 +1167,33 @@ class CompleteDataReimport {
     console.log(`✓ Total innings: ${totalInnings}`);
 
     console.log('✓ Data integrity verification completed');
+  }
+
+  async getCompletePlayerObject(playerId) {
+    try {
+      const playerDoc = await collections.players.doc(playerId).get();
+      if (playerDoc.exists) {
+        const playerData = playerDoc.data();
+        return {
+          id: playerId,
+          numericId: playerData.numericId,
+          name: playerData.name,
+          email: playerData.email,
+          isActive: playerData.isActive,
+          role: playerData.role,
+          battingStyle: playerData.battingStyle,
+          bowlingStyle: playerData.bowlingStyle,
+          isCaptain: playerData.isCaptain,
+          isWicketKeeper: playerData.isWicketKeeper,
+          nationality: playerData.nationality,
+          avatar: playerData.avatar
+        };
+      }
+      return { id: playerId, name: 'Unknown Player' };
+    } catch (error) {
+      console.error(`Error getting complete player object for ${playerId}:`, error);
+      return { id: playerId, name: 'Unknown Player' };
+    }
   }
 }
 
