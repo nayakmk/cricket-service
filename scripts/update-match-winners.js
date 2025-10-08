@@ -57,24 +57,28 @@ async function updateMatchWinners() {
 
       // Determine winner
       let winner = null;
+      let winnerId = null;
       let margin = null;
 
       if (team1Score > team2Score) {
         winner = matchData.teams?.team1?.name;
+        winnerId = matchData.team1Id || matchData.teams?.team1?.id;
         margin = `${team1Score - team2Score} runs`;
       } else if (team2Score > team1Score) {
         winner = matchData.teams?.team2?.name;
+        winnerId = matchData.team2Id || matchData.teams?.team2?.id;
         margin = `${team2Score - team1Score} runs`;
       } else {
         winner = 'Draw';
+        winnerId = null;
         margin = null;
       }
 
       // Update the match document
       const updateData = {
-        winner: winner,
+        winner: winnerId, // Store team ID instead of name
         result: {
-          winner: winner,
+          winner: winnerId, // Store team ID instead of name
           margin: margin
         },
         team1Score: team1Score,

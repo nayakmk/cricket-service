@@ -1,7 +1,55 @@
+/**
+ * COMPLETE DATA REIMPORT SCRIPT - CRITICAL MAINTENANCE INSTRUCTION
+ *
+ * 🚨 CRITICAL: This script must be kept in sync with all data processing changes!
+ *
+ * PURPOSE:
+ * This script performs a complete reimport of all cricket data, cleaning and rebuilding
+ * the entire database from raw JSON data. It ensures data integrity and consistency.
+ *
+ * MAINTENANCE REQUIREMENTS:
+ * ⚠️  Whenever you make ANY changes to data structures, processing logic, or add new
+ *    data relationships, you MUST update this script accordingly.
+ *
+ * REQUIRED UPDATES WHEN:
+ * 1. Adding new data fields to matches, teams, or players
+ * 2. Changing data import logic or validation rules
+ * 3. Adding new cross-references or relationships
+ * 4. Modifying statistics calculations or aggregations
+ * 5. Adding new data processing utilities or managers
+ * 6. Changing match data structure or team/player references
+ * 7. Fixing PDF extraction bugs (e.g., batting stats column parsing)
+ * 8. Updating winner resolution logic or match ID handling
+ *
+ * STEPS TO UPDATE:
+ * 1. Review each step in runCompleteReimport() method
+ * 2. Add new steps for any new data processing requirements
+ * 3. Update existing steps to handle new data fields/logic
+ * 4. Test the complete reimport process end-to-end
+ * 5. Verify data integrity and relationships are maintained
+ *
+ * CURRENT PROCESS (9 Steps):
+ * 1. Clean up existing data
+ * 2. Initialize sequences
+ * 3. Load and import matches data
+ * 4. Add cross-references to players
+ * 5. Update player statistics
+ * 6. Populate team match history
+ * 7. Recalculate team statistics
+ * 8. Verify data integrity
+ * 9. Run comprehensive validation
+ *
+ * FAILURE TO UPDATE = DATA CORRUPTION RISK
+ * Always run this script after major data changes to ensure consistency!
+ */
+
 const fs = require('fs');
 const path = require('path');
 const { collections, db, admin } = require('../config/database');
 const { sequenceManager } = require('../utils/sequenceManager');
+const { populateTeamMatchHistory } = require('./populate-team-match-history');
+const { TeamStatisticsManager } = require('../utils/teamStatisticsManager');
+const { DataValidator } = require('./validate-data-integrity');
 
 class CompleteDataReimport {
   constructor() {
@@ -36,9 +84,22 @@ class CompleteDataReimport {
       console.log('📈 Step 5: Updating player statistics...');
       await this.updatePlayerStatistics();
 
-      // Step 6: Verify data integrity
-      console.log('✅ Step 6: Verifying data integrity...');
+      // Step 6: Populate team match history
+      console.log('🏏 Step 6: Populating team match history...');
+      await populateTeamMatchHistory();
+
+      // Step 7: Recalculate team statistics
+      console.log('📊 Step 7: Recalculating team statistics...');
+      await TeamStatisticsManager.recalculateAllTeamStatistics();
+
+      // Step 8: Verify data integrity
+      console.log('✅ Step 8: Verifying data integrity...');
       await this.verifyDataIntegrity();
+
+      // Step 9: Run comprehensive validation
+      console.log('🔍 Step 9: Running comprehensive data validation...');
+      const validator = new DataValidator();
+      await validator.runValidation();
 
       console.log('🎉 Complete data reimport process finished successfully!');
 
@@ -108,7 +169,7 @@ class CompleteDataReimport {
 
   async loadAndImportMatchesData() {
     // Load matches data
-    const filePath = path.join(__dirname, '..', 'reports', 'cricket_matches_summary_parsed_new_set_v7.json');
+    const filePath = path.join(__dirname, '..', 'reports', 'cricket_matches_from_pdfs_final.json');
     if (!fs.existsSync(filePath)) {
       throw new Error(`Matches data file not found: ${filePath}`);
     }
@@ -128,8 +189,14 @@ class CompleteDataReimport {
   async importMatch(matchData) {
     try {
       // Create/update teams
-      const team1Id = await this.upsertTeam(matchData.teams?.team1 || 'Team 1');
-      const team2Id = await this.upsertTeam(matchData.teams?.team2 || 'Team 2');
+      const team1DocId = await this.upsertTeam(matchData.teams?.team1 || 'Team 1');
+      const team2DocId = await this.upsertTeam(matchData.teams?.team2 || 'Team 2');
+
+      // Get team numericIds
+      const team1Data = (await collections.teams.doc(team1DocId).get()).data();
+      const team2Data = (await collections.teams.doc(team2DocId).get()).data();
+      const team1NumericId = team1Data.numericId;
+      const team2NumericId = team2Data.numericId;
 
       // Generate match document ID
       const matchNumericId = await sequenceManager.getNextId('matches');
@@ -138,7 +205,9 @@ class CompleteDataReimport {
       // Prepare match data with correct structure
       const matchDoc = {
         numericId: matchNumericId,
+        matchId: matchData.match_id || matchData.id, // Store original match ID from JSON
         title: matchData.title || `${matchData.teams?.team1 || 'Team 1'} vs ${matchData.teams?.team2 || 'Team 2'}` || `Match ${matchNumericId}`,
+        tournament: matchData.tournament || 'Unknown Tournament',
         matchType: matchData.match_type || matchData.type || 'T20',
         venue: matchData.ground || matchData.venue || 'Unknown Venue',
         status: matchData.status || 'completed',
@@ -147,25 +216,35 @@ class CompleteDataReimport {
         updatedAt: new Date().toISOString(),
         teams: {
           team1: {
-            id: team1Id,
+            id: team1DocId,
             name: matchData.teams?.team1 || 'Team 1',
             shortName: (matchData.teams?.team1 || 'Team 1').split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 3)
           },
           team2: {
-            id: team2Id,
+            id: team2DocId,
             name: matchData.teams?.team2 || 'Team 2',
             shortName: (matchData.teams?.team2 || 'Team 2').split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 3)
           }
         },
-        team1Id: team1Id,
-        team2Id: team2Id,
-        team1Score: matchData.team1_score || 0,
-        team2Score: matchData.team2_score || 0,
-        winner: matchData.winner || null,
-        result: matchData.result || 'Match completed',
+        team1Id: team1NumericId,
+        team2Id: team2NumericId,
+        team1Score: matchData.team1_score || matchData.team1Score || 0,
+        team2Score: matchData.team2_score || matchData.team2Score || 0,
+        winner: matchData.result?.winner || matchData.winner || null,
+        winner_id: null, // Will be resolved below
+        result: matchData.result || { winner: matchData.winner || '', margin: 'Match completed' },
         toss: matchData.toss || null,
         currentInnings: matchData.current_innings || null
       };
+
+      // Resolve winner_id from winner name
+      if (matchDoc.winner) {
+        if (matchDoc.winner === matchData.teams?.team1) {
+          matchDoc.winner_id = team1NumericId;
+        } else if (matchDoc.winner === matchData.teams?.team2) {
+          matchDoc.winner_id = team2NumericId;
+        }
+      }
 
       // Save match
       await collections.matches.doc(matchDocumentId).set(matchDoc);

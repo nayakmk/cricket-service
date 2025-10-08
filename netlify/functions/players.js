@@ -146,7 +146,7 @@ exports.handler = async function(event, context) {
         // Only include active players (not soft deleted)
         if (playerData.isActive !== false) {
           players.push({
-            id: doc.id,
+            id: playerData.numericId,
             numericId: playerData.numericId,
             displayId: playerData.numericId || doc.id,
             ...playerData
@@ -332,9 +332,9 @@ exports.handler = async function(event, context) {
         body: JSON.stringify({
           success: true,
           data: {
-            id: playerDoc.id,
+            id: playerDoc.data().numericId,
             numericId: playerDoc.data().numericId,
-            displayId: playerDoc.data().numericId || playerDoc.id,
+            displayId: playerDoc.data().numericId,
             ...playerDoc.data()
           }
         }),
@@ -494,7 +494,7 @@ exports.handler = async function(event, context) {
             player: {
               id: player.id,
               name: player.name,
-              displayId: player.numericId || player.id
+              displayId: player.numericId
             },
             matches: playerMatches,
             summary: summary

@@ -60,7 +60,7 @@ exports.handler = async (event, context) => {
       const limitNum = parseInt(limit);
       const offset = (pageNum - 1) * limitNum;
 
-      let query = collections.matches.orderBy('date', 'desc');
+      let query = collections.matches.orderBy('scheduledDate', 'desc');
 
       if (status) {
         query = query.where('status', '==', status);
@@ -73,6 +73,22 @@ exports.handler = async (event, context) => {
       // Apply pagination
       const paginatedQuery = query.limit(limitNum).offset(offset);
       const snapshot = await paginatedQuery.get();
+
+      // Get all teams for denormalization
+      const teamsSnapshot = await collections.teams.get();
+      const teamsMap = {};
+      for (const teamDoc of teamsSnapshot.docs) {
+        const teamData = teamDoc.data();
+        const teamDetails = {
+          id: teamData.numericId,
+          name: teamData.name,
+          shortName: teamData.shortName || teamData.name.substring(0, 3).toUpperCase()
+        };
+        // Map both numericId and documentId to team details
+        teamsMap[teamData.numericId] = teamDetails;
+        teamsMap[teamDoc.id] = teamDetails;
+      }
+
       const matches = [];
 
       // Build matches list using embedded team details
@@ -89,9 +105,9 @@ exports.handler = async (event, context) => {
             const inningsSnapshot = await collections.matches.doc(doc.id).collection('innings').get();
             for (const inningDoc of inningsSnapshot.docs) {
               const inningData = inningDoc.data();
-              if (inningData.battingTeam === matchData.team1?.name) {
+              if (inningData.battingTeam === matchData.team1) {
                 team1Score += inningData.totalRuns || 0;
-              } else if (inningData.battingTeam === matchData.team2?.name) {
+              } else if (inningData.battingTeam === matchData.team2) {
                 team2Score += inningData.totalRuns || 0;
               }
             }
@@ -100,28 +116,153 @@ exports.handler = async (event, context) => {
           }
         }
 
+        // Denormalize winner, toss winner, and result winner
+        const winnerDetails = (typeof matchData.winner === 'number' && teamsMap[matchData.winner]) ? teamsMap[matchData.winner] : null;
+        const tossWinnerDetails = (typeof matchData.toss?.winner === 'number' && teamsMap[matchData.toss.winner]) ? teamsMap[matchData.toss.winner] : null;
+        const resultWinnerDetails = (typeof matchData.result?.winner === 'number' && teamsMap[matchData.result.winner]) ? teamsMap[matchData.result.winner] : null;
+
+        // Denormalize team1 and team2
+        const team1Details = teamsMap[matchData.team1] || null;
+        const team2Details = teamsMap[matchData.team2] || null;
+
+        // Calculate Man of the Match for completed matches
+        let manOfTheMatch = null;
+
+        if (matchData.status === 'completed') {
+          try {
+            const inningsSnapshot = await collections.matches.doc(doc.id).collection('innings').get();
+
+            // Collect all player performances
+            const playerPerformances = new Map();
+
+            for (const inningDoc of inningsSnapshot.docs) {
+              const inningData = inningDoc.data();
+
+              // Process batsmen
+              if (inningData.batsmen && Array.isArray(inningData.batsmen)) {
+                for (const batsman of inningData.batsmen) {
+                  if (batsman.player && batsman.runs !== undefined) {
+                    const playerId = typeof batsman.player === 'object' ? batsman.player.id : batsman.player;
+                    const playerName = typeof batsman.player === 'object' ? batsman.player.name : 'Unknown Player';
+
+                    if (!playerPerformances.has(playerId)) {
+                      playerPerformances.set(playerId, {
+                        player: batsman.player,
+                        batting: { runs: 0, balls: 0, fours: 0, sixes: 0 },
+                        bowling: { wickets: 0, runs: 0, overs: 0 }
+                      });
+                    }
+
+                    const perf = playerPerformances.get(playerId);
+                    perf.batting.runs += batsman.runs || 0;
+                    perf.batting.balls += batsman.balls || 0;
+                    perf.batting.fours += batsman.fours || 0;
+                    perf.batting.sixes += batsman.sixes || 0;
+                  }
+                }
+              }
+
+              // Process bowlers
+              if (inningData.bowlers && Array.isArray(inningData.bowlers)) {
+                for (const bowler of inningData.bowlers) {
+                  if (bowler.player) {
+                    const playerId = typeof bowler.player === 'object' ? bowler.player.id : bowler.player;
+                    const playerName = typeof bowler.player === 'object' ? bowler.player.name : 'Unknown Player';
+
+                    if (!playerPerformances.has(playerId)) {
+                      playerPerformances.set(playerId, {
+                        player: bowler.player,
+                        batting: { runs: 0, balls: 0, fours: 0, sixes: 0 },
+                        bowling: { wickets: 0, runs: 0, overs: 0 }
+                      });
+                    }
+
+                    const perf = playerPerformances.get(playerId);
+                    perf.bowling.wickets += bowler.wickets || 0;
+                    perf.bowling.runs += bowler.runs || 0;
+                    perf.bowling.overs += parseFloat(bowler.overs) || 0;
+                  }
+                }
+              }
+            }
+
+            // Calculate net impact for each player
+            let maxImpact = -Infinity;
+            for (const [playerId, perf] of playerPerformances) {
+              // Calculate batting impact
+              const battingRuns = perf.batting.runs;
+              const battingBalls = perf.batting.balls;
+              const strikeRate = battingBalls > 0 ? (battingRuns / battingBalls) * 100 : 0;
+              const boundaries = perf.batting.fours + (perf.batting.sixes * 2); // 6s worth double
+
+              const battingImpact = battingRuns + (strikeRate - 100) * 0.1 + boundaries;
+
+              // Calculate bowling impact
+              const bowlingWickets = perf.bowling.wickets;
+              const bowlingOvers = perf.bowling.overs;
+              const economy = bowlingOvers > 0 ? perf.bowling.runs / bowlingOvers : 0;
+
+              const bowlingImpact = (bowlingWickets * 25) - (economy - 6) * 2;
+
+              // Net impact
+              const netImpact = battingImpact + bowlingImpact;
+
+              if (netImpact > maxImpact) {
+                maxImpact = netImpact;
+                manOfTheMatch = {
+                  player: perf.player,
+                  netImpact: parseFloat(netImpact.toFixed(2)),
+                  batting: {
+                    runs: battingRuns,
+                    balls: battingBalls,
+                    fours: perf.batting.fours,
+                    sixes: perf.batting.sixes,
+                    strikeRate: strikeRate.toFixed(2)
+                  },
+                  bowling: {
+                    wickets: bowlingWickets,
+                    runs: perf.bowling.runs,
+                    overs: bowlingOvers.toFixed(1),
+                    economy: economy.toFixed(2)
+                  }
+                };
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to calculate Man of the Match for match ${doc.id}:`, error);
+          }
+        }
+
         const essentialMatch = {
-          id: doc.id,
+          id: matchData.numericId,
           numericId: matchData.numericId,
           displayId: matchData.numericId || doc.id, // Use numericId for display, fallback to UUID
           title: matchData.title, // Include the title field
           status: matchData.status,
           matchType: matchData.matchType || matchData.title, // Fallback to title if matchType not set
           venue: matchData.venue,
-          scheduledDate: matchData.date?.toDate ? matchData.date.toDate().toISOString() : matchData.date,
+          scheduledDate: matchData.scheduledDate?.toDate ? matchData.scheduledDate.toDate().toISOString() : matchData.scheduledDate,
           createdAt: matchData.createdAt,
           updatedAt: matchData.updatedAt,
-          // Handle both old (matchData.teams) and new (matchData.team1/team2) formats
-          team1: matchData.team1 || matchData.teams?.team1 || null,
-          team2: matchData.team2 || matchData.teams?.team2 || null,
-          // Include toss information
-          toss: matchData.toss || null,
+          // Include denormalized team details
+          team1: team1Details || null,
+          team2: team2Details || null,
+          // Include toss information with denormalized winner
+          toss: matchData.toss ? {
+            ...matchData.toss,
+            winner: tossWinnerDetails || matchData.toss.winner
+          } : null,
           // Include calculated score info
           currentInnings: matchData.currentInnings,
           team1Score: team1Score,
           team2Score: team2Score,
-          winner: matchData.winner,
-          result: matchData.result,
+          winner: winnerDetails || matchData.winner,
+          result: matchData.result ? {
+            ...matchData.result,
+            winner: resultWinnerDetails || matchData.result.winner
+          } : matchData.result,
+          // Include Man of the Match for completed matches
+          manOfTheMatch: manOfTheMatch,
         };
 
         matches.push(essentialMatch);
@@ -178,16 +319,64 @@ exports.handler = async (event, context) => {
         };
       }
 
+      // Get all teams for denormalization
+      const teamsSnapshot = await collections.teams.get();
+      const teamsMap = {};
+      for (const teamDoc of teamsSnapshot.docs) {
+        const teamData = teamDoc.data();
+        const teamDetails = {
+          id: teamData.numericId,
+          name: teamData.name,
+          shortName: teamData.shortName || teamData.name.substring(0, 3).toUpperCase()
+        };
+        // Map both numericId and documentId to team details
+        teamsMap[teamData.numericId] = teamDetails;
+        teamsMap[teamDoc.id] = teamDetails;
+      }
+
+      // Get all players for denormalization
+      const playersSnapshot = await collections.players.get();
+      const playersMap = {};
+      for (const playerDoc of playersSnapshot.docs) {
+        const playerData = playerDoc.data();
+        const playerDetails = {
+          id: playerData.numericId,
+          name: playerData.name,
+          role: playerData.role
+        };
+        // Map both numericId and documentId to player details
+        playersMap[playerData.numericId] = playerDetails;
+        playersMap[playerDoc.id] = playerDetails;
+      }
+
       const matchData = {
-        id: matchDoc.id,
+        id: matchDoc.data().numericId,
         numericId: matchDoc.data().numericId,
-        displayId: matchDoc.data().numericId || matchDoc.id,
+        displayId: matchDoc.data().numericId,
         ...matchDoc.data()
       };
 
-      // Handle both old (matchData.teams) and new (matchData.team1/team2) formats
-      matchData.team1 = matchData.team1 || matchData.teams?.team1 || null;
-      matchData.team2 = matchData.team2 || matchData.teams?.team2 || null;
+      // team1 and team2 are now numeric IDs directly from the database
+
+      // Denormalize winner, toss winner, and result winner
+      const winnerDetails = (typeof matchData.winner === 'number' && teamsMap[matchData.winner]) ? teamsMap[matchData.winner] : null;
+      const tossWinnerDetails = (typeof matchData.toss?.winner === 'number' && teamsMap[matchData.toss.winner]) ? teamsMap[matchData.toss.winner] : null;
+      const resultWinnerDetails = (typeof matchData.result?.winner === 'number' && teamsMap[matchData.result.winner]) ? teamsMap[matchData.result.winner] : null;
+
+      // Update the match data with denormalized winners (only if we have details, otherwise keep original)
+      matchData.winner = winnerDetails || matchData.winner;
+      if (matchData.toss) {
+        matchData.toss.winner = tossWinnerDetails || matchData.toss.winner;
+      }
+      if (matchData.result) {
+        matchData.result.winner = resultWinnerDetails || matchData.result.winner;
+      }
+
+      // Denormalize team1 and team2
+      const team1Details = teamsMap[matchData.team1] || null;
+      const team2Details = teamsMap[matchData.team2] || null;
+      if (team1Details) matchData.team1 = team1Details;
+      if (team2Details) matchData.team2 = team2Details;
 
       // Fetch detailed innings with all player stats
       try {
@@ -197,145 +386,74 @@ exports.handler = async (event, context) => {
         for (const inningDoc of inningsSnapshot.docs) {
           const inningData = { id: inningDoc.id, ...inningDoc.data() };
 
-          // Resolve team names from team IDs
-          let battingTeamName = inningData.battingTeam;
-          let bowlingTeamName = inningData.bowlingTeam;
+          // Denormalize batting and bowling teams
+          const battingTeamDetails = (typeof inningData.battingTeam === 'number' && teamsMap[inningData.battingTeam]) ? teamsMap[inningData.battingTeam] : null;
+          const bowlingTeamDetails = (typeof inningData.bowlingTeam === 'number' && teamsMap[inningData.bowlingTeam]) ? teamsMap[inningData.bowlingTeam] : null;
 
-          // Try to resolve batting team name
-          if (inningData.battingTeam) {
-            try {
-              const battingTeamDoc = await collections.teams.doc(inningData.battingTeam).get();
-              if (battingTeamDoc.exists) {
-                battingTeamName = battingTeamDoc.data().name;
-              }
-            } catch (error) {
-              console.warn(`Failed to resolve batting team name for ${inningData.battingTeam}:`, error);
-            }
-          }
-
-          // Try to resolve bowling team name
-          if (inningData.bowlingTeam) {
-            try {
-              const bowlingTeamDoc = await collections.teams.doc(inningData.bowlingTeam).get();
-              if (bowlingTeamDoc.exists) {
-                bowlingTeamName = bowlingTeamDoc.data().name;
-              }
-            } catch (error) {
-              console.warn(`Failed to resolve bowling team name for ${inningData.bowlingTeam}:`, error);
-            }
-          }
-
-          // Create processed inning data with resolved team names
+          // Create processed inning data with denormalized team details
           const processedInning = {
             ...inningData,
-            battingTeam: battingTeamName,
-            bowlingTeam: bowlingTeamName
+            battingTeam: battingTeamDetails || inningData.battingTeam,
+            bowlingTeam: bowlingTeamDetails || inningData.bowlingTeam
           };
 
-          // Process batsmen details from array
-          const batsmen = [];
+          // Process batsmen details with denormalized player data
           if (inningData.batsmen && Array.isArray(inningData.batsmen)) {
-            for (const batsmanData of inningData.batsmen) {
-              // Get player details by document ID
-              const playerDoc = await collections.players.doc(batsmanData.playerId).get();
-              const playerData = playerDoc.exists ? { id: playerDoc.id, ...playerDoc.data() } : null;
-              batsmen.push({
+            processedInning.batsmen = inningData.batsmen.map(batsmanData => {
+              const playerDetails = (typeof batsmanData.playerId === 'number' && playersMap[batsmanData.playerId]) ? playersMap[batsmanData.playerId] : null;
+
+              // Denormalize fielder IDs in howOut
+              let howOut = batsmanData.howOut;
+              if (howOut) {
+                howOut = { ...howOut };
+                if (typeof howOut.fielderId === 'number' && playersMap[howOut.fielderId]) {
+                  howOut.fielderDetails = playersMap[howOut.fielderId];
+                }
+                if (howOut.fieldersIds && Array.isArray(howOut.fieldersIds)) {
+                  howOut.fieldersDetails = howOut.fieldersIds
+                    .map(id => typeof id === 'number' ? playersMap[id] : null)
+                    .filter(details => details !== null);
+                }
+              }
+
+              return {
                 ...batsmanData,
-                player: playerData ? {
-                  id: playerData.id,
-                  name: playerData.name,
-                  numericId: playerData.numericId
-                } : null
-              });
-            }
+                player: playerDetails || batsmanData.player,
+                howOut: howOut
+              };
+            });
           }
 
-          // Process bowling details from array (handle both 'bowling' and 'bowlers' field names)
-          const bowling = [];
+          // Process bowlers details with denormalized player data
           const bowlingData = inningData.bowling || inningData.bowlers;
           if (bowlingData && Array.isArray(bowlingData)) {
-            for (const bowlerData of bowlingData) {
-              // Get player details by document ID
-              const playerDoc = await collections.players.doc(bowlerData.playerId).get();
-              const playerData = playerDoc.exists ? { id: playerDoc.id, ...playerDoc.data() } : null;
-              bowling.push({
+            processedInning.bowling = bowlingData.map(bowlerData => {
+              const playerDetails = (typeof bowlerData.playerId === 'number' && playersMap[bowlerData.playerId]) ? playersMap[bowlerData.playerId] : null;
+
+              return {
                 ...bowlerData,
-                player: playerData ? {
-                  id: playerData.id,
-                  name: playerData.name,
-                  numericId: playerData.numericId
-                } : null
-              });
-            }
+                player: playerDetails || bowlerData.player
+              };
+            });
           }
 
-          // Process fall of wickets details from array or subcollection
-          const fallOfWickets = [];
+          // Process fall of wickets with denormalized player data
           if (inningData.fallOfWickets && Array.isArray(inningData.fallOfWickets)) {
-            // Data is stored as array in the innings document
-            for (const fowData of inningData.fallOfWickets) {
-              // Get player details by numeric ID if playerOutId exists
-              let playerName = fowData.batsmanName || fowData.player_out || 'Unknown';
-              if (fowData.playerOutId) {
-                try {
-                  // Find player by numericId
-                  const playerQuery = await collections.players.where('numericId', '==', fowData.playerOutId).limit(1).get();
-                  if (!playerQuery.empty) {
-                    const playerDoc = playerQuery.docs[0];
-                    const playerData = playerDoc.data();
-                    playerName = playerData.name || playerName;
-                  }
-                } catch (error) {
-                  console.warn(`Failed to resolve player name for fall of wickets playerOutId ${fowData.playerOutId}:`, error);
-                }
+            processedInning.fallOfWickets = inningData.fallOfWickets.map(fowData => {
+              let playerDetails = null;
+              if (typeof fowData.playerOutId === 'number' && playersMap[fowData.playerOutId]) {
+                playerDetails = playersMap[fowData.playerOutId];
               }
 
-              fallOfWickets.push({
-                wicketNumber: fowData.wicketNumber || fowData.wicket_number || 0,
-                batsmanName: playerName,
-                score: fowData.score || 0,
-                overs: fowData.overs || fowData.over || 0
-              });
-            }
-          } else {
-            // Check if data is stored as subcollection
-            try {
-              const fowSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').doc(inningDoc.id).collection('fallOfWickets').orderBy('wicketNumber').get();
-              for (const fowDoc of fowSnapshot.docs) {
-                const fowData = fowDoc.data();
-                let playerName = fowData.batsmanName || 'Unknown';
-                if (fowData.playerOutId) {
-                  try {
-                    // Find player by numericId
-                    const playerQuery = await collections.players.where('numericId', '==', fowData.playerOutId).limit(1).get();
-                    if (!playerQuery.empty) {
-                      const playerDoc = playerQuery.docs[0];
-                      const playerData = playerDoc.data();
-                      playerName = playerData.name || playerName;
-                    }
-                  } catch (error) {
-                    console.warn(`Failed to resolve player name for fall of wickets playerOutId ${fowData.playerOutId}:`, error);
-                  }
-                }
-
-                fallOfWickets.push({
-                  wicketNumber: fowData.wicketNumber || 0,
-                  batsmanName: playerName,
-                  score: fowData.score || 0,
-                  overs: fowData.overs || fowData.over || 0
-                });
-              }
-            } catch (error) {
-              console.warn(`Error reading fall of wickets subcollection for inning ${inningDoc.id}:`, error);
-            }
+              return {
+                ...fowData,
+                batsmanDetails: playerDetails,
+                batsmanName: playerDetails ? playerDetails.name : (fowData.batsmanName || fowData.player_out || 'Unknown')
+              };
+            });
           }
 
-          innings.push({
-            ...processedInning,
-            batsmen: batsmen,
-            bowling: bowling,
-            fallOfWickets: fallOfWickets
-          });
+          innings.push(processedInning);
         }
 
         matchData.innings = innings;
@@ -346,7 +464,7 @@ exports.handler = async (event, context) => {
 
       // Fetch detailed team lineups with full player details
       try {
-        const teamIds = [matchData.team1Id, matchData.team2Id].filter(id => id && id.trim() !== '');
+        const teamIds = [matchData.team1Id, matchData.team2Id].filter(id => id != null && id !== '');
         if (teamIds.length > 0) {
           const lineupsSnapshot = await collections.teamLineups
             .where('teamId', 'in', teamIds)
@@ -434,7 +552,7 @@ exports.handler = async (event, context) => {
           for (const inning of matchData.innings) {
             if (inning.batsmen && Array.isArray(inning.batsmen)) {
               for (const batsman of inning.batsmen) {
-                if (batsman.runs > maxRuns) {
+                if (batsman.player && batsman.runs > maxRuns) {
                   maxRuns = batsman.runs;
                   bestBatsman = {
                     player: batsman.player,
@@ -455,19 +573,21 @@ exports.handler = async (event, context) => {
           for (const inning of matchData.innings) {
             if (inning.bowlers && Array.isArray(inning.bowlers)) {
               for (const bowler of inning.bowlers) {
-                const wickets = bowler.wickets || 0;
-                const runs = bowler.runs || 0;
+                if (bowler.player) {
+                  const wickets = bowler.wickets || 0;
+                  const runs = bowler.runs || 0;
 
-                if (wickets > maxWickets || (wickets === maxWickets && runs < minRunsForMaxWickets)) {
-                  maxWickets = wickets;
-                  minRunsForMaxWickets = runs;
-                  bestBowler = {
-                    player: bowler.player,
-                    wickets: wickets,
-                    runs: runs,
-                    overs: bowler.overs || 0,
-                    economy: bowler.overs > 0 ? (runs / bowler.overs).toFixed(2) : '0.00'
-                  };
+                  if (wickets > maxWickets || (wickets === maxWickets && runs < minRunsForMaxWickets)) {
+                    maxWickets = wickets;
+                    minRunsForMaxWickets = runs;
+                    bestBowler = {
+                      player: bowler.player,
+                      wickets: wickets,
+                      runs: runs,
+                      overs: bowler.overs || 0,
+                      economy: bowler.overs > 0 ? (runs / bowler.overs).toFixed(2) : '0.00'
+                    };
+                  }
                 }
               }
             }
@@ -518,10 +638,10 @@ exports.handler = async (event, context) => {
         let margin = null;
 
         if (matchData.team1Score > matchData.team2Score) {
-          winner = matchData.team1?.name || matchData.team1;
+          winner = matchData.team1Id; // Use numericId instead of name
           margin = `${matchData.team1Score - matchData.team2Score} runs`;
         } else if (matchData.team2Score > matchData.team1Score) {
-          winner = matchData.team2?.name || matchData.team2;
+          winner = matchData.team2Id; // Use numericId instead of name
           margin = `${matchData.team2Score - matchData.team1Score} runs`;
         } else {
           winner = 'Draw';

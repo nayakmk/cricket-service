@@ -14,18 +14,24 @@ class TeamStatisticsManager {
     try {
       console.log(`Updating team statistics for match ${matchId}`);
 
-      // Handle both old format (matchData.teams) and new format (matchData.team1/team2)
-      const team1 = matchData.team1 || matchData.teams?.team1;
-      const team2 = matchData.team2 || matchData.teams?.team2;
-      const { winner, result } = matchData;
+      // Extract team information from our match data structure
+      const team1 = {
+        id: matchData.team1Id,
+        name: matchData.teams?.team1?.name || 'Unknown Team 1'
+      };
+      const team2 = {
+        id: matchData.team2Id,
+        name: matchData.teams?.team2?.name || 'Unknown Team 2'
+      };
+      const winner = matchData.result?.winner;
 
       // Update team1 statistics
-      if (team1 && team1.id) {
+      if (team1.id) {
         await this.updateSingleTeamStatistics(team1.id, winner, team1.name, matchData);
       }
 
       // Update team2 statistics
-      if (team2 && team2.id) {
+      if (team2.id) {
         await this.updateSingleTeamStatistics(team2.id, winner, team2.name, matchData);
       }
 
@@ -51,12 +57,13 @@ class TeamStatisticsManager {
    */
   static async updateSingleTeamStatistics(teamId, winner, teamName, matchData) {
     try {
-      const teamDoc = await collections.teams.doc(teamId).get();
-      if (!teamDoc.exists) {
-        console.warn(`Team ${teamId} not found for statistics update`);
+      // teamId is now numericId, need to find the document
+      const teamQuery = await collections.teams.where('numericId', '==', teamId).limit(1).get();
+      if (teamQuery.empty) {
+        console.warn(`Team with numericId ${teamId} not found for statistics update`);
         return;
       }
-
+      const teamDoc = teamQuery.docs[0];
       const teamData = teamDoc.data();
       const currentStats = teamData.statistics || {
         totalMatches: 0,
@@ -112,14 +119,18 @@ class TeamStatisticsManager {
       }
 
       // Add to recent matches (keep last 10)
+      const opponentName = teamName === matchData.teams?.team1?.name
+        ? matchData.teams?.team2?.name || 'Unknown Team'
+        : matchData.teams?.team1?.name || 'Unknown Team';
+
       const recentMatch = {
         matchId: matchData.id || matchData.numericId,
         date: matchData.scheduledDate || matchData.date,
-        opponent: teamName === matchData.team1?.name ? matchData.team2?.name : matchData.team1?.name,
+        opponent: opponentName,
         result: result,
-        winner: winner,
-        venue: matchData.venue,
-        status: matchData.status
+        winner: winner || 'Unknown',
+        venue: matchData.venue || 'Unknown Venue',
+        status: matchData.status || 'completed'
       };
 
       currentStats.recentMatches.unshift(recentMatch);
@@ -130,7 +141,7 @@ class TeamStatisticsManager {
       currentStats.form = currentStats.form.slice(0, 5);
 
       // Update the team document
-      await collections.teams.doc(teamId).update({
+      await teamDoc.ref.update({
         statistics: currentStats,
         updatedAt: new Date().toISOString()
       });
@@ -462,9 +473,186 @@ class TeamStatisticsManager {
       }
 
       console.log(`Recalculated statistics for ${matchesSnapshot.size} completed matches`);
+
+      // Now calculate best players across all matches for each team
+      console.log('Calculating best players across all matches...');
+      await this.calculateAllBestPlayers();
+
+      console.log('Full team statistics recalculation completed');
     } catch (error) {
       console.error('Error recalculating team statistics:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Calculate best players across all matches for all teams
+   * This aggregates statistics from all completed matches to find the best performers
+   */
+  static async calculateAllBestPlayers() {
+    try {
+      console.log('Calculating best players from all match data...');
+
+      // Get all teams
+      const teamsSnapshot = await collections.teams.get();
+      const teams = [];
+      teamsSnapshot.forEach(doc => {
+        teams.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Get all completed matches
+      const matchesSnapshot = await collections.matches.where('status', '==', 'completed').get();
+
+      // Aggregate player statistics across all matches
+      const teamPlayerStats = new Map(); // teamId -> { batting: Map, bowling: Map }
+
+      for (const matchDoc of matchesSnapshot.docs) {
+        const matchData = matchDoc.data();
+
+        // Get innings data for this match
+        const inningsSnapshot = await collections.matches.doc(matchDoc.id).collection('innings').get();
+
+        // Process each inning
+        for (const inningDoc of inningsSnapshot.docs) {
+          const inningData = inningDoc.data();
+
+          // Determine which team this inning belongs to
+          let teamId = null;
+          if (inningData.battingTeamId) {
+            teamId = inningData.battingTeamId;
+          } else {
+            // Try to determine from team names or other data
+            continue; // Skip if we can't determine the team
+          }
+
+          if (!teamPlayerStats.has(teamId)) {
+            teamPlayerStats.set(teamId, {
+              batting: new Map(), // playerId -> {totalRuns, totalBalls, innings, average}
+              bowling: new Map()  // playerId -> {totalWickets, totalRuns, totalOvers, economy}
+            });
+          }
+
+          const stats = teamPlayerStats.get(teamId);
+
+          // Process batsmen
+          if (inningData.batsmen && Array.isArray(inningData.batsmen)) {
+            for (const batsman of inningData.batsmen) {
+              if (!batsman.playerId) continue;
+
+              const battingStats = stats.batting.get(batsman.playerId) || {
+                totalRuns: 0,
+                totalBalls: 0,
+                innings: 0,
+                average: 0
+              };
+
+              battingStats.totalRuns += batsman.runs || 0;
+              battingStats.totalBalls += batsman.balls || 0;
+              battingStats.innings += 1;
+              battingStats.average = battingStats.innings > 0 ? battingStats.totalRuns / battingStats.innings : 0;
+
+              stats.batting.set(batsman.playerId, battingStats);
+            }
+          }
+
+          // Process bowlers
+          if (inningData.bowling && Array.isArray(inningData.bowling)) {
+            for (const bowler of inningData.bowling) {
+              if (!bowler.playerId) continue;
+
+              const bowlingStats = stats.bowling.get(bowler.playerId) || {
+                totalWickets: 0,
+                totalRuns: 0,
+                totalOvers: 0,
+                economy: 0
+              };
+
+              bowlingStats.totalWickets += bowler.wickets || 0;
+              bowlingStats.totalRuns += bowler.runs || 0;
+              bowlingStats.totalOvers += bowler.overs || 0;
+              bowlingStats.economy = bowlingStats.totalOvers > 0 ? bowlingStats.totalRuns / bowlingStats.totalOvers : 0;
+
+              stats.bowling.set(bowler.playerId, bowlingStats);
+            }
+          }
+        }
+      }
+
+      // Now update best players for each team
+      for (const team of teams) {
+        await this.updateTeamBestPlayersFromAggregatedData(team, teamPlayerStats.get(team.id));
+      }
+
+      console.log('Best players calculation completed for all teams');
+    } catch (error) {
+      console.error('Error calculating best players:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update best players for a team using aggregated statistics
+   * @param {Object} team - Team data
+   * @param {Object} playerStats - Aggregated player statistics for the team
+   */
+  static async updateTeamBestPlayersFromAggregatedData(team, playerStats) {
+    if (!playerStats) return;
+
+    try {
+      const currentBestPlayers = {
+        batsman: null,
+        bowler: null,
+        allRounder: null,
+        wicketKeeper: null
+      };
+
+      // Find best batsman
+      for (const [playerId, stats] of playerStats.batting) {
+        if (!currentBestPlayers.batsman || stats.average > currentBestPlayers.batsman.average) {
+          try {
+            const playerDoc = await collections.players.doc(playerId).get();
+            if (playerDoc.exists) {
+              currentBestPlayers.batsman = {
+                id: playerId,
+                name: playerDoc.data().name,
+                average: stats.average,
+                totalRuns: stats.totalRuns
+              };
+            }
+          } catch (error) {
+            console.warn(`Failed to get player ${playerId} for best batsman:`, error);
+          }
+        }
+      }
+
+      // Find best bowler
+      for (const [playerId, stats] of playerStats.bowling) {
+        if (!currentBestPlayers.bowler || stats.totalWickets > currentBestPlayers.bowler.wickets) {
+          try {
+            const playerDoc = await collections.players.doc(playerId).get();
+            if (playerDoc.exists) {
+              currentBestPlayers.bowler = {
+                id: playerId,
+                name: playerDoc.data().name,
+                wickets: stats.totalWickets,
+                economy: stats.economy
+              };
+            }
+          } catch (error) {
+            console.warn(`Failed to get player ${playerId} for best bowler:`, error);
+          }
+        }
+      }
+
+      // Update best players in team document
+      await collections.teams.doc(team.id).update({
+        bestPlayers: currentBestPlayers,
+        updatedAt: new Date().toISOString()
+      });
+
+      console.log(`Updated best players for team ${team.name}`);
+    } catch (error) {
+      console.error(`Error updating best players for team ${team.name}:`, error);
     }
   }
 }

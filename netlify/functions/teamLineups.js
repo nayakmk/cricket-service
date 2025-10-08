@@ -55,7 +55,7 @@ exports.handler = async (event, context) => {
       const lineups = [];
       for (const doc of snapshot.docs) {
         const lineupData = {
-          id: doc.id,
+          id: doc.data().numericId,
           numericId: doc.data().numericId,
           displayId: doc.data().numericId || doc.id,
           ...doc.data()
@@ -200,9 +200,9 @@ exports.handler = async (event, context) => {
 
       const lineupDoc = lineupQuery.docs[0];
       const lineupData = {
-        id: lineupDoc.id,
+        id: lineupDoc.data().numericId,
         numericId: lineupDoc.data().numericId,
-        displayId: lineupDoc.data().numericId || lineupDoc.id,
+        displayId: lineupDoc.data().numericId,
         ...lineupDoc.data()
       };
       

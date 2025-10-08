@@ -75,9 +75,9 @@ exports.handler = async (event, context) => {
       
       for (const doc of teamsSnapshot.docs) {
         const teamData = {
-          id: doc.id,
+          id: doc.data().numericId,
           numericId: doc.data().numericId,
-          displayId: doc.data().numericId || doc.id,
+          displayId: doc.data().numericId,
           ...doc.data()
         };
         
@@ -100,18 +100,22 @@ exports.handler = async (event, context) => {
           teamData.captain = null;
         }
 
-        // Fetch player details if playerIds exist
-        if (teamData.playerIds && teamData.playerIds.length > 0) {
+        // Use pre-populated players data if available, otherwise fetch individually
+        if (teamData.players && teamData.players.length > 0) {
+          // Use the pre-populated players data from our script
+          teamData.playersCount = teamData.players.length;
+        } else if (teamData.playerIds && teamData.playerIds.length > 0) {
           try {
-            const playerPromises = teamData.playerIds.map(playerId => 
-              collections.players.doc(playerId).get()
-            );
+            // Fallback: fetch players by numericId since playerIds contains numericIds
+            const playerPromises = teamData.playerIds.map(async (playerId) => {
+              const playerQuery = await collections.players.where('numericId', '==', parseInt(playerId, 10)).get();
+              return playerQuery.empty ? null : playerQuery.docs[0];
+            });
             const playerDocs = await Promise.all(playerPromises);
             
             teamData.players = playerDocs
-              .filter(doc => doc.exists)
+              .filter(doc => doc !== null)
               .map(doc => ({
-                id: doc.id,
                 numericId: doc.data().numericId,
                 name: doc.data().name,
                 role: doc.data().role,
@@ -203,7 +207,7 @@ exports.handler = async (event, context) => {
       }
 
       const teamData = {
-        id: teamDoc.id,
+        id: teamDoc.data().numericId,
         numericId: teamDoc.data().numericId,
         displayId: teamDoc.data().numericId || teamDoc.id,
         ...teamDoc.data()
@@ -228,18 +232,20 @@ exports.handler = async (event, context) => {
         teamData.captain = null;
       }
 
-      // Fetch player details if playerIds exist
-      if (teamData.playerIds && teamData.playerIds.length > 0) {
+      // Use pre-populated players data if available, otherwise fetch individually
+      if (teamData.players && teamData.players.length > 0) {
+        // Use the pre-populated players data from our script
+        teamData.playersCount = teamData.players.length;
+      } else if (teamData.playerIds && teamData.playerIds.length > 0) {
         try {
-          const playerPromises = teamData.playerIds.map(playerId => 
-            collections.players.doc(playerId).get()
+          const playerPromises = teamData.playerIds.map(playerId =>
+            findDocumentByNumericId(collections.players, playerId)
           );
           const playerDocs = await Promise.all(playerPromises);
-          
+
           teamData.players = playerDocs
-            .filter(doc => doc.exists)
+            .filter(doc => doc !== null)
             .map(doc => ({
-              id: doc.id,
               numericId: doc.data().numericId,
               name: doc.data().name,
               role: doc.data().role,
@@ -251,7 +257,7 @@ exports.handler = async (event, context) => {
               battingAverage: doc.data().battingAverage || 0,
               bowlingAverage: doc.data().bowlingAverage || 0
             }));
-          
+
           teamData.playersCount = teamData.players.length;
         } catch (error) {
           console.error(`Error fetching players for team ${teamDoc.id}:`, error);
@@ -263,102 +269,8 @@ exports.handler = async (event, context) => {
         teamData.playersCount = teamData.playersCount || 0;
       }
 
-      // Fetch match history for this team
-      try {
-        // Query all matches and filter in code (more reliable than nested queries)
-        const matchesSnapshot = await collections.matches
-          .orderBy('scheduledDate', 'desc')
-          .get();
-        
-        teamData.matchHistory = [];
-        for (const matchDoc of matchesSnapshot.docs) {
-          const matchData = matchDoc.data();
-          
-          // Check if this team is team1 or team2 (by document ID)
-          const isTeam1 = matchData.team1 === teamDoc.id || matchData.team1Id === teamDoc.id;
-          const isTeam2 = matchData.team2 === teamDoc.id || matchData.team2Id === teamDoc.id;
-          
-          if (isTeam1 || isTeam2) {
-            // Get opponent info
-            let opponent = null;
-            if (isTeam1 && matchData.team2Id) {
-              // team2Id contains the opponent document ID
-              try {
-                const opponentDoc = await collections.teams.doc(matchData.team2Id).get();
-                if (opponentDoc.exists) {
-                  const opponentData = opponentDoc.data();
-                  opponent = {
-                    id: opponentDoc.id,
-                    name: opponentData.name,
-                    shortName: opponentData.shortName,
-                    numericId: opponentData.numericId
-                  };
-                }
-              } catch (error) {
-                console.warn(`Failed to get opponent team ${matchData.team2Id}:`, error);
-              }
-            } else if (isTeam2 && matchData.team1Id) {
-              // team1Id contains the opponent document ID
-              try {
-                const opponentDoc = await collections.teams.doc(matchData.team1Id).get();
-                if (opponentDoc.exists) {
-                  const opponentData = opponentDoc.data();
-                  opponent = {
-                    id: opponentDoc.id,
-                    name: opponentData.name,
-                    shortName: opponentData.shortName,
-                    numericId: opponentData.numericId
-                  };
-                }
-              } catch (error) {
-                console.warn(`Failed to get opponent team ${matchData.team1Id}:`, error);
-              }
-            }
-            
-            teamData.matchHistory.push({
-              id: matchDoc.id,
-              numericId: matchData.numericId,
-              displayId: matchData.numericId || matchDoc.id,
-              title: matchData.title,
-              status: matchData.status,
-              scheduledDate: matchData.scheduledDate,
-              venue: matchData.venue,
-              opponent: opponent,
-              winner: matchData.winner,
-              result: matchData.result,
-              team1Score: matchData.team1Score,
-              team2Score: matchData.team2Score
-            });
-          }
-        }
-        
-        // Sort matches by date (most recent first) - already sorted by query
-        
-        // Calculate team statistics from match history
-        const completedMatches = teamData.matchHistory.filter(match => match.status === 'completed');
-        const wins = completedMatches.filter(match => 
-          match.result?.winner === teamData.name || 
-          match.result?.winner === teamData.captain?.name
-        ).length;
-        const losses = completedMatches.filter(match => 
-          match.result?.winner && 
-          match.result.winner !== teamData.name && 
-          match.result.winner !== teamData.captain?.name
-        ).length;
-        const draws = completedMatches.filter(match => !match.result?.winner).length;
-        
-        teamData.statistics = {
-          totalMatches: completedMatches.length,
-          wins: wins,
-          losses: losses,
-          draws: draws,
-          winPercentage: completedMatches.length > 0 ? (wins / completedMatches.length) * 100 : 0
-        };
-        
-      } catch (error) {
-        console.error(`Error fetching match history for team ${teamDoc.id}:`, error);
-        teamData.matchHistory = [];
-      }
+      // Use pre-computed match history from team document instead of querying matches collection
+      teamData.matchHistory = teamData.matchHistory || [];
 
       // Ensure statistics and bestPlayers are included (with defaults if not set)
       teamData.statistics = teamData.statistics || {
