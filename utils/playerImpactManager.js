@@ -216,7 +216,14 @@ class PlayerImpactManager {
       }
     }
 
-    return parseFloat((battingImpact + bowlingImpact + fieldingImpact).toFixed(2));
+    const totalImpact = battingImpact + bowlingImpact + fieldingImpact;
+
+    return {
+      batting: parseFloat(battingImpact.toFixed(2)),
+      bowling: parseFloat(bowlingImpact.toFixed(2)),
+      fielding: parseFloat(fieldingImpact.toFixed(2)),
+      total: parseFloat(totalImpact.toFixed(2))
+    };
   }
 }
 

@@ -1,0 +1,925 @@
+[
+  {
+    "id": "202510082308500000003",
+    "numericId": 2,
+    "name": "Team Soumyak",
+    "shortName": "TS",
+    "isActive": true,
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "matchesDrawn": 0
+    },
+    "createdAt": "2025-10-08T17:38:50.986Z",
+    "playersCount": 0,
+    "playerIds": [],
+    "last_updated": "2025-10-08T17:40:16.864Z",
+    "match_count": 5,
+    "matches": [
+      {
+        "match_id": 40,
+        "date": "2025-09-20T12:44:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 2,
+          "margin": "24 runs"
+        },
+        "winner": "Team Soumyak",
+        "winner_id": 2,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 38,
+        "date": "2025-09-20T10:56:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 2,
+          "margin": "2 wickets"
+        },
+        "winner": "Team Soumyak",
+        "winner_id": 2,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 14,
+        "date": "2025-08-02T11:12:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 4,
+          "margin": "2 wickets"
+        },
+        "winner": "Team Gaurav Tigers",
+        "winner_id": 4,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 4,
+        "date": "2025-07-12T13:04:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "winner": "Team Gaurav Tigers",
+        "winner_id": 4,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 2,
+        "date": "2025-07-12T11:14:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "winner": "Team Soumyak",
+        "winner_id": 2,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      }
+    ],
+    "bestPlayers": {
+      "batsman": null,
+      "bowler": null,
+      "allRounder": null,
+      "wicketKeeper": null
+    },
+    "statistics": {
+      "totalMatches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "winPercentage": 0,
+      "currentStreak": {
+        "type": "none",
+        "count": 0
+      },
+      "longestWinStreak": 0,
+      "longestLossStreak": 0,
+      "recentMatches": [],
+      "form": []
+    },
+    "matchHistory": [
+      {
+        "id": "202510082310000000041",
+        "numericId": 40,
+        "displayId": 40,
+        "title": "Team Soumyak vs Team Abhinas Boyyzz",
+        "status": "completed",
+        "scheduledDate": "2025-09-20T12:44:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": {
+          "name": "Team Abhinas Boyyzz",
+          "shortName": "TEA"
+        },
+        "winner": "Team Soumyak",
+        "result": {
+          "winner": 2,
+          "margin": "24 runs"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309560000039",
+        "numericId": 38,
+        "displayId": 38,
+        "title": "Team Abhinas Boyyzz vs Team Soumyak",
+        "status": "completed",
+        "scheduledDate": "2025-09-20T10:56:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": {
+          "name": "Team Abhinas Boyyzz",
+          "shortName": "TEA"
+        },
+        "winner": "Team Soumyak",
+        "result": {
+          "winner": 2,
+          "margin": "2 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309160000015",
+        "numericId": 14,
+        "displayId": 14,
+        "title": "Team Soumyak vs Team Gaurav Tigers",
+        "status": "completed",
+        "scheduledDate": "2025-08-02T11:12:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Gaurav Tigers",
+          "shortName": "TEA"
+        },
+        "winner": "Team Gaurav Tigers",
+        "result": {
+          "winner": 4,
+          "margin": "2 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309020000005",
+        "numericId": 4,
+        "displayId": 4,
+        "title": "Team Soumyak vs Team Gaurav Tigers",
+        "status": "completed",
+        "scheduledDate": "2025-07-12T13:04:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Gaurav Tigers",
+          "shortName": "TEA"
+        },
+        "winner": "Team Gaurav Tigers",
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082308510000003",
+        "numericId": 2,
+        "displayId": 2,
+        "title": "Team Soumyak vs Team Gaurav Tigers",
+        "status": "completed",
+        "scheduledDate": "2025-07-12T11:14:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Gaurav Tigers",
+          "shortName": "TEA"
+        },
+        "winner": "Team Soumyak",
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      }
+    ],
+    "updatedAt": "2025-10-08T17:40:40.501Z"
+  },
+  {
+    "id": "202510082308510000005",
+    "numericId": 4,
+    "name": "Team Gaurav Tigers",
+    "shortName": "TGT",
+    "isActive": true,
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "matchesDrawn": 0
+    },
+    "createdAt": "2025-10-08T17:38:51.396Z",
+    "playersCount": 0,
+    "playerIds": [],
+    "last_updated": "2025-10-08T17:40:16.908Z",
+    "match_count": 3,
+    "matches": [
+      {
+        "match_id": 14,
+        "date": "2025-08-02T11:12:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 4,
+          "margin": "2 wickets"
+        },
+        "winner": "Team Gaurav Tigers",
+        "winner_id": 4,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 4,
+        "date": "2025-07-12T13:04:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "winner": "Team Gaurav Tigers",
+        "winner_id": 4,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 2,
+        "date": "2025-07-12T11:14:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "winner": "Team Soumyak",
+        "winner_id": 2,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      }
+    ],
+    "bestPlayers": {
+      "batsman": null,
+      "bowler": null,
+      "allRounder": null,
+      "wicketKeeper": null
+    },
+    "statistics": {
+      "totalMatches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "winPercentage": 0,
+      "currentStreak": {
+        "type": "none",
+        "count": 0
+      },
+      "longestWinStreak": 0,
+      "longestLossStreak": 0,
+      "recentMatches": [],
+      "form": []
+    },
+    "matchHistory": [
+      {
+        "id": "202510082309160000015",
+        "numericId": 14,
+        "displayId": 14,
+        "title": "Team Soumyak vs Team Gaurav Tigers",
+        "status": "completed",
+        "scheduledDate": "2025-08-02T11:12:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Soumyak",
+          "shortName": "TEA"
+        },
+        "winner": "Team Gaurav Tigers",
+        "result": {
+          "winner": 4,
+          "margin": "2 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309020000005",
+        "numericId": 4,
+        "displayId": 4,
+        "title": "Team Soumyak vs Team Gaurav Tigers",
+        "status": "completed",
+        "scheduledDate": "2025-07-12T13:04:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Soumyak",
+          "shortName": "TEA"
+        },
+        "winner": "Team Gaurav Tigers",
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082308510000003",
+        "numericId": 2,
+        "displayId": 2,
+        "title": "Team Soumyak vs Team Gaurav Tigers",
+        "status": "completed",
+        "scheduledDate": "2025-07-12T11:14:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Soumyak",
+          "shortName": "TEA"
+        },
+        "winner": "Team Soumyak",
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      }
+    ],
+    "updatedAt": "2025-10-08T17:40:26.575Z"
+  },
+  {
+    "id": "202510082309050000007",
+    "numericId": 6,
+    "name": "Subhajit Sloggers",
+    "shortName": "SS",
+    "isActive": true,
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "matchesDrawn": 0
+    },
+    "createdAt": "2025-10-08T17:39:05.270Z",
+    "playersCount": 0,
+    "playerIds": [],
+    "last_updated": "2025-10-08T17:40:16.949Z",
+    "match_count": 2,
+    "matches": [
+      {
+        "match_id": 10,
+        "date": "2025-07-27T03:27:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "winner": "Subhajit Sloggers",
+        "winner_id": 6,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 6,
+        "date": "2025-07-19T11:17:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": null,
+          "margin": "Abandoned"
+        },
+        "winner": "Unknown",
+        "winner_id": null,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      }
+    ],
+    "bestPlayers": {
+      "batsman": null,
+      "bowler": null,
+      "allRounder": null,
+      "wicketKeeper": null
+    },
+    "statistics": {
+      "totalMatches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "winPercentage": 0,
+      "currentStreak": {
+        "type": "none",
+        "count": 0
+      },
+      "longestWinStreak": 0,
+      "longestLossStreak": 0,
+      "recentMatches": [],
+      "form": []
+    },
+    "matchHistory": [
+      {
+        "id": "202510082309120000011",
+        "numericId": 10,
+        "displayId": 10,
+        "title": "Team Pawan vs Subhajit Sloggers",
+        "status": "completed",
+        "scheduledDate": "2025-07-27T03:27:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Pawan",
+          "shortName": "TEA"
+        },
+        "winner": "Subhajit Sloggers",
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309050000007",
+        "numericId": 6,
+        "displayId": 6,
+        "title": "Subhajit Sloggers vs Rupraj Riders",
+        "status": "completed",
+        "scheduledDate": "2025-07-19T11:17:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Rupraj Riders",
+          "shortName": "RUP"
+        },
+        "winner": null,
+        "result": {
+          "winner": null,
+          "margin": "Abandoned"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      }
+    ],
+    "updatedAt": "2025-10-08T17:40:23.945Z"
+  },
+  {
+    "id": "202510082309050000009",
+    "numericId": 8,
+    "name": "Rupraj Riders",
+    "shortName": "RR",
+    "isActive": true,
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "matchesDrawn": 0
+    },
+    "createdAt": "2025-10-08T17:39:05.680Z",
+    "playersCount": 0,
+    "playerIds": [],
+    "last_updated": "2025-10-08T17:40:17.000Z",
+    "match_count": 4,
+    "matches": [
+      {
+        "match_id": 24,
+        "date": "2025-08-23T13:10:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 18,
+          "margin": "39 runs"
+        },
+        "winner": "Malaya Rangbati",
+        "winner_id": 18,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 12,
+        "date": "2025-07-27T04:13:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 10,
+          "margin": "2 wickets"
+        },
+        "winner": "Team Pawan",
+        "winner_id": 10,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 8,
+        "date": "2025-07-27T02:33:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "winner": "Team Pawan",
+        "winner_id": 10,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 6,
+        "date": "2025-07-19T11:17:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": null,
+          "margin": "Abandoned"
+        },
+        "winner": "Unknown",
+        "winner_id": null,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      }
+    ],
+    "bestPlayers": {
+      "batsman": null,
+      "bowler": null,
+      "allRounder": null,
+      "wicketKeeper": null
+    },
+    "statistics": {
+      "totalMatches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "winPercentage": 0,
+      "currentStreak": {
+        "type": "none",
+        "count": 0
+      },
+      "longestWinStreak": 0,
+      "longestLossStreak": 0,
+      "recentMatches": [],
+      "form": []
+    },
+    "matchHistory": [
+      {
+        "id": "202510082309330000025",
+        "numericId": 24,
+        "displayId": 24,
+        "title": "Malaya Rangbati vs Rupraj Riders",
+        "status": "completed",
+        "scheduledDate": "2025-08-23T13:10:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": {
+          "name": "Malaya Rangbati",
+          "shortName": "MAL"
+        },
+        "winner": "Malaya Rangbati",
+        "result": {
+          "winner": 18,
+          "margin": "39 runs"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309140000013",
+        "numericId": 12,
+        "displayId": 12,
+        "title": "Rupraj Riders vs Team Pawan",
+        "status": "completed",
+        "scheduledDate": "2025-07-27T04:13:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Pawan",
+          "shortName": "TEA"
+        },
+        "winner": "Team Pawan",
+        "result": {
+          "winner": 10,
+          "margin": "2 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309100000009",
+        "numericId": 8,
+        "displayId": 8,
+        "title": "Rupraj Riders vs Team Pawan",
+        "status": "completed",
+        "scheduledDate": "2025-07-27T02:33:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Team Pawan",
+          "shortName": "TEA"
+        },
+        "winner": "Team Pawan",
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309050000007",
+        "numericId": 6,
+        "displayId": 6,
+        "title": "Subhajit Sloggers vs Rupraj Riders",
+        "status": "completed",
+        "scheduledDate": "2025-07-19T11:17:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Subhajit Sloggers",
+          "shortName": "SUB"
+        },
+        "winner": null,
+        "result": {
+          "winner": null,
+          "margin": "Abandoned"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      }
+    ],
+    "updatedAt": "2025-10-08T17:40:31.931Z"
+  },
+  {
+    "id": "202510082309090000011",
+    "numericId": 10,
+    "name": "Team Pawan",
+    "shortName": "TP",
+    "isActive": true,
+    "stats": {
+      "matchesPlayed": 0,
+      "matchesWon": 0,
+      "matchesLost": 0,
+      "matchesDrawn": 0
+    },
+    "createdAt": "2025-10-08T17:39:10.024Z",
+    "playersCount": 0,
+    "playerIds": [],
+    "last_updated": "2025-10-08T17:40:17.049Z",
+    "match_count": 5,
+    "matches": [
+      {
+        "match_id": 22,
+        "date": "2025-08-15T12:01:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 10,
+          "margin": "55 runs"
+        },
+        "winner": "Team Pawan",
+        "winner_id": 10,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 20,
+        "date": "2025-08-15T10:43:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 10,
+          "margin": "1 wicket"
+        },
+        "winner": "Team Pawan",
+        "winner_id": 10,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 12,
+        "date": "2025-07-27T04:13:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 10,
+          "margin": "2 wickets"
+        },
+        "winner": "Team Pawan",
+        "winner_id": 10,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 10,
+        "date": "2025-07-27T03:27:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "winner": "Subhajit Sloggers",
+        "winner_id": 6,
+        "is_winner": false,
+        "is_draw": false,
+        "is_abandoned": false
+      },
+      {
+        "match_id": 8,
+        "date": "2025-07-27T02:33:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": "Unknown Team",
+        "team_score": 0,
+        "opponent_score": 0,
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "winner": "Team Pawan",
+        "winner_id": 10,
+        "is_winner": true,
+        "is_draw": false,
+        "is_abandoned": false
+      }
+    ],
+    "bestPlayers": {
+      "batsman": null,
+      "bowler": null,
+      "allRounder": null,
+      "wicketKeeper": null
+    },
+    "statistics": {
+      "totalMatches": 0,
+      "wins": 0,
+      "losses": 0,
+      "draws": 0,
+      "winPercentage": 0,
+      "currentStreak": {
+        "type": "none",
+        "count": 0
+      },
+      "longestWinStreak": 0,
+      "longestLossStreak": 0,
+      "recentMatches": [],
+      "form": []
+    },
+    "matchHistory": [
+      {
+        "id": "202510082309290000023",
+        "numericId": 22,
+        "displayId": 22,
+        "title": "Team Pawan vs Team Puneet",
+        "status": "completed",
+        "scheduledDate": "2025-08-15T12:01:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": {
+          "name": "Team Puneet",
+          "shortName": "TEA"
+        },
+        "winner": "Team Pawan",
+        "result": {
+          "winner": 10,
+          "margin": "55 runs"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309260000021",
+        "numericId": 20,
+        "displayId": 20,
+        "title": "Team Puneet vs Team Pawan",
+        "status": "completed",
+        "scheduledDate": "2025-08-15T10:43:00.000Z",
+        "venue": "Olympia IVY sports academy",
+        "opponent": {
+          "name": "Team Puneet",
+          "shortName": "TEA"
+        },
+        "winner": "Team Pawan",
+        "result": {
+          "winner": 10,
+          "margin": "1 wicket"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309140000013",
+        "numericId": 12,
+        "displayId": 12,
+        "title": "Rupraj Riders vs Team Pawan",
+        "status": "completed",
+        "scheduledDate": "2025-07-27T04:13:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Rupraj Riders",
+          "shortName": "RUP"
+        },
+        "winner": "Team Pawan",
+        "result": {
+          "winner": 10,
+          "margin": "2 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309120000011",
+        "numericId": 10,
+        "displayId": 10,
+        "title": "Team Pawan vs Subhajit Sloggers",
+        "status": "completed",
+        "scheduledDate": "2025-07-27T03:27:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Subhajit Sloggers",
+          "shortName": "SUB"
+        },
+        "winner": "Subhajit Sloggers",
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      },
+      {
+        "id": "202510082309100000009",
+        "numericId": 8,
+        "displayId": 8,
+        "title": "Rupraj Riders vs Team Pawan",
+        "status": "completed",
+        "scheduledDate": "2025-07-27T02:33:00.000Z",
+        "venue": "MM Sports Park- Box Cricket",
+        "opponent": {
+          "name": "Rupraj Riders",
+          "shortName": "RUP"
+        },
+        "winner": "Team Pawan",
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "team1Score": 0,
+        "team2Score": 0
+      }
+    ],
+    "updatedAt": "2025-10-08T17:40:30.700Z"
+  }
+]

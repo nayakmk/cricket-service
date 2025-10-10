@@ -1,0 +1,2480 @@
+[
+  {
+    "id": "202510082308520000003",
+    "numericId": 2,
+    "name": "EON Shashank",
+    "email": "eon.shashank@cricketclub.com",
+    "isActive": true,
+    "role": "all-rounder",
+    "battingStyle": "RHB",
+    "bowlingStyle": null,
+    "isCaptain": false,
+    "isWicketKeeper": false,
+    "nationality": null,
+    "avatar": null,
+    "createdAt": "2025-10-08T17:38:52.464Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "runs": 0,
+      "wickets": 0,
+      "highestScore": 0,
+      "battingAverage": 0,
+      "bowlingAverage": 0,
+      "strikeRate": 0,
+      "economyRate": 0
+    },
+    "bowlingAverage": 0,
+    "totalWickets": 0,
+    "milestones": {
+      "batting": [],
+      "bowling": [],
+      "fielding": []
+    },
+    "matchHistory": [
+      {
+        "matchId": 2,
+        "matchDate": "2025-07-12T11:14:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 0,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Gaurav Mittal / Kartic Sharma",
+            "strikeRate": "0.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 10,
+            "wickets": 0,
+            "economy": "5.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 4,
+        "matchDate": "2025-07-12T13:04:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 4,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "c Kumar Gaurav b Gaurav Mittal",
+            "strikeRate": "57.14"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 8,
+            "wickets": 0,
+            "economy": "8.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 8,
+        "matchDate": "2025-07-27T02:33:00.000Z",
+        "team1": 8,
+        "team2": 10,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 3,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "42.86"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 6,
+            "wickets": 0,
+            "economy": "6.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 10,
+        "matchDate": "2025-07-27T03:27:00.000Z",
+        "team1": 10,
+        "team2": 6,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 6,
+            "wickets": 0,
+            "economy": "6.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 4,
+            "balls": 5,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "80.00"
+          }
+        ]
+      },
+      {
+        "matchId": 24,
+        "matchDate": "2025-08-23T13:10:00.000Z",
+        "team1": 18,
+        "team2": 8,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 18,
+          "margin": "39 runs"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 9,
+            "wickets": 0,
+            "economy": "9.00"
+          }
+        ]
+      }
+    ],
+    "runsConceded": 39,
+    "fieldingStats": {
+      "catches": 4,
+      "runOuts": 0,
+      "stumpings": 0
+    },
+    "statsLastUpdated": "2025-10-08T17:40:12.407Z",
+    "inningsBowled": 1,
+    "totalBalls": 21,
+    "notOuts": 2,
+    "inningsBatted": 5,
+    "oversBowled": 6,
+    "bowlingEconomy": 6.5,
+    "ballsBowled": 36,
+    "summaryStats": {
+      "totalMatches": 5,
+      "totalRuns": 11,
+      "totalWickets": 0,
+      "totalCatches": 4,
+      "totalInnings": 5,
+      "totalBattingInnings": 5,
+      "totalBowlingInnings": 1
+    },
+    "matchesPlayed": 5,
+    "battingStrikeRate": 52.38,
+    "careerBests": {
+      "batting": {
+        "score": 4,
+        "balls": 0,
+        "fours": 0,
+        "sixes": 0,
+        "matchId": null,
+        "date": null
+      },
+      "bowling": {
+        "wickets": 0,
+        "runs": 39,
+        "overs": 6,
+        "matchId": null,
+        "date": null
+      }
+    },
+    "battingStats": {
+      "totalRuns": 11,
+      "totalBalls": 21,
+      "totalFours": 0,
+      "totalSixes": 0,
+      "highestScore": 4,
+      "notOuts": 2,
+      "ducks": 0,
+      "fifties": 0,
+      "centuries": 0,
+      "average": 3.67,
+      "strikeRate": 52.38,
+      "totalInnings": 5
+    },
+    "totalRuns": 11,
+    "bowlingStats": {
+      "totalOvers": 6,
+      "totalMaidens": 0,
+      "totalRuns": 39,
+      "totalWickets": 0,
+      "bestFigures": {
+        "wickets": 0,
+        "runs": 39
+      },
+      "hatTricks": 0,
+      "fiveWicketHauls": 0,
+      "tenWicketHauls": 0,
+      "average": 0,
+      "economy": 6.5,
+      "strikeRate": "0.00",
+      "totalInnings": 1
+    },
+    "updatedAt": "2025-10-08T17:40:12.407Z",
+    "totalCatches": 4,
+    "totalOvers": 6,
+    "battingAverage": 5.5,
+    "totalSixes": 0,
+    "totalRunOuts": 0,
+    "totalStumpings": 0,
+    "totalFours": 0
+  },
+  {
+    "id": "202510082308530000005",
+    "numericId": 4,
+    "name": "SUBHAJIT SARKAR",
+    "email": "subhajit.sarkar@cricketclub.com",
+    "isActive": true,
+    "role": "all-rounder",
+    "battingStyle": "LHB",
+    "bowlingStyle": null,
+    "isCaptain": false,
+    "isWicketKeeper": false,
+    "nationality": null,
+    "avatar": null,
+    "createdAt": "2025-10-08T17:38:53.215Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "runs": 0,
+      "wickets": 0,
+      "highestScore": 0,
+      "battingAverage": 0,
+      "bowlingAverage": 0,
+      "strikeRate": 0,
+      "economyRate": 0
+    },
+    "milestones": {
+      "batting": [],
+      "bowling": [],
+      "fielding": []
+    },
+    "matchHistory": [
+      {
+        "matchId": 2,
+        "matchDate": "2025-07-12T11:14:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 2,
+            "balls": 6,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Gaurav Mittal / † Anil Bommaraju",
+            "strikeRate": "33.33"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 9,
+            "wickets": 1,
+            "economy": "4.50"
+          }
+        ]
+      },
+      {
+        "matchId": 4,
+        "matchDate": "2025-07-12T13:04:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 5,
+            "balls": 10,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "retired hurt",
+            "strikeRate": "50.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 4,
+            "wickets": 0,
+            "economy": "4.00"
+          }
+        ]
+      },
+      {
+        "matchId": 6,
+        "matchDate": "2025-07-19T11:17:00.000Z",
+        "team1": 6,
+        "team2": 8,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": null,
+          "margin": "Abandoned"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 19,
+            "balls": 17,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "111.76"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 5,
+            "wickets": 0,
+            "economy": "5.00"
+          }
+        ]
+      },
+      {
+        "matchId": 8,
+        "matchDate": "2025-07-27T02:33:00.000Z",
+        "team1": 8,
+        "team2": 10,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 7,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out † Amit Jain",
+            "strikeRate": "100.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 9,
+            "wickets": 0,
+            "economy": "4.50"
+          }
+        ]
+      },
+      {
+        "matchId": 10,
+        "matchDate": "2025-07-27T03:27:00.000Z",
+        "team1": 10,
+        "team2": 6,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 6,
+            "wickets": 0,
+            "economy": "3.00"
+          }
+        ]
+      },
+      {
+        "matchId": 12,
+        "matchDate": "2025-07-27T04:13:00.000Z",
+        "team1": 8,
+        "team2": 10,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 10,
+          "margin": "2 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 6,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Sonal Kumar",
+            "strikeRate": "85.71"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 7,
+            "wickets": 0,
+            "economy": "7.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 20,
+        "matchDate": "2025-08-15T10:43:00.000Z",
+        "team1": 16,
+        "team2": 10,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 10,
+          "margin": "1 wicket"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 7,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Malaya Nayak / Sundar Raman",
+            "strikeRate": "100.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 8,
+            "wickets": 0,
+            "economy": "8.00"
+          }
+        ]
+      },
+      {
+        "matchId": 22,
+        "matchDate": "2025-08-15T12:01:00.000Z",
+        "team1": 10,
+        "team2": 16,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 10,
+          "margin": "55 runs"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 4,
+            "wickets": 1,
+            "economy": "2.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 1,
+            "balls": 1,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Purnendu K Patra",
+            "strikeRate": "100.00"
+          }
+        ]
+      },
+      {
+        "matchId": 24,
+        "matchDate": "2025-08-23T13:10:00.000Z",
+        "team1": 18,
+        "team2": 8,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 18,
+          "margin": "39 runs"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 10,
+            "wickets": 2,
+            "economy": "5.00"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 5,
+            "balls": 10,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "b Kartic Sharma",
+            "strikeRate": "50.00"
+          }
+        ]
+      },
+      {
+        "matchId": 26,
+        "matchDate": "2025-08-31T02:14:00.000Z",
+        "team1": 20,
+        "team2": 22,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": null,
+          "margin": "Tied"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 3,
+            "balls": 5,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "st †Sonal Kumar b Sundar Raman",
+            "strikeRate": "60.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 5,
+            "wickets": 1,
+            "economy": "2.50"
+          }
+        ]
+      },
+      {
+        "matchId": 28,
+        "matchDate": "2025-08-31T03:38:00.000Z",
+        "team1": 22,
+        "team2": 20,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 22,
+          "margin": "2 runs"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 9,
+            "wickets": 0,
+            "economy": "4.50"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 21,
+            "balls": 24,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "c †Sundar Raman b Sonal Kumar",
+            "strikeRate": "87.50"
+          }
+        ]
+      },
+      {
+        "matchId": 30,
+        "matchDate": "2025-09-06T11:16:00.000Z",
+        "team1": 24,
+        "team2": 26,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 26,
+          "margin": "3 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 10,
+            "wickets": 0,
+            "economy": "5.00"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 2,
+            "balls": 8,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "retired hurt",
+            "strikeRate": "25.00"
+          }
+        ]
+      },
+      {
+        "matchId": 32,
+        "matchDate": "2025-09-06T13:00:00.000Z",
+        "team1": 26,
+        "team2": 24,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 24,
+          "margin": "3 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 3,
+            "balls": 4,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "b Puneet Pandey",
+            "strikeRate": "75.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 7,
+            "wickets": 1,
+            "economy": "7.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "run out",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 38,
+        "matchDate": "2025-09-20T10:56:00.000Z",
+        "team1": 30,
+        "team2": 2,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 2,
+          "margin": "2 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 10,
+            "wickets": 0,
+            "economy": "5.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 5,
+            "balls": 5,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Rupraj M / Sundar Raman",
+            "strikeRate": "100.00"
+          }
+        ]
+      },
+      {
+        "matchId": 40,
+        "matchDate": "2025-09-20T12:44:00.000Z",
+        "team1": 2,
+        "team2": 30,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 2,
+          "margin": "24 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 10,
+            "balls": 13,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "retired hurt",
+            "strikeRate": "76.92"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 14,
+            "wickets": 1,
+            "economy": "7.00"
+          }
+        ]
+      },
+      {
+        "matchId": 42,
+        "matchDate": "2025-10-04T10:56:00.000Z",
+        "team1": 32,
+        "team2": 34,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 34,
+          "margin": "1 wicket"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "3",
+            "maidens": 0,
+            "runs": 7,
+            "wickets": 2,
+            "economy": "2.33"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 1,
+            "balls": 4,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "b Ashutosh kumar",
+            "strikeRate": "25.00"
+          }
+        ]
+      },
+      {
+        "matchId": 44,
+        "matchDate": "2025-10-04T12:43:00.000Z",
+        "team1": 34,
+        "team2": 32,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 34,
+          "margin": "8 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 47,
+            "balls": 31,
+            "fours": 3,
+            "sixes": 2,
+            "dismissal": "run out Abinash Subudhi",
+            "strikeRate": "151.61"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 18,
+            "wickets": 0,
+            "economy": "9.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      }
+    ],
+    "runsConceded": 142,
+    "fieldingStats": {
+      "catches": 4,
+      "runOuts": 5,
+      "stumpings": 0
+    },
+    "statsLastUpdated": "2025-10-08T17:40:12.456Z",
+    "inningsBowled": 5,
+    "totalBalls": 159,
+    "bowlingAverage": 15.78,
+    "notOuts": 1,
+    "inningsBatted": 17,
+    "oversBowled": 30,
+    "bowlingEconomy": 4.73,
+    "totalWickets": 9,
+    "ballsBowled": 180,
+    "summaryStats": {
+      "totalMatches": 17,
+      "totalRuns": 144,
+      "totalWickets": 9,
+      "totalCatches": 4,
+      "totalInnings": 17,
+      "totalBattingInnings": 17,
+      "totalBowlingInnings": 5
+    },
+    "matchesPlayed": 17,
+    "battingStrikeRate": 90.57,
+    "careerBests": {
+      "batting": {
+        "score": 47,
+        "balls": 0,
+        "fours": 0,
+        "sixes": 0,
+        "matchId": null,
+        "date": null
+      },
+      "bowling": {
+        "wickets": 9,
+        "runs": 142,
+        "overs": 30,
+        "matchId": null,
+        "date": null
+      }
+    },
+    "battingStats": {
+      "totalRuns": 144,
+      "totalBalls": 159,
+      "totalFours": 4,
+      "totalSixes": 2,
+      "highestScore": 47,
+      "notOuts": 1,
+      "ducks": 0,
+      "fifties": 1,
+      "centuries": 1,
+      "average": 9,
+      "strikeRate": 90.57,
+      "totalInnings": 17
+    },
+    "totalRuns": 144,
+    "bowlingStats": {
+      "totalOvers": 30,
+      "totalMaidens": 0,
+      "totalRuns": 142,
+      "totalWickets": 9,
+      "bestFigures": {
+        "wickets": 9,
+        "runs": 142
+      },
+      "hatTricks": 0,
+      "fiveWicketHauls": 1,
+      "tenWicketHauls": 0,
+      "average": 15.78,
+      "economy": 4.73,
+      "strikeRate": "20.00",
+      "totalInnings": 5
+    },
+    "updatedAt": "2025-10-08T17:40:12.456Z",
+    "totalCatches": 4,
+    "totalOvers": 30,
+    "battingAverage": 9.6,
+    "totalSixes": 2,
+    "totalRunOuts": 5,
+    "totalStumpings": 0,
+    "totalFours": 4
+  },
+  {
+    "id": "202510082308530000007",
+    "numericId": 6,
+    "name": "Malaya Nayak",
+    "email": "malaya.nayak@cricketclub.com",
+    "isActive": true,
+    "role": "all-rounder",
+    "battingStyle": "RHB",
+    "bowlingStyle": null,
+    "isCaptain": false,
+    "isWicketKeeper": true,
+    "nationality": null,
+    "avatar": null,
+    "createdAt": "2025-10-08T17:38:53.701Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "runs": 0,
+      "wickets": 0,
+      "highestScore": 0,
+      "battingAverage": 0,
+      "bowlingAverage": 0,
+      "strikeRate": 0,
+      "economyRate": 0
+    },
+    "milestones": {
+      "batting": [],
+      "bowling": [],
+      "fielding": []
+    },
+    "matchHistory": [
+      {
+        "matchId": 2,
+        "matchDate": "2025-07-12T11:14:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 20,
+            "balls": 30,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "run out Kartic Sharma",
+            "strikeRate": "66.67"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 4,
+            "wickets": 0,
+            "economy": "4.00"
+          }
+        ]
+      },
+      {
+        "matchId": 4,
+        "matchDate": "2025-07-12T13:04:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 14,
+            "balls": 24,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "58.33"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 3,
+            "wickets": 0,
+            "economy": "3.00"
+          }
+        ]
+      },
+      {
+        "matchId": 8,
+        "matchDate": "2025-07-27T02:33:00.000Z",
+        "team1": 8,
+        "team2": 10,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 4,
+            "balls": 9,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "b Pawan S",
+            "strikeRate": "44.44"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 7,
+            "wickets": 1,
+            "economy": "7.00"
+          }
+        ]
+      },
+      {
+        "matchId": 10,
+        "matchDate": "2025-07-27T03:27:00.000Z",
+        "team1": 10,
+        "team2": 6,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 0,
+            "balls": 5,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "c †Sundar Raman b Purnendu K Patra",
+            "strikeRate": "0.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 13,
+            "wickets": 0,
+            "economy": "13.00"
+          }
+        ]
+      },
+      {
+        "matchId": 12,
+        "matchDate": "2025-07-27T04:13:00.000Z",
+        "team1": 8,
+        "team2": 10,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 10,
+          "margin": "2 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 9,
+            "wickets": 0,
+            "economy": "9.00"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 2,
+            "balls": 3,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "c Rupraj M b Soumyak P",
+            "strikeRate": "66.67"
+          }
+        ]
+      },
+      {
+        "matchId": 14,
+        "matchDate": "2025-08-02T11:12:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 4,
+          "margin": "2 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 10,
+            "wickets": 0,
+            "economy": "10.00"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 5,
+            "balls": 6,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Soumyak P / Rupraj M",
+            "strikeRate": "83.33"
+          }
+        ]
+      },
+      {
+        "matchId": 16,
+        "matchDate": "2025-08-09T11:04:00.000Z",
+        "team1": 12,
+        "team2": 14,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 14,
+          "margin": "5 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 9,
+            "wickets": 0,
+            "economy": "9.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 17,
+            "balls": 18,
+            "fours": 0,
+            "sixes": 1,
+            "dismissal": "retired hurt",
+            "strikeRate": "94.44"
+          }
+        ]
+      },
+      {
+        "matchId": 18,
+        "matchDate": "2025-08-09T12:16:00.000Z",
+        "team1": 14,
+        "team2": 12,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 14,
+          "margin": "14 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 8,
+            "balls": 8,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "run out Ashutosh Sahoo",
+            "strikeRate": "100.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 3,
+            "wickets": 0,
+            "economy": "3.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 20,
+        "matchDate": "2025-08-15T10:43:00.000Z",
+        "team1": 16,
+        "team2": 10,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 10,
+          "margin": "1 wicket"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 1,
+            "wickets": 1,
+            "economy": "1.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 20,
+            "balls": 19,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "105.26"
+          }
+        ]
+      },
+      {
+        "matchId": 22,
+        "matchDate": "2025-08-15T12:01:00.000Z",
+        "team1": 10,
+        "team2": 16,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 10,
+          "margin": "55 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 1,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "c Puneet Pandey b SUBHAJIT SARKAR",
+            "strikeRate": "50.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 1,
+            "wickets": 2,
+            "economy": "1.00"
+          }
+        ]
+      },
+      {
+        "matchId": 24,
+        "matchDate": "2025-08-23T13:10:00.000Z",
+        "team1": 18,
+        "team2": 8,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 18,
+          "margin": "39 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 12,
+            "balls": 8,
+            "fours": 0,
+            "sixes": 1,
+            "dismissal": "b Anil Bommaraju",
+            "strikeRate": "150.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 13,
+            "wickets": 0,
+            "economy": "6.50"
+          }
+        ]
+      },
+      {
+        "matchId": 26,
+        "matchDate": "2025-08-31T02:14:00.000Z",
+        "team1": 20,
+        "team2": 22,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": null,
+          "margin": "Tied"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 12,
+            "wickets": 0,
+            "economy": "12.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 14,
+            "balls": 18,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "77.78"
+          }
+        ]
+      },
+      {
+        "matchId": 28,
+        "matchDate": "2025-08-31T03:38:00.000Z",
+        "team1": 22,
+        "team2": 20,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 22,
+          "margin": "2 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 13,
+            "balls": 21,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "61.90"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 4,
+            "wickets": 2,
+            "economy": "4.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 30,
+        "matchDate": "2025-09-06T11:16:00.000Z",
+        "team1": 24,
+        "team2": 26,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 26,
+          "margin": "3 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 10,
+            "wickets": 0,
+            "economy": "10.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 5,
+            "balls": 5,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "c Kumar Gaurav b Ecolife Arka",
+            "strikeRate": "100.00"
+          }
+        ]
+      },
+      {
+        "matchId": 32,
+        "matchDate": "2025-09-06T13:00:00.000Z",
+        "team1": 26,
+        "team2": 24,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 24,
+          "margin": "3 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 23,
+            "balls": 26,
+            "fours": 1,
+            "sixes": 1,
+            "dismissal": "run out Kumar Gaurav",
+            "strikeRate": "88.46"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 2,
+            "wickets": 0,
+            "economy": "2.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 42,
+        "matchDate": "2025-10-04T10:56:00.000Z",
+        "team1": 32,
+        "team2": 34,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 34,
+          "margin": "1 wicket"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 6,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "c Rupraj M b SUBHAJIT SARKAR",
+            "strikeRate": "85.71"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "0.1",
+            "maidens": 0,
+            "runs": 4,
+            "wickets": 0,
+            "economy": "40.00"
+          }
+        ]
+      },
+      {
+        "matchId": 44,
+        "matchDate": "2025-10-04T12:43:00.000Z",
+        "team1": 34,
+        "team2": 32,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 34,
+          "margin": "8 runs"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 16,
+            "wickets": 0,
+            "economy": "16.00"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 34,
+            "balls": 27,
+            "fours": 2,
+            "sixes": 1,
+            "dismissal": "run out Kartic Sharma",
+            "strikeRate": "125.93"
+          }
+        ]
+      }
+    ],
+    "runsConceded": 121,
+    "fieldingStats": {
+      "catches": 5,
+      "runOuts": 3,
+      "stumpings": 0
+    },
+    "statsLastUpdated": "2025-10-08T17:40:12.512Z",
+    "inningsBowled": 3,
+    "totalBalls": 236,
+    "bowlingAverage": 20.17,
+    "notOuts": 4,
+    "inningsBatted": 17,
+    "oversBowled": 17.1,
+    "bowlingEconomy": 7.08,
+    "totalWickets": 6,
+    "ballsBowled": 103,
+    "summaryStats": {
+      "totalMatches": 17,
+      "totalRuns": 198,
+      "totalWickets": 6,
+      "totalCatches": 5,
+      "totalInnings": 17,
+      "totalBattingInnings": 17,
+      "totalBowlingInnings": 3
+    },
+    "matchesPlayed": 17,
+    "battingStrikeRate": 83.9,
+    "careerBests": {
+      "batting": {
+        "score": 34,
+        "balls": 0,
+        "fours": 0,
+        "sixes": 0,
+        "matchId": null,
+        "date": null
+      },
+      "bowling": {
+        "wickets": 6,
+        "runs": 121,
+        "overs": 17.1,
+        "matchId": null,
+        "date": null
+      }
+    },
+    "battingAverage": 15.23,
+    "battingStats": {
+      "totalRuns": 198,
+      "totalBalls": 236,
+      "totalFours": 7,
+      "totalSixes": 4,
+      "highestScore": 34,
+      "notOuts": 4,
+      "ducks": 0,
+      "fifties": 1,
+      "centuries": 1,
+      "average": 15.23,
+      "strikeRate": 83.9,
+      "totalInnings": 17
+    },
+    "totalRuns": 198,
+    "bowlingStats": {
+      "totalOvers": 17.1,
+      "totalMaidens": 0,
+      "totalRuns": 121,
+      "totalWickets": 6,
+      "bestFigures": {
+        "wickets": 6,
+        "runs": 121
+      },
+      "hatTricks": 0,
+      "fiveWicketHauls": 1,
+      "tenWicketHauls": 0,
+      "average": 20.17,
+      "economy": 7.08,
+      "strikeRate": "17.10",
+      "totalInnings": 3
+    },
+    "updatedAt": "2025-10-08T17:40:12.512Z",
+    "totalCatches": 5,
+    "totalOvers": 17.1,
+    "totalSixes": 4,
+    "totalRunOuts": 3,
+    "totalStumpings": 0,
+    "totalFours": 7
+  },
+  {
+    "id": "202510082308540000009",
+    "numericId": 8,
+    "name": "Purnendu K Patra",
+    "email": "purnendu.k.patra@cricketclub.com",
+    "isActive": true,
+    "role": "all-rounder",
+    "battingStyle": "RHB",
+    "bowlingStyle": null,
+    "isCaptain": false,
+    "isWicketKeeper": false,
+    "nationality": null,
+    "avatar": null,
+    "createdAt": "2025-10-08T17:38:54.145Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "runs": 0,
+      "wickets": 0,
+      "highestScore": 0,
+      "battingAverage": 0,
+      "bowlingAverage": 0,
+      "strikeRate": 0,
+      "economyRate": 0
+    },
+    "milestones": {
+      "batting": [],
+      "bowling": [],
+      "fielding": []
+    },
+    "matchHistory": [
+      {
+        "matchId": 2,
+        "matchDate": "2025-07-12T11:14:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 15,
+            "balls": 13,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "st †Anil Bommaraju b Ecolife Arka",
+            "strikeRate": "115.38"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 18,
+            "wickets": 0,
+            "economy": "9.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 4,
+        "matchDate": "2025-07-12T13:04:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 2,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "st †Anil Bommaraju b Kumar Gaurav",
+            "strikeRate": "100.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 12,
+            "wickets": 0,
+            "economy": "12.00"
+          }
+        ]
+      },
+      {
+        "matchId": 6,
+        "matchDate": "2025-07-19T11:17:00.000Z",
+        "team1": 6,
+        "team2": 8,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": null,
+          "margin": "Abandoned"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 13,
+            "wickets": 0,
+            "economy": "6.50"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 4,
+            "balls": 5,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "80.00"
+          }
+        ]
+      },
+      {
+        "matchId": 8,
+        "matchDate": "2025-07-27T02:33:00.000Z",
+        "team1": 8,
+        "team2": 10,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 10,
+          "margin": "4 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 9,
+            "wickets": 0,
+            "economy": "4.50"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 17,
+            "balls": 20,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "retired hurt",
+            "strikeRate": "85.00"
+          }
+        ]
+      },
+      {
+        "matchId": 10,
+        "matchDate": "2025-07-27T03:27:00.000Z",
+        "team1": 10,
+        "team2": 6,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 6,
+          "margin": "5 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 3,
+            "wickets": 1,
+            "economy": "3.00"
+          }
+        ]
+      },
+      {
+        "matchId": 12,
+        "matchDate": "2025-07-27T04:13:00.000Z",
+        "team1": 8,
+        "team2": 10,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 10,
+          "margin": "2 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 9,
+            "balls": 7,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "128.57"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 5,
+            "wickets": 0,
+            "economy": "5.00"
+          }
+        ]
+      },
+      {
+        "matchId": 14,
+        "matchDate": "2025-08-02T11:12:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 4,
+          "margin": "2 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 10,
+            "wickets": 0,
+            "economy": "5.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 11,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 1,
+            "dismissal": "c Norace b Atul",
+            "strikeRate": "157.14"
+          }
+        ]
+      },
+      {
+        "matchId": 20,
+        "matchDate": "2025-08-15T10:43:00.000Z",
+        "team1": 16,
+        "team2": 10,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 10,
+          "margin": "1 wicket"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 8,
+            "wickets": 1,
+            "economy": "4.00"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 0,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "b Anil Bommaraju",
+            "strikeRate": "0.00"
+          }
+        ]
+      },
+      {
+        "matchId": 22,
+        "matchDate": "2025-08-15T12:01:00.000Z",
+        "team1": 10,
+        "team2": 16,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 10,
+          "margin": "55 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 9,
+            "balls": 14,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "64.29"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 3,
+            "wickets": 0,
+            "economy": "3.00"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "run out",
+            "count": 1
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 2,
+            "action": "catch",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "matchId": 24,
+        "matchDate": "2025-08-23T13:10:00.000Z",
+        "team1": 18,
+        "team2": 8,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 18,
+          "margin": "39 runs"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 11,
+            "wickets": 0,
+            "economy": "5.50"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 0,
+            "balls": 3,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "b Kartic Sharma",
+            "strikeRate": "0.00"
+          }
+        ]
+      },
+      {
+        "matchId": 26,
+        "matchDate": "2025-08-31T02:14:00.000Z",
+        "team1": 20,
+        "team2": 22,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": null,
+          "margin": "Tied"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 1,
+            "runs": 5,
+            "wickets": 1,
+            "economy": "2.50"
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 9,
+            "balls": 10,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "not out",
+            "strikeRate": "90.00"
+          }
+        ]
+      },
+      {
+        "matchId": 28,
+        "matchDate": "2025-08-31T03:38:00.000Z",
+        "team1": 22,
+        "team2": 20,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 22,
+          "margin": "2 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 6,
+            "balls": 7,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Kartic Sharma / Saroj",
+            "strikeRate": "85.71"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 8,
+            "wickets": 1,
+            "economy": "4.00"
+          }
+        ]
+      },
+      {
+        "matchId": 30,
+        "matchDate": "2025-09-06T11:16:00.000Z",
+        "team1": 24,
+        "team2": 26,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 26,
+          "margin": "3 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 1,
+            "balls": 2,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out Kartic Sharma / Malaya Nayak",
+            "strikeRate": "50.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 5,
+            "wickets": 0,
+            "economy": "5.00"
+          }
+        ]
+      },
+      {
+        "matchId": 32,
+        "matchDate": "2025-09-06T13:00:00.000Z",
+        "team1": 26,
+        "team2": 24,
+        "venue": "Olympia IVY sports academy",
+        "result": {
+          "winner": 24,
+          "margin": "3 wickets"
+        },
+        "contributions": [
+          {
+            "type": "bowling",
+            "inningNumber": 1,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 7,
+            "wickets": 1,
+            "economy": "3.50"
+          },
+          {
+            "type": "fielding",
+            "inningNumber": 1,
+            "action": "catch",
+            "count": 1
+          },
+          {
+            "type": "batting",
+            "inningNumber": 2,
+            "runs": 7,
+            "balls": 8,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "b Kartic Sharma",
+            "strikeRate": "87.50"
+          }
+        ]
+      }
+    ],
+    "runsConceded": 117,
+    "fieldingStats": {
+      "catches": 5,
+      "runOuts": 2,
+      "stumpings": 0
+    },
+    "statsLastUpdated": "2025-10-08T17:40:12.579Z",
+    "inningsBowled": 4,
+    "totalBalls": 100,
+    "bowlingAverage": 23.4,
+    "notOuts": 4,
+    "inningsBatted": 14,
+    "oversBowled": 23,
+    "bowlingEconomy": 5.09,
+    "totalWickets": 5,
+    "ballsBowled": 138,
+    "summaryStats": {
+      "totalMatches": 14,
+      "totalRuns": 90,
+      "totalWickets": 5,
+      "totalCatches": 5,
+      "totalInnings": 14,
+      "totalBattingInnings": 14,
+      "totalBowlingInnings": 4
+    },
+    "matchesPlayed": 14,
+    "battingStrikeRate": 90,
+    "careerBests": {
+      "batting": {
+        "score": 17,
+        "balls": 0,
+        "fours": 0,
+        "sixes": 0,
+        "matchId": null,
+        "date": null
+      },
+      "bowling": {
+        "wickets": 5,
+        "runs": 117,
+        "overs": 23,
+        "matchId": null,
+        "date": null
+      }
+    },
+    "battingStats": {
+      "totalRuns": 90,
+      "totalBalls": 100,
+      "totalFours": 3,
+      "totalSixes": 1,
+      "highestScore": 17,
+      "notOuts": 4,
+      "ducks": 0,
+      "fifties": 1,
+      "centuries": 0,
+      "average": 9,
+      "strikeRate": 90,
+      "totalInnings": 14
+    },
+    "totalRuns": 90,
+    "bowlingStats": {
+      "totalOvers": 23,
+      "totalMaidens": 0,
+      "totalRuns": 117,
+      "totalWickets": 5,
+      "bestFigures": {
+        "wickets": 5,
+        "runs": 117
+      },
+      "hatTricks": 0,
+      "fiveWicketHauls": 1,
+      "tenWicketHauls": 0,
+      "average": 23.4,
+      "economy": 5.09,
+      "strikeRate": "27.60",
+      "totalInnings": 4
+    },
+    "updatedAt": "2025-10-08T17:40:12.579Z",
+    "totalCatches": 5,
+    "totalOvers": 23,
+    "battingAverage": 10,
+    "totalSixes": 1,
+    "totalRunOuts": 2,
+    "totalStumpings": 0,
+    "totalFours": 3
+  },
+  {
+    "id": "202510082308540000011",
+    "numericId": 10,
+    "name": "Shashank S",
+    "email": "shashank.s@cricketclub.com",
+    "isActive": true,
+    "role": "all-rounder",
+    "battingStyle": "RHB",
+    "bowlingStyle": null,
+    "isCaptain": false,
+    "isWicketKeeper": false,
+    "nationality": null,
+    "avatar": null,
+    "createdAt": "2025-10-08T17:38:54.630Z",
+    "stats": {
+      "matchesPlayed": 0,
+      "runs": 0,
+      "wickets": 0,
+      "highestScore": 0,
+      "battingAverage": 0,
+      "bowlingAverage": 0,
+      "strikeRate": 0,
+      "economyRate": 0
+    },
+    "notOuts": 0,
+    "fieldingStats": {
+      "catches": 0,
+      "runOuts": 0,
+      "stumpings": 0
+    },
+    "milestones": {
+      "batting": [],
+      "bowling": [],
+      "fielding": []
+    },
+    "matchHistory": [
+      {
+        "matchId": 2,
+        "matchDate": "2025-07-12T11:14:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 2,
+          "margin": "10 runs"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 9,
+            "balls": 8,
+            "fours": 1,
+            "sixes": 0,
+            "dismissal": "st †Anil Bommaraju b Sonal Kumar",
+            "strikeRate": "112.50"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "2",
+            "maidens": 0,
+            "runs": 13,
+            "wickets": 2,
+            "economy": "6.50"
+          }
+        ]
+      },
+      {
+        "matchId": 4,
+        "matchDate": "2025-07-12T13:04:00.000Z",
+        "team1": 2,
+        "team2": 4,
+        "venue": "MM Sports Park- Box Cricket",
+        "result": {
+          "winner": 4,
+          "margin": "7 wickets"
+        },
+        "contributions": [
+          {
+            "type": "batting",
+            "inningNumber": 1,
+            "runs": 2,
+            "balls": 4,
+            "fours": 0,
+            "sixes": 0,
+            "dismissal": "run out † Rupraj M",
+            "strikeRate": "50.00"
+          },
+          {
+            "type": "bowling",
+            "inningNumber": 2,
+            "overs": "1",
+            "maidens": 0,
+            "runs": 14,
+            "wickets": 0,
+            "economy": "14.00"
+          }
+        ]
+      }
+    ],
+    "runsConceded": 27,
+    "statsLastUpdated": "2025-10-08T17:40:12.647Z",
+    "inningsBowled": 1,
+    "totalBalls": 12,
+    "bowlingAverage": 13.5,
+    "inningsBatted": 2,
+    "oversBowled": 3,
+    "bowlingEconomy": 9,
+    "totalWickets": 2,
+    "ballsBowled": 18,
+    "summaryStats": {
+      "totalMatches": 2,
+      "totalRuns": 11,
+      "totalWickets": 2,
+      "totalCatches": 0,
+      "totalInnings": 2,
+      "totalBattingInnings": 2,
+      "totalBowlingInnings": 1
+    },
+    "matchesPlayed": 2,
+    "battingStrikeRate": 91.67,
+    "careerBests": {
+      "batting": {
+        "score": 9,
+        "balls": 0,
+        "fours": 0,
+        "sixes": 0,
+        "matchId": null,
+        "date": null
+      },
+      "bowling": {
+        "wickets": 2,
+        "runs": 27,
+        "overs": 3,
+        "matchId": null,
+        "date": null
+      }
+    },
+    "battingAverage": 5.5,
+    "battingStats": {
+      "totalRuns": 11,
+      "totalBalls": 12,
+      "totalFours": 1,
+      "totalSixes": 0,
+      "highestScore": 9,
+      "notOuts": 0,
+      "ducks": 0,
+      "fifties": 0,
+      "centuries": 0,
+      "average": 5.5,
+      "strikeRate": 91.67,
+      "totalInnings": 2
+    },
+    "totalRuns": 11,
+    "bowlingStats": {
+      "totalOvers": 3,
+      "totalMaidens": 0,
+      "totalRuns": 27,
+      "totalWickets": 2,
+      "bestFigures": {
+        "wickets": 2,
+        "runs": 27
+      },
+      "hatTricks": 0,
+      "fiveWicketHauls": 0,
+      "tenWicketHauls": 0,
+      "average": 13.5,
+      "economy": 9,
+      "strikeRate": "9.00",
+      "totalInnings": 1
+    },
+    "updatedAt": "2025-10-08T17:40:12.647Z",
+    "totalCatches": 0,
+    "totalOvers": 3,
+    "totalSixes": 0,
+    "totalRunOuts": 0,
+    "totalStumpings": 0,
+    "totalFours": 1
+  }
+]

@@ -161,11 +161,11 @@ async function aggregatePlayerPerformances(matchId, playersMap) {
       }
 
       // Calculate impact score using the same logic as PlayerImpactManager
-      const impactScore = PlayerImpactManager.calculatePlayerImpact(perf);
+      const impactScores = PlayerImpactManager.calculatePlayerImpact(perf);
 
       performances.push({
         player: playerData,
-        impactScore: impactScore,
+        impactScore: impactScores,
         batting: {
           runs: perf.batting.runs,
           balls: perf.batting.balls,
@@ -316,21 +316,41 @@ exports.handler = async (event, context) => {
         const winnerDetails = (typeof matchData.winner === 'number' && teamsMap[matchData.winner]) ? teamsMap[matchData.winner] : null;
         const tossWinnerDetails = (typeof matchData.toss?.winner === 'number' && teamsMap[matchData.toss.winner]) ? teamsMap[matchData.toss.winner] : 
                                   (typeof matchData.toss?.winner === 'string' && (matchData.toss.winner === matchData.teams?.team1?.name || matchData.toss.winner === matchData.teams?.team2?.name)) ?
-                                  (matchData.toss.winner === matchData.teams?.team1?.name ? teamsMap[matchData.team1Id] : teamsMap[matchData.team2Id]) : null;
+                                  (matchData.toss.winner === matchData.teams?.team1?.name ? teamsMap[matchData.team1?.id] : teamsMap[matchData.team2?.id]) : null;
         const resultWinnerDetails = (typeof matchData.result?.winner === 'number' && teamsMap[matchData.result.winner]) ? teamsMap[matchData.result.winner] : null;
 
-        // Denormalize team1 and team2 using team1Id and team2Id
+        // Denormalize team1 and team2 using nested team IDs
         let team1Details = null;
         let team2Details = null;
 
-        // Handle team1 - use team1Id to look up in teamsMap
-        if (matchData.team1Id) {
-          team1Details = teamsMap[matchData.team1Id] || null;
+        // Handle team1 - use team1.id to look up in teamsMap
+        if (matchData.team1?.id) {
+          team1Details = teamsMap[matchData.team1.id] || null;
+          // If match has squad players, use them with impact scores instead of team players
+          if (matchData.team1.players && Array.isArray(matchData.team1.players)) {
+            team1Details = {
+              ...team1Details,
+              players: matchData.team1.players.map(player => ({
+                ...player,
+                impactScore: PlayerImpactManager.calculatePlayerImpact(player)
+              }))
+            };
+          }
         }
 
-        // Handle team2 - use team2Id to look up in teamsMap
-        if (matchData.team2Id) {
-          team2Details = teamsMap[matchData.team2Id] || null;
+        // Handle team2 - use team2.id to look up in teamsMap
+        if (matchData.team2?.id) {
+          team2Details = teamsMap[matchData.team2.id] || null;
+          // If match has squad players, use them with impact scores instead of team players
+          if (matchData.team2.players && Array.isArray(matchData.team2.players)) {
+            team2Details = {
+              ...team2Details,
+              players: matchData.team2.players.map(player => ({
+                ...player,
+                impactScore: PlayerImpactManager.calculatePlayerImpact(player)
+              }))
+            };
+          }
         }
 
         // Calculate Man of the Match for completed matches
@@ -486,18 +506,18 @@ exports.handler = async (event, context) => {
         matchData.result.winner = resultWinnerDetails || matchData.result.winner;
       }
 
-      // Denormalize team1 and team2 using team1Id and team2Id
+      // Denormalize team1 and team2 using nested team IDs
       let team1Details = null;
       let team2Details = null;
 
-      // Handle team1 - use team1Id to look up in teamsMap
-      if (matchData.team1Id) {
-        team1Details = teamsMap[matchData.team1Id] || null;
+      // Handle team1 - use team1.id to look up in teamsMap
+      if (matchData.team1?.id) {
+        team1Details = teamsMap[matchData.team1.id] || null;
       }
 
-      // Handle team2 - use team2Id to look up in teamsMap
-      if (matchData.team2Id) {
-        team2Details = teamsMap[matchData.team2Id] || null;
+      // Handle team2 - use team2.id to look up in teamsMap
+      if (matchData.team2?.id) {
+        team2Details = teamsMap[matchData.team2.id] || null;
       }
 
       if (team1Details) matchData.team1 = team1Details;
@@ -527,6 +547,20 @@ exports.handler = async (event, context) => {
             processedInning.batsmen = inningData.batsmen.map(batsmanData => {
               const playerDetails = (typeof batsmanData.playerId === 'number' && playersMap[batsmanData.playerId]) ? playersMap[batsmanData.playerId] : null;
 
+              // Calculate impact score for this batsman
+              const battingPerformance = {
+                batting: {
+                  runs: batsmanData.runs || 0,
+                  balls: batsmanData.balls || 0,
+                  fours: batsmanData.fours || 0,
+                  sixes: batsmanData.sixes || 0,
+                  notOuts: batsmanData.status && batsmanData.status.toLowerCase().includes('not out') ? 1 : 0
+                },
+                bowling: { wickets: 0, runs: 0, overs: 0 },
+                fielding: { catches: 0, runOuts: 0, stumpings: 0 }
+              };
+              const impactScores = PlayerImpactManager.calculatePlayerImpact(battingPerformance);
+
               // Denormalize fielder IDs in howOut
               let howOut = batsmanData.howOut;
               if (howOut) {
@@ -544,7 +578,8 @@ exports.handler = async (event, context) => {
               return {
                 ...batsmanData,
                 player: playerDetails || batsmanData.player,
-                howOut: howOut
+                howOut: howOut,
+                impactScore: impactScores
               };
             });
           }
@@ -555,9 +590,22 @@ exports.handler = async (event, context) => {
             processedInning.bowling = bowlingData.map(bowlerData => {
               const playerDetails = (typeof bowlerData.playerId === 'number' && playersMap[bowlerData.playerId]) ? playersMap[bowlerData.playerId] : null;
 
+              // Calculate impact score for this bowler
+              const bowlingPerformance = {
+                batting: { runs: 0, balls: 0, fours: 0, sixes: 0, notOuts: 0 },
+                bowling: {
+                  wickets: bowlerData.wickets || 0,
+                  runs: bowlerData.runs || 0,
+                  overs: parseFloat(bowlerData.overs) || 0
+                },
+                fielding: { catches: 0, runOuts: 0, stumpings: 0 }
+              };
+              const impactScores = PlayerImpactManager.calculatePlayerImpact(bowlingPerformance);
+
               return {
                 ...bowlerData,
-                player: playerDetails || bowlerData.player
+                player: playerDetails || bowlerData.player,
+                impactScore: impactScores
               };
             });
             // If we used bowlers data to create bowling, remove the old field to avoid duplication
@@ -593,7 +641,7 @@ exports.handler = async (event, context) => {
 
       // Fetch detailed team lineups with full player details
       try {
-        const teamIds = [matchData.team1Id, matchData.team2Id].filter(id => id != null && id !== '');
+        const teamIds = [matchData.team1?.id, matchData.team2?.id].filter(id => id != null && id !== '');
         if (teamIds.length > 0) {
           const lineupsSnapshot = await collections.teamLineups
             .where('teamId', 'in', teamIds)
@@ -767,10 +815,10 @@ exports.handler = async (event, context) => {
         let margin = null;
 
         if (matchData.team1Score > matchData.team2Score) {
-          winner = matchData.team1Id; // Use numericId instead of name
+          winner = matchData.team1?.id; // Use numericId instead of name
           margin = `${matchData.team1Score - matchData.team2Score} runs`;
         } else if (matchData.team2Score > matchData.team1Score) {
-          winner = matchData.team2Id; // Use numericId instead of name
+          winner = matchData.team2?.id; // Use numericId instead of name
           margin = `${matchData.team2Score - matchData.team1Score} runs`;
         } else {
           winner = 'Draw';
@@ -793,6 +841,24 @@ exports.handler = async (event, context) => {
       } catch (error) {
         console.warn(`Failed to aggregate player performances for match ${matchDoc.id}:`, error);
         matchData.playerPerformances = [];
+      }
+
+      // Calculate impact scores for squad players
+      try {
+        if (matchData.team1 && matchData.team1.players && Array.isArray(matchData.team1.players)) {
+          matchData.team1.players = matchData.team1.players.map(player => ({
+            ...player,
+            impactScore: PlayerImpactManager.calculatePlayerImpact(player)
+          }));
+        }
+        if (matchData.team2 && matchData.team2.players && Array.isArray(matchData.team2.players)) {
+          matchData.team2.players = matchData.team2.players.map(player => ({
+            ...player,
+            impactScore: PlayerImpactManager.calculatePlayerImpact(player)
+          }));
+        }
+      } catch (error) {
+        console.warn(`Failed to calculate impact scores for squad players in match ${matchDoc.id}:`, error);
       }
 
       return {
