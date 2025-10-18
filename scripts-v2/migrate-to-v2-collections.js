@@ -69,6 +69,17 @@ class V2MigrationManager {
       try {
         const teamData = doc.data();
 
+        // Check if team already exists in v2 collection
+        const existingTeam = await this.db.collection(V2_COLLECTIONS.TEAMS)
+          .where('numericId', '==', teamData.numericId || teamData.id)
+          .limit(1)
+          .get();
+
+        if (!existingTeam.empty) {
+          console.log(`Team ${teamData.name} already exists in v2, skipping`);
+          continue;
+        }
+
         // Transform to v2 structure
         const v2TeamData = {
           numericId: teamData.numericId || teamData.id,
@@ -140,6 +151,17 @@ class V2MigrationManager {
 
       try {
         const playerData = doc.data();
+
+        // Check if player already exists in v2 collection
+        const existingPlayer = await this.db.collection(V2_COLLECTIONS.PLAYERS)
+          .where('numericId', '==', playerData.numericId || playerData.id)
+          .limit(1)
+          .get();
+
+        if (!existingPlayer.empty) {
+          console.log(`Player ${playerData.name} already exists in v2, skipping`);
+          continue;
+        }
 
         // Transform to v2 structure
         const v2PlayerData = {
@@ -215,6 +237,17 @@ class V2MigrationManager {
 
       try {
         const matchData = doc.data();
+
+        // Check if match already exists in v2 collection
+        const existingMatch = await this.db.collection(V2_COLLECTIONS.MATCHES)
+          .where('numericId', '==', matchData.numericId || matchData.id)
+          .limit(1)
+          .get();
+
+        if (!existingMatch.empty) {
+          console.log(`Match ${matchData.numericId || matchData.id} already exists in v2, skipping`);
+          continue;
+        }
 
         // Transform to v2 nested structure
         const v2MatchData = {

@@ -1,9 +1,24 @@
 const { db, V2_COLLECTIONS, V2_SCHEMAS } = require('../../config/database-v2');
+const admin = require('firebase-admin');
 const { sequenceManager } = require('../../utils/sequenceManager');
 
 // Helper function to find document by displayId in v2 collections
 async function findDocumentByDisplayId(collection, displayId) {
-  const snapshot = await db.collection(collection).where('displayId', '==', parseInt(displayId, 10)).get();
+  // First try to find by displayId field as string
+  let snapshot = await db.collection(collection).where('displayId', '==', displayId.toString()).get();
+
+  // If not found, try by displayId as number
+  if (snapshot.empty) {
+    const numericDisplayId = parseInt(displayId);
+    if (!isNaN(numericDisplayId)) {
+      snapshot = await db.collection(collection).where('displayId', '==', numericDisplayId).get();
+    }
+  }
+
+  // If still not found, try by numericId
+  if (snapshot.empty) {
+    snapshot = await db.collection(collection).where('numericId', '==', parseInt(displayId)).get();
+  }
 
   if (snapshot.empty) {
     return null;
@@ -62,12 +77,11 @@ exports.handler = async (event, context) => {
   const { httpMethod: method, path: originalPath, body, queryStringParameters } = event;
 
   // Extract path from the event (handle both direct function calls and redirected API calls)
-  let path = originalPath;
-  if (path && path.includes('/players-v2')) {
-    // Extract everything after /players-v2
-    const playersIndex = path.indexOf('/players-v2');
-    path = path.substring(playersIndex + 11); // 11 is length of '/players-v2'
-    if (!path) path = '/';
+  let path = event.path;
+  if (path.startsWith('/.netlify/functions/players-v2')) {
+    path = path.replace('/.netlify/functions/players-v2', '');
+  } else if (path.startsWith('/api/v2/players')) {
+    path = path.replace('/api/v2/players', '');
   }
 
   console.log('Players V2 Function - Method:', method, 'Original Path:', originalPath, 'Processed Path:', path);
@@ -83,7 +97,7 @@ exports.handler = async (event, context) => {
 
   try {
     // GET /api/v2/players - Get all players with pagination and filtering
-    if ((method === 'GET' || method === 'HEAD') && path === '/') {
+    if ((method === 'GET' || method === 'HEAD') && (!path || path === '/' || path === '')) {
       // Parse pagination and filter parameters
       const page = parseInt(queryStringParameters?.page) || 1;
       const limit = parseInt(queryStringParameters?.limit) || 1000;
@@ -100,6 +114,121 @@ exports.handler = async (event, context) => {
       if (role) {
         query = query.where('role', '==', role);
       }
+      if (teamId) {
+        // Instead of querying players collection, get players from team document
+        // This avoids the composite index requirement and uses the denormalized team.players array
+        try {
+          const teamDoc = await db.collection(V2_COLLECTIONS.TEAMS).doc(teamId).get();
+          if (!teamDoc.exists) {
+            return {
+              statusCode: 404,
+              headers: corsHeaders,
+              body: JSON.stringify({
+                success: false,
+                message: `Team with ID ${teamId} not found`
+              }),
+            };
+          }
+
+          const teamData = teamDoc.data();
+          let teamPlayers = teamData.players || [];
+
+          // Apply additional filters to team players
+          if (role) {
+            teamPlayers = teamPlayers.filter(player => player.player.role === role);
+          }
+          if (isActive !== undefined) {
+            teamPlayers = teamPlayers.filter(player => player.player.isActive === (isActive === 'true'));
+          }
+
+          // Sort players
+          const validOrderFields = ['displayId', 'name'];
+          const validDirections = ['asc', 'desc'];
+
+          if (validOrderFields.includes(orderBy) && validDirections.includes(orderDirection)) {
+            teamPlayers.sort((a, b) => {
+              let aVal, bVal;
+              if (orderBy === 'displayId') {
+                aVal = a.player.displayId || 0;
+                bVal = b.player.displayId || 0;
+              } else {
+                aVal = a.player.name || '';
+                bVal = b.player.name || '';
+              }
+
+              if (orderDirection === 'asc') {
+                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+              } else {
+                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+              }
+            });
+          }
+
+          // Apply pagination
+          const totalCount = teamPlayers.length;
+          const startIndex = offset;
+          const endIndex = startIndex + limit;
+          const paginatedPlayers = teamPlayers.slice(startIndex, endIndex);
+
+          // Format players for response
+          const players = paginatedPlayers.map(player => ({
+            id: player.player.displayId,
+            displayId: player.player.displayId,
+            playerId: player.player.playerId,
+            name: player.player.name,
+            role: player.player.role,
+            battingStyle: player.player.battingStyle,
+            avatar: player.player.avatar,
+            isActive: true, // Team players are assumed active
+            preferredTeamId: teamId,
+            preferredTeam: {
+              id: teamData.displayId,
+              name: teamData.name,
+              shortName: teamData.shortName
+            },
+            matchesPlayed: player.matchesPlayed,
+            totalRuns: player.totalRuns,
+            totalWickets: player.totalWickets,
+            lastPlayed: player.lastPlayed,
+            isCaptain: player.isCaptain,
+            isViceCaptain: player.isViceCaptain
+          }));
+
+          // For HEAD requests, return only headers without body
+          if (method === 'HEAD') {
+            return {
+              statusCode: 200,
+              headers: corsHeaders,
+              body: ''
+            };
+          }
+
+          return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({
+              success: true,
+              data: players,
+              pagination: {
+                page,
+                limit,
+                total: totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+              }
+            }),
+          };
+        } catch (error) {
+          console.error('Error fetching team players:', error);
+          return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({
+              success: false,
+              message: 'Internal server error'
+            }),
+          };
+        }
+      }
       if (isActive !== undefined) {
         query = query.where('isActive', '==', isActive === 'true');
       }
@@ -109,12 +238,23 @@ exports.handler = async (event, context) => {
       const totalCount = totalSnapshot.size;
 
       // Apply ordering
-      const validOrderFields = ['displayId', 'name', 'createdAt', 'updatedAt'];
+      const validOrderFields = ['displayId', 'name', 'createdAt', 'updatedAt', 'isActive', 'role'];
       const validDirections = ['asc', 'desc'];
 
       if (validOrderFields.includes(orderBy) && validDirections.includes(orderDirection)) {
         query = query.orderBy(orderBy, orderDirection);
       } else {
+        // Return error for invalid orderBy field
+        if (!validOrderFields.includes(orderBy)) {
+          return {
+            statusCode: 400,
+            headers: corsHeaders,
+            body: JSON.stringify({
+              success: false,
+              message: `Invalid orderBy field: ${orderBy}. Valid fields are: ${validOrderFields.join(', ')}`
+            }),
+          };
+        }
         // Default ordering by displayId ascending
         query = query.orderBy('displayId', 'asc');
       }
@@ -220,31 +360,8 @@ exports.handler = async (event, context) => {
         }
       }
 
-      // Get recent matches for this player
-      try {
-        const statsSnapshot = await db.collection(V2_COLLECTIONS.MATCHES)
-          .where('playerStats', 'array-contains', { playerId: playerDoc.id })
-          .limit(5)
-          .get();
-
-        const recentMatches = [];
-        for (const matchDoc of statsSnapshot.docs) {
-          const matchData = matchDoc.data();
-          recentMatches.push({
-            matchId: matchDoc.id,
-            displayId: matchData.displayId,
-            tournamentName: matchData.tournamentName,
-            venue: matchData.venue,
-            matchDate: matchData.matchDate,
-            status: matchData.status
-          });
-        }
-
-        playerData.recentMatches = recentMatches;
-      } catch (error) {
-        console.error('Error fetching recent matches:', error);
-        playerData.recentMatches = [];
-      }
+      // Get recent matches for this player (already stored in player document)
+      const recentMatches = playerData.recentMatches || [];
 
       return {
         statusCode: 200,
@@ -252,6 +369,136 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           success: true,
           data: playerData
+        }),
+      };
+    }
+
+    // GET /api/v2/players/{id}/matches - Get detailed match performance for a player
+    if (method === 'GET' && path.match(/^\/\d+\/matches$/)) {
+      const displayId = path.split('/')[1]; // Extract player displayId from /:displayId/matches
+      console.log('Getting matches for player displayId:', displayId);
+
+      const playerDoc = await findDocumentByDisplayId(V2_COLLECTIONS.PLAYERS, displayId);
+
+      if (!playerDoc) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Player not found'
+          }),
+        };
+      }
+
+      const player = { id: playerDoc.id, ...playerDoc.data() };
+
+      // Get all match squads that include this player
+      const matchSquadsSnapshot = await db.collection(V2_COLLECTIONS.MATCH_SQUADS)
+        .where('players', 'array-contains', { playerId: playerDoc.id })
+        .get();
+
+      const playerMatches = [];
+      let summary = {
+        totalMatches: 0,
+        totalRuns: 0,
+        totalWickets: 0,
+        totalCatches: 0,
+        totalRunOuts: 0
+      };
+
+      for (const squadDoc of matchSquadsSnapshot.docs) {
+        const squadData = squadDoc.data();
+        const matchDoc = await db.collection(V2_COLLECTIONS.MATCHES).doc(squadData.matchId).get();
+
+        if (!matchDoc.exists) continue;
+
+        const matchData = matchDoc.data();
+
+        // Find player's performance in this squad
+        const playerInSquad = squadData.players.find(p => p.playerId === playerDoc.id);
+        if (!playerInSquad) continue;
+
+        // Get match result
+        let result = 'Unknown';
+        if (matchData.result) {
+          if (matchData.result.winnerTeamId === squadData.teamId) {
+            result = 'Won';
+          } else {
+            result = 'Lost';
+          }
+        }
+
+        // Calculate contributions from player stats
+        const contributions = [];
+        if (playerInSquad.batting) {
+          contributions.push({
+            type: 'batting',
+            runs: playerInSquad.batting.runs || 0,
+            balls: playerInSquad.batting.balls || 0,
+            fours: playerInSquad.batting.fours || 0,
+            sixes: playerInSquad.batting.sixes || 0
+          });
+          summary.totalRuns += playerInSquad.batting.runs || 0;
+        }
+
+        if (playerInSquad.bowling) {
+          contributions.push({
+            type: 'bowling',
+            wickets: playerInSquad.bowling.wickets || 0,
+            runs: playerInSquad.bowling.runs || 0,
+            overs: playerInSquad.bowling.overs || 0
+          });
+          summary.totalWickets += playerInSquad.bowling.wickets || 0;
+        }
+
+        if (playerInSquad.fielding) {
+          if (playerInSquad.fielding.catches > 0) {
+            contributions.push({
+              type: 'fielding',
+              action: 'catch',
+              count: playerInSquad.fielding.catches
+            });
+            summary.totalCatches += playerInSquad.fielding.catches;
+          }
+          if (playerInSquad.fielding.runOuts > 0) {
+            contributions.push({
+              type: 'fielding',
+              action: 'runOut',
+              count: playerInSquad.fielding.runOuts
+            });
+            summary.totalRunOuts += playerInSquad.fielding.runOuts;
+          }
+        }
+
+        playerMatches.push({
+          matchId: matchData.displayId,
+          matchDate: matchData.matchDate,
+          tournamentName: matchData.tournamentName,
+          venue: matchData.venue,
+          team1: matchData.team1,
+          team2: matchData.team2,
+          result: result,
+          contributions: contributions
+        });
+      }
+
+      summary.totalMatches = playerMatches.length;
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: true,
+          data: {
+            player: {
+              id: player.displayId,
+              name: player.name,
+              role: player.role
+            },
+            matches: playerMatches,
+            summary: summary
+          }
         }),
       };
     }

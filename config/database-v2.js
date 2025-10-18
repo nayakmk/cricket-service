@@ -1,7 +1,8 @@
 // Cricket App v2 - Optimized Collections with Validation
 // Firebase Firestore Collection Definitions with Schema Validation
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK (same as database.js)
@@ -34,7 +35,8 @@ const V2_COLLECTIONS = {
   INNINGS: 'innings_v2',
   TOURNAMENT_TEAMS: 'tournament_teams_v2',
   PLAYER_MATCH_STATS: 'player_match_stats_v2',
-  TOURNAMENTS: 'tournaments_v2'
+  TOURNAMENTS: 'tournaments_v2',
+  SEQUENCES: 'sequences_v2'
 };
 
 // Validation Schemas for v2 Collections
@@ -52,6 +54,7 @@ const V2_SCHEMAS = {
     isWicketKeeper: { type: 'boolean', required: true },
     nationality: { type: 'string', nullable: true },
     avatar: { type: 'string', nullable: true },
+    externalReferenceId: { type: 'string', nullable: true }, // Original ID from external source
     preferredTeamId: { type: 'string', required: true, pattern: '^\\d{19}$' },
     preferredTeam: {
       teamId: { type: 'string', required: true, pattern: '^\\d{19}$' },
@@ -120,25 +123,49 @@ const V2_SCHEMAS = {
       }
     },
     careerStats: {
-      matchesPlayed: { type: 'number', required: true, min: 0 },
-      runs: { type: 'number', required: true, min: 0 },
-      wickets: { type: 'number', required: true, min: 0 },
-      highestScore: { type: 'number', required: true, min: 0 },
-      battingAverage: { type: 'number', required: true, min: 0 },
-      bowlingAverage: { type: 'number', required: true, min: 0 },
-      strikeRate: { type: 'number', required: true, min: 0 },
-      economyRate: { type: 'number', required: true, min: 0 },
-      catches: { type: 'number', required: true, min: 0 },
-      runOuts: { type: 'number', required: true, min: 0 }
+      batting: {
+        matchesPlayed: { type: 'number', required: true, min: 0 },
+        runs: { type: 'number', required: true, min: 0 },
+        highestScore: { type: 'number', required: true, min: 0 },
+        average: { type: 'number', required: true, min: 0 },
+        strikeRate: { type: 'number', required: true, min: 0 },
+        centuries: { type: 'number', required: true, min: 0 },
+        fifties: { type: 'number', required: true, min: 0 },
+        ducks: { type: 'number', required: true, min: 0 },
+        notOuts: { type: 'number', required: true, min: 0 }
+      },
+      bowling: {
+        matchesPlayed: { type: 'number', required: true, min: 0 },
+        wickets: { type: 'number', required: true, min: 0 },
+        average: { type: 'number', required: true, min: 0 },
+        economyRate: { type: 'number', required: true, min: 0 },
+        strikeRate: { type: 'number', required: true, min: 0 },
+        bestBowling: { type: 'string', nullable: true },
+        fiveWicketHauls: { type: 'number', required: true, min: 0 },
+        hatTricks: { type: 'number', required: true, min: 0 }
+      },
+      fielding: {
+        catches: { type: 'number', required: true, min: 0 },
+        runOuts: { type: 'number', required: true, min: 0 },
+        stumpings: { type: 'number', required: true, min: 0 }
+      },
+      overall: {
+        matchesPlayed: { type: 'number', required: true, min: 0 },
+        wins: { type: 'number', required: true, min: 0 },
+        losses: { type: 'number', required: true, min: 0 },
+        winPercentage: { type: 'number', required: true, min: 0 }
+      }
     },
     seasonStats: {
       season: { type: 'string', required: true },
       matchesPlayed: { type: 'number', required: true, min: 0 }
     },
-    milestones: {
+    achievements: {
       batting: { type: 'array', items: { type: 'string' } },
       bowling: { type: 'array', items: { type: 'string' } },
-      fielding: { type: 'array', items: { type: 'string' } }
+      fielding: { type: 'array', items: { type: 'string' } },
+      team: { type: 'array', items: { type: 'string' } },
+      individual: { type: 'array', items: { type: 'string' } }
     },
     createdAt: { type: 'timestamp', required: true },
     updatedAt: { type: 'timestamp', required: true }
@@ -151,6 +178,7 @@ const V2_SCHEMAS = {
     name: { type: 'string', required: true, minLength: 1, maxLength: 100 },
     shortName: { type: 'string', required: true, minLength: 1, maxLength: 10 },
     isActive: { type: 'boolean', required: true },
+    externalReferenceId: { type: 'string', nullable: true }, // Original ID from external source
     captainId: { type: 'string', nullable: true, pattern: '^\\d{19}$' },
     captain: {
       playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
@@ -233,6 +261,7 @@ const V2_SCHEMAS = {
   matches: {
     matchId: { type: 'string', required: true, pattern: '^\\d{19}$' },
     displayId: { type: 'number', required: true, min: 1, max: 999999 },
+    externalReferenceId: { type: 'string', nullable: true }, // Original ID from external source
     title: { type: 'string', required: true, minLength: 1, maxLength: 200 },
     tournamentId: { type: 'string', required: true, pattern: '^\\d{19}$' },
     tournament: {
@@ -662,6 +691,15 @@ const V2_SCHEMAS = {
     },
     createdAt: { type: 'timestamp', required: true },
     updatedAt: { type: 'timestamp', required: true }
+  },
+
+  // Sequences Collection Validation
+  sequences: {
+    sequenceType: { type: 'string', required: true, enum: ['matches', 'players', 'teams', 'tournaments'] },
+    currentValue: { type: 'number', required: true, min: 0 },
+    description: { type: 'string', required: true },
+    createdAt: { type: 'timestamp', required: true },
+    updatedAt: { type: 'timestamp', required: true }
   }
 };
 
@@ -794,7 +832,8 @@ module.exports = {
     innings: getV2Collection('INNINGS'),
     tournamentTeams: getV2Collection('TOURNAMENT_TEAMS'),
     playerMatchStats: getV2Collection('PLAYER_MATCH_STATS'),
-    tournaments: getV2Collection('TOURNAMENTS')
+    tournaments: getV2Collection('TOURNAMENTS'),
+    sequences: getV2Collection('SEQUENCES')
   }
 };
 

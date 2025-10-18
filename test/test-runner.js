@@ -10,7 +10,7 @@
 const https = require('https');
 const http = require('http');
 
-const BASE_URL = 'http://localhost:8888/api';
+const BASE_URL = 'http://localhost:8888/api/v2';
 const TEST_TIMEOUT = 5000; // 5 seconds
 const LONG_TEST_TIMEOUT = 15000; // 15 seconds for endpoints that fetch lots of data
 

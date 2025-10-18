@@ -101,6 +101,19 @@ This will verify:
 - Check that nested team structure transformation worked
 - Verify API endpoints are using v2 collections
 
+### Duplicate Data Issues
+If you encounter duplicate entries in v2 collections (causing React key errors):
+
+```bash
+# Check for duplicates
+node scripts-v2/check-duplicates-v2.js
+
+# Clean up duplicates (removes all but the first occurrence of each numericId)
+node scripts-v2/cleanup-v2-duplicates.js
+```
+
+**Important**: The migration scripts now include duplicate prevention, but if duplicates exist from previous runs, use the cleanup script.
+
 ### Performance Issues
 - Migration processes data in batches of 10 documents
 - Large datasets may take time to migrate

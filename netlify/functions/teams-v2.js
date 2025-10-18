@@ -3,7 +3,21 @@ const { sequenceManager } = require('../../utils/sequenceManager');
 
 // Helper function to find document by displayId in v2 collections
 async function findDocumentByDisplayId(collection, displayId) {
-  const snapshot = await db.collection(collection).where('displayId', '==', parseInt(displayId, 10)).get();
+  // First try to find by displayId field as string
+  let snapshot = await db.collection(collection).where('displayId', '==', displayId.toString()).get();
+
+  // If not found, try by displayId as number
+  if (snapshot.empty) {
+    const numericDisplayId = parseInt(displayId);
+    if (!isNaN(numericDisplayId)) {
+      snapshot = await db.collection(collection).where('displayId', '==', numericDisplayId).get();
+    }
+  }
+
+  // If still not found, try by numericId
+  if (snapshot.empty) {
+    snapshot = await db.collection(collection).where('numericId', '==', parseInt(displayId)).get();
+  }
 
   if (snapshot.empty) {
     return null;
@@ -62,12 +76,11 @@ exports.handler = async (event, context) => {
   const { httpMethod: method, path: originalPath, body, queryStringParameters } = event;
 
   // Extract path from the event (handle both direct function calls and redirected API calls)
-  let path = originalPath;
-  if (path && path.includes('/teams-v2')) {
-    // Extract everything after /teams-v2
-    const teamsIndex = path.indexOf('/teams-v2');
-    path = path.substring(teamsIndex + 9); // 9 is length of '/teams-v2'
-    if (!path) path = '/';
+  let path = event.path;
+  if (path.startsWith('/.netlify/functions/teams-v2')) {
+    path = path.replace('/.netlify/functions/teams-v2', '');
+  } else if (path.startsWith('/api/v2/teams')) {
+    path = path.replace('/api/v2/teams', '');
   }
 
   console.log('Teams V2 Function - Method:', method, 'Original Path:', originalPath, 'Processed Path:', path);
@@ -83,7 +96,7 @@ exports.handler = async (event, context) => {
 
   try {
     // GET /api/v2/teams - Get all teams with pagination
-    if ((method === 'GET' || method === 'HEAD') && path === '/') {
+    if ((method === 'GET' || method === 'HEAD') && (!path || path === '/' || path === '')) {
       // Parse pagination parameters
       const page = parseInt(queryStringParameters?.page) || 1;
       const limit = parseInt(queryStringParameters?.limit) || 1000;
