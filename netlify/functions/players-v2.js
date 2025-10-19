@@ -1,6 +1,7 @@
 const { db, V2_COLLECTIONS, V2_SCHEMAS } = require('../../config/database-v2');
 const admin = require('firebase-admin');
 const { sequenceManager } = require('../../utils/sequenceManager');
+const { PlayerImpactManager } = require('../../utils/playerImpactManager');
 
 // Helper function to find document by displayId in v2 collections
 async function findDocumentByDisplayId(collection, displayId) {
@@ -293,6 +294,66 @@ exports.handler = async (event, context) => {
           playerData.preferredTeam = null;
         }
 
+        // Calculate impact for recent matches
+        if (playerData.recentMatches && Array.isArray(playerData.recentMatches)) {
+          playerData.recentMatches = playerData.recentMatches.map(match => {
+            const performance = {
+              batting: match.batting || { runs: 0, balls: 0, fours: 0, sixes: 0, notOuts: 0 },
+              bowling: match.bowling || { wickets: 0, runs: 0, overs: 0 },
+              fielding: match.fielding || { catches: 0, runOuts: 0, stumpings: 0 }
+            };
+
+            const impactScores = PlayerImpactManager.calculatePlayerImpact(performance);
+
+            return {
+              ...match,
+              impact: {
+                batting: impactScores.batting,
+                bowling: impactScores.bowling,
+                fielding: impactScores.fielding,
+                total: impactScores.total
+              }
+            };
+          });
+        }
+
+        // Calculate impact for career stats
+        if (playerData.careerStats) {
+          const battingMatches = playerData.careerStats.batting?.matchesPlayed || 1;
+          const bowlingMatches = playerData.careerStats.bowling?.matchesPlayed || 1;
+
+          // Calculate average performance per match for impact calculation
+          const careerPerformance = {
+            batting: {
+              runs: (playerData.careerStats.batting?.runs || 0) / battingMatches,
+              balls: playerData.careerStats.batting?.strikeRate ?
+                ((playerData.careerStats.batting.runs || 0) / battingMatches) / (playerData.careerStats.batting.strikeRate / 100) : 0,
+              fours: 0, // Not tracked in career stats
+              sixes: 0, // Not tracked in career stats
+              notOuts: (playerData.careerStats.batting?.notOuts || 0) / battingMatches
+            },
+            bowling: {
+              wickets: (playerData.careerStats.bowling?.wickets || 0) / bowlingMatches,
+              runs: playerData.careerStats.bowling?.economyRate ?
+                playerData.careerStats.bowling.economyRate * 4 : 0, // Estimate runs per 4 overs (typical over count)
+              overs: 4 // Assume average 4 overs per match for impact calculation
+            },
+            fielding: {
+              catches: (playerData.careerStats.fielding?.catches || 0) / Math.max(battingMatches, bowlingMatches),
+              runOuts: (playerData.careerStats.fielding?.runOuts || 0) / Math.max(battingMatches, bowlingMatches),
+              stumpings: (playerData.careerStats.fielding?.stumpings || 0) / Math.max(battingMatches, bowlingMatches)
+            }
+          };
+
+          const careerImpactScores = PlayerImpactManager.calculatePlayerImpact(careerPerformance);
+          playerData.careerStats.impact = {
+            batting: careerImpactScores.batting,
+            bowling: careerImpactScores.bowling,
+            fielding: careerImpactScores.fielding,
+            total: careerImpactScores.total
+          };
+        }
+
         players.push(playerData);
       }
 
@@ -362,6 +423,64 @@ exports.handler = async (event, context) => {
 
       // Get recent matches for this player (already stored in player document)
       const recentMatches = playerData.recentMatches || [];
+
+      // Calculate impact for recent matches
+      playerData.recentMatches = recentMatches.map(match => {
+        const performance = {
+          batting: match.batting || { runs: 0, balls: 0, fours: 0, sixes: 0, notOuts: 0 },
+          bowling: match.bowling || { wickets: 0, runs: 0, overs: 0 },
+          fielding: match.fielding || { catches: 0, runOuts: 0, stumpings: 0 }
+        };
+
+        const impactScores = PlayerImpactManager.calculatePlayerImpact(performance);
+
+        return {
+          ...match,
+          impact: {
+            batting: impactScores.batting,
+            bowling: impactScores.bowling,
+            fielding: impactScores.fielding,
+            total: impactScores.total
+          }
+        };
+      });
+
+      // Calculate impact for career stats
+      if (playerData.careerStats) {
+        const battingMatches = playerData.careerStats.batting?.matchesPlayed || 1;
+        const bowlingMatches = playerData.careerStats.bowling?.matchesPlayed || 1;
+
+        // Calculate average performance per match for impact calculation
+        const careerPerformance = {
+          batting: {
+            runs: (playerData.careerStats.batting?.runs || 0) / battingMatches,
+            balls: playerData.careerStats.batting?.strikeRate ?
+              ((playerData.careerStats.batting.runs || 0) / battingMatches) / (playerData.careerStats.batting.strikeRate / 100) : 0,
+            fours: 0, // Not tracked in career stats
+            sixes: 0, // Not tracked in career stats
+            notOuts: (playerData.careerStats.batting?.notOuts || 0) / battingMatches
+          },
+          bowling: {
+            wickets: (playerData.careerStats.bowling?.wickets || 0) / bowlingMatches,
+            runs: playerData.careerStats.bowling?.economyRate ?
+              playerData.careerStats.bowling.economyRate * 4 : 0, // Estimate runs per 4 overs (typical over count)
+            overs: 4 // Assume average 4 overs per match for impact calculation
+          },
+          fielding: {
+            catches: (playerData.careerStats.fielding?.catches || 0) / Math.max(battingMatches, bowlingMatches),
+            runOuts: (playerData.careerStats.fielding?.runOuts || 0) / Math.max(battingMatches, bowlingMatches),
+            stumpings: (playerData.careerStats.fielding?.stumpings || 0) / Math.max(battingMatches, bowlingMatches)
+          }
+        };
+
+        const careerImpactScores = PlayerImpactManager.calculatePlayerImpact(careerPerformance);
+        playerData.careerStats.impact = {
+          batting: careerImpactScores.batting,
+          bowling: careerImpactScores.bowling,
+          fielding: careerImpactScores.fielding,
+          total: careerImpactScores.total
+        };
+      }
 
       return {
         statusCode: 200,
