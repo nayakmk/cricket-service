@@ -243,67 +243,75 @@ Provide actionable insights that will help this player maximize their impact in 
       bestBowler
     } = matchData;
 
-    const prompt = `
-You are a professional cricket analyst specializing in match analysis, team performance, and tactical insights. Based on the following comprehensive match data, provide an in-depth analysis in JSON format with these exact keys. Focus on team strategies, individual performances, match turning points, and tactical decisions that influenced the outcome.
+    // Build match summary data
+    const matchSummary = {
+      teams: `${team1?.name || 'Team 1'} vs ${team2?.name || 'Team 2'}`,
+      venue: venue || 'Unknown venue',
+      type: matchType || 'Cricket match',
+      status: status || 'Unknown',
+      winner: winner || 'Undecided',
+      result: result?.margin || 'In progress',
+      toss: toss ? `${toss.winner} won toss and chose to ${toss.decision}` : 'Toss not recorded',
+      bestBatsman: bestBatsman ? `${bestBatsman.player?.name || bestBatsman.name} - ${bestBatsman.runs} runs` : 'Not available',
+      bestBowler: bestBowler ? `${bestBowler.player?.name || bestBowler.name} - ${bestBowler.wickets} wickets` : 'Not available'
+    };
 
+    // Build innings summary
+    const inningsSummary = innings.map((inning, index) => {
+      const batsmen = inning.batsmen?.slice(0, 3).map(b =>
+        `${b.player?.name || b.name}: ${b.runs || 0}(${b.balls || 0})`
+      ).join(', ') || 'Data not available';
+
+      const bowlers = inning.bowlers?.slice(0, 3).map(b =>
+        `${b.player?.name || b.name}: ${b.wickets || 0}/${b.runs || 0}(${b.overs || 0})`
+      ).join(', ') || 'Data not available';
+
+      return `Inning ${index + 1} - ${inning.battingTeam}: ${inning.totalRuns || 0}/${inning.totalWickets || 0} in ${inning.totalOvers || 0} overs. Top batsmen: ${batsmen}. Key bowlers: ${bowlers}.`;
+    }).join(' ');
+
+    const prompt = `You are a professional cricket analyst. Analyze this cricket match and provide insights in JSON format.
+
+Match Summary:
+${JSON.stringify(matchSummary, null, 2)}
+
+Innings Summary:
+${inningsSummary}
+
+Provide analysis in this JSON structure:
 {
-  "matchSummary": "A concise 2-sentence summary of the match including the final result, key performances, and what defined this contest",
-  "executiveSummary": "A detailed 3-4 sentence overview of the match, highlighting the key moments, standout performances, and tactical decisions that shaped the outcome",
+  "matchSummary": "2-sentence summary of the match result and key highlights",
   "teamAnalysis": {
-    "team1Analysis": "Comprehensive analysis of ${team1?.name || 'Team 1'}'s performance including batting, bowling, fielding strengths and weaknesses, tactical approach, and overall effectiveness",
-    "team2Analysis": "Comprehensive analysis of ${team2?.name || 'Team 2'}'s performance including batting, bowling, fielding strengths and weaknesses, tactical approach, and overall effectiveness",
-    "teamComparison": "Detailed comparison between both teams' strategies, execution, and adaptation throughout the match"
+    "team1Strengths": "What ${team1?.name || 'Team 1'} did well",
+    "team1Weaknesses": "What ${team1?.name || 'Team 1'} could improve",
+    "team2Strengths": "What ${team2?.name || 'Team 2'} did well",
+    "team2Weaknesses": "What ${team2?.name || 'Team 2'} could improve",
+    "keyDifference": "What separated the winning team"
   },
   "performanceAnalysis": {
-    "battingAnalysis": "Analysis of batting performances across both innings, including partnerships, individual contributions, and tactical batting decisions",
-    "bowlingAnalysis": "Analysis of bowling performances including wicket-taking spells, economy rates, pressure situations, and tactical bowling changes",
-    "fieldingAnalysis": "Assessment of fielding standards, catches, run-outs, and fielding decisions that impacted the match",
-    "turningPoints": "Identification and analysis of key moments that changed the course of the match"
+    "battingHighlights": "Key batting performances and partnerships",
+    "bowlingHighlights": "Key bowling spells and breakthroughs",
+    "fieldingMoments": "Important fielding plays",
+    "turningPoints": "Moments that changed the match"
   },
   "tacticalInsights": {
-    "captaincyDecisions": "Analysis of captaincy decisions including toss choice, batting order, bowling changes, and field placements",
-    "matchStrategy": "Assessment of overall match strategy, game plans, and how teams adapted to conditions and opposition",
-    "keyDecisions": "Critical tactical decisions that proved decisive in determining the match outcome"
-  },
-  "playerPerformances": {
-    "outstandingPerformances": "Detailed analysis of standout individual performances that were crucial to the match result",
-    "disappointingPerformances": "Analysis of underperformances or missed opportunities that could have changed the match",
-    "matchWinners": "Identification of players whose performances were decisive in securing victory"
-  },
-  "matchTrends": {
-    "momentumShifts": "Analysis of how momentum shifted throughout the match and what caused these changes",
-    "pressureHandling": "Assessment of how both teams handled pressure situations and crucial moments",
-    "adaptationSkills": "Evaluation of teams' ability to adapt to changing match conditions and opposition tactics"
+    "captaincy": "Key captaincy decisions and their impact",
+    "strategy": "Overall match strategy assessment",
+    "adaptation": "How teams adapted during the match"
   },
   "finalVerdict": {
-    "fairResult": "Assessment of whether the result was a fair reflection of the teams' performances and strategies",
-    "lessonsLearned": "Key lessons and insights that can be drawn from this match for future contests",
-    "predictability": "Analysis of how predictable the result was based on team strengths and match circumstances"
+    "fairResult": "Was this a fair result?",
+    "lessonsLearned": "Key lessons from this match",
+    "predictability": "How predictable was this result?"
   }
 }
 
-Match Data:
-- Match: ${team1?.name || 'Team 1'} vs ${team2?.name || 'Team 2'}
-- Venue: ${venue}
-- Match Type: ${matchType}
-- Status: ${status}
-- Winner: ${winner || 'N/A'}
-- Result: ${result?.margin ? `${result.margin}` : 'N/A'}
-- Toss: ${toss ? `${toss.winner} won and chose to ${toss.decision}` : 'N/A'}
-- Best Batsman: ${bestBatsman ? `${bestBatsman.player?.name} - ${bestBatsman.runs} runs` : 'N/A'}
-- Best Bowler: ${bestBowler ? `${bestBowler.player?.name} - ${bestBowler.wickets} wickets` : 'N/A'}
-
-Innings Data:
-${innings.map((inning, index) => `
-Inning ${index + 1} - ${inning.battingTeam} (${inning.totalRuns}/${inning.totalWickets} in ${inning.totalOvers} overs)
-Batting: ${inning.batsmen?.map(b => `${b.player?.name || b.name}: ${b.runs}(${b.balls})`).join(', ') || 'N/A'}
-Bowling: ${inning.bowlers?.map(b => `${b.player?.name || b.name}: ${b.wickets}/${b.runs}(${b.overs})`).join(', ') || 'N/A'}
-Fall of Wickets: ${inning.fallOfWickets?.map(fow => `${fow.score}-${fow.wicket}: ${fow.player || fow.playerName || fow.batsmanName} (${fow.over})`).join(', ') || 'N/A'}
-`).join('')}
-
-Provide comprehensive analysis focusing on tactical decisions, individual brilliance, team strategies, and what made the difference between winning and losing.`;
+Keep the analysis concise but insightful. Focus on cricket tactics, individual brilliance, and team strategy.`;
 
     const messages = [
+      {
+        role: 'system',
+        content: 'You are an expert cricket analyst providing tactical insights and performance analysis. Keep responses focused and professional.'
+      },
       {
         role: 'user',
         content: prompt
@@ -317,51 +325,296 @@ Provide comprehensive analysis focusing on tactical decisions, individual brilli
       // Parse the JSON response
       const analysis = JSON.parse(content);
 
-      // Validate the response structure
-      if (!analysis.matchSummary || !analysis.executiveSummary || !analysis.teamAnalysis) {
+      // Validate required fields
+      if (!analysis.matchSummary || !analysis.teamAnalysis) {
         throw new Error('Invalid response structure from GROQ API');
       }
 
       return analysis;
     } catch (error) {
       console.error('Error analyzing match with GROQ:', error);
-      // Return comprehensive fallback analysis if API fails
+
+      // Return simplified fallback analysis
       return {
-        matchSummary: `${team1?.name || 'Team 1'} faced ${team2?.name || 'Team 2'} in a ${matchType} match at ${venue}. ${winner ? `${winner} emerged victorious${result?.margin ? ` by ${result.margin}` : ''}, with standout performances from ${bestBatsman?.player?.name || 'key batsmen'} and ${bestBowler?.player?.name || 'key bowlers'}.` : 'The match is currently in progress with both teams showing competitive spirit.'}`,
-        executiveSummary: `This ${matchType} encounter between ${team1?.name || 'Team 1'} and ${team2?.name || 'Team 2'} at ${venue} showcased contrasting approaches and tactical decisions. ${winner ? `${winner} secured victory through superior execution and key individual performances, particularly from ${bestBatsman?.player?.name || 'their batsmen'} and ${bestBowler?.player?.name || 'their bowlers'}.` : 'Both teams are competing intensely with the match poised for an exciting conclusion.'} The contest highlighted the importance of adapting to conditions and making crucial decisions at pivotal moments.`,
+        matchSummary: `${matchSummary.teams} at ${matchSummary.venue}. ${matchSummary.winner} won${matchSummary.result !== 'In progress' ? ` by ${matchSummary.result}` : ''}.`,
         teamAnalysis: {
-          team1Analysis: `${team1?.name || 'Team 1'} demonstrated ${innings[0]?.totalRuns > innings[1]?.totalRuns ? 'strong batting performance' : 'solid defensive approach'} with ${innings[0]?.totalRuns || 0} runs scored. Their bowling attack showed ${bestBowler?.player?.name ? 'effectiveness with key wickets' : 'competitive spirit'} while fielding standards were ${innings[0]?.totalWickets < 5 ? 'excellent' : 'adequate'}.`,
-          team2Analysis: `${team2?.name || 'Team 2'} displayed ${innings[1]?.totalRuns > innings[0]?.totalRuns ? 'resilient batting' : 'disciplined bowling'} with ${innings[1]?.totalRuns || 0} runs. Their performance was characterized by ${bestBatsman?.player?.name ? 'individual brilliance' : 'team effort'} and tactical adaptability throughout the match.`,
-          teamComparison: `The match pitted ${team1?.name || 'Team 1'}'s ${innings[0]?.totalRuns > innings[1]?.totalRuns ? 'aggressive approach' : 'defensive strategy'} against ${team2?.name || 'Team 2'}'s ${innings[1]?.totalRuns > innings[0]?.totalRuns ? 'counter-attacking style' : 'patient build-up'}. ${winner ? `${winner} edged out through better execution of their game plan and crucial moments.` : 'Both teams are evenly matched with tactical decisions proving decisive.'}`
+          team1Strengths: `${team1?.name || 'Team 1'} showed ${innings[0]?.totalRuns > innings[1]?.totalRuns ? 'strong batting performance' : 'solid defensive approach'}.`,
+          team1Weaknesses: `${team1?.name || 'Team 1'} could improve ${innings[0]?.totalWickets > innings[1]?.totalWickets ? 'bowling execution' : 'fielding standards'}.`,
+          team2Strengths: `${team2?.name || 'Team 2'} demonstrated ${innings[1]?.totalRuns > innings[0]?.totalRuns ? 'resilient batting' : 'disciplined bowling'}.`,
+          team2Weaknesses: `${team2?.name || 'Team 2'} could work on ${innings[1]?.totalWickets < innings[0]?.totalWickets ? 'bowling penetration' : 'batting consistency'}.`,
+          keyDifference: `${matchSummary.winner} edged out through better execution and key moments.`
         },
         performanceAnalysis: {
-          battingAnalysis: `Batting performances varied across innings with ${bestBatsman?.player?.name || 'key contributors'} scoring ${bestBatsman?.runs || 0} runs. Partnerships were ${innings.some(i => i.totalRuns > 150) ? 'crucial in building pressure' : 'important but not decisive'}. Batting approaches ranged from aggressive strokeplay to cautious accumulation depending on match situation.`,
-          bowlingAnalysis: `Bowling analysis revealed ${bestBowler?.player?.name || 'key bowlers'} taking ${bestBowler?.wickets || 0} wickets as the standout performer. Economy rates and wicket-taking ability were crucial factors with bowlers adapting to different batting approaches and pitch conditions.`,
-          fieldingAnalysis: `Fielding standards impacted the match outcome with ${innings.some(i => i.totalWickets >= 8) ? 'crucial catches and run-outs' : 'adequate fielding efforts'}. Fielding decisions and athleticism played a role in preventing runs and creating wicket opportunities.`,
-          turningPoints: `Key moments included ${bestBowler ? `the bowling spell from ${bestBowler.player?.name}` : 'crucial wickets at important times'} and ${bestBatsman ? `the batting innings from ${bestBatsman.player?.name}` : 'strategic batting partnerships'}. These moments shifted momentum and proved decisive in determining the match result.`
+          battingHighlights: `${matchSummary.bestBatsman} was the standout batsman.`,
+          bowlingHighlights: `${matchSummary.bestBowler} led the bowling attack.`,
+          fieldingMoments: `Fielding efforts were ${innings.some(i => i.totalWickets >= 8) ? 'crucial with key dismissals' : 'adequate throughout'}.`,
+          turningPoints: `Key wickets and partnerships proved decisive in shifting momentum.`
         },
         tacticalInsights: {
-          captaincyDecisions: `${toss ? `The toss decision to ${toss.decision} proved ${winner === toss.winner ? 'advantageous' : 'challenging'} for ${toss.winner}.` : 'Captaincy decisions throughout the match showed tactical awareness.'} Batting order, bowling changes, and field placements were crucial in adapting to match conditions and opposition strengths.`,
-          matchStrategy: `Both teams employed ${matchType === 'T20' ? 'aggressive, fast-paced strategies' : matchType === 'ODI' ? 'balanced approaches with emphasis on partnerships' : 'patient, Test-match style accumulation'}. The winning strategy involved ${winner ? `${winner}'s superior execution and adaptation to changing circumstances.` : 'effective adaptation and tactical flexibility.'}`,
-          keyDecisions: `Critical decisions included ${toss ? `the toss choice and initial batting/bowling strategy` : 'early tactical moves and player selections'}. These decisions, combined with in-match adaptations, ultimately determined which team secured the advantage and eventual victory.`
-        },
-        playerPerformances: {
-          outstandingPerformances: `${bestBatsman ? `${bestBatsman.player?.name}'s ${bestBatsman.runs}-run innings showcased exceptional batting skill and match awareness.` : 'Several players delivered outstanding performances that kept their team in contention.'} ${bestBowler ? `${bestBowler.player?.name}'s ${bestBowler.wickets}-wicket haul demonstrated bowling mastery and crucial wicket-taking ability.` : 'Bowlers showed tactical awareness and ability to deliver under pressure.'}`,
-          disappointingPerformances: `Some players failed to capitalize on opportunities, with ${innings.some(i => i.totalWickets >= 8) ? 'missed catches and run-out chances' : 'unfulfilled potential in key situations'}. These underperformances could have altered the match dynamics if converted into wickets or prevented runs.`,
-          matchWinners: `${bestBatsman?.player?.name || 'Key batsmen'} and ${bestBowler?.player?.name || 'key bowlers'} emerged as match winners through their decisive contributions. Their performances not only secured individual records but also proved pivotal in their team's victory.`
-        },
-        matchTrends: {
-          momentumShifts: `Momentum shifted at crucial junctures, particularly ${bestBowler ? `when ${bestBowler.player?.name} took key wickets` : 'during key partnerships and wicket clusters'}. These shifts were influenced by tactical decisions, individual brilliance, and team adaptability.`,
-          pressureHandling: `Both teams demonstrated varying levels of composure under pressure, with ${winner ? `${winner} showing superior ability to handle crucial moments and maintain focus.` : 'both teams competing intensely in pressure situations.'} The ability to perform under stress proved decisive.`,
-          adaptationSkills: `Teams showed ${innings.length > 1 ? 'good adaptation to changing match conditions' : 'initial tactical awareness'} with ${toss ? `the toss winner gaining ${winner === toss.winner ? 'advantage' : 'no clear benefit'}` : 'strategic decisions proving crucial'}. Successful adaptation to pitch behavior and opposition tactics was key.`
+          captaincy: `${matchSummary.toss} - this decision influenced the match strategy.`,
+          strategy: `Both teams employed ${matchType === 'T20' ? 'aggressive approaches' : 'balanced strategies'} with varying success.`,
+          adaptation: `Teams showed ${innings.length > 1 ? 'good adaptation skills' : 'initial tactical awareness'} throughout the contest.`
         },
         finalVerdict: {
-          fairResult: `The result ${winner ? `was a fair reflection of ${winner}'s superior performance and tactical execution throughout the match.` : 'remains to be determined as the match continues.'} Both teams contributed to an entertaining contest with clear differences in execution and decision-making.`,
-          lessonsLearned: `Key lessons include the importance of ${bestBowler ? 'bowling discipline and wicket-taking ability' : 'consistent performance across all departments'}. Teams should focus on ${bestBatsman ? 'building partnerships and individual brilliance' : 'balanced team contributions'} for future success.`,
-          predictability: `Based on team compositions and match circumstances, the result was ${winner ? `${winner}'s victory was ${Math.abs((innings[0]?.totalRuns || 0) - (innings[1]?.totalRuns || 0)) < 20 ? 'closely contested' : 'decisively achieved'}` : 'difficult to predict given the competitive nature of both teams'}. The match highlighted the unpredictable nature of cricket.`
+          fairResult: `The result was ${matchSummary.winner !== 'Undecided' ? 'a fair reflection of performances' : 'yet to be determined'}.`,
+          lessonsLearned: `Key lessons include the importance of consistent performance and tactical decisions.`,
+          predictability: `Based on the contest, the result was ${Math.abs((innings[0]?.totalRuns || 0) - (innings[1]?.totalRuns || 0)) < 30 ? 'closely fought' : 'decisively achieved'}.`
         }
       };
     }
+  }
+
+  static async generateMatchCommentary(matchData) {
+    const {
+      matchId,
+      team1,
+      team2,
+      venue,
+      matchType,
+      status,
+      winner,
+      result,
+      innings = [],
+      toss
+    } = matchData;
+
+    // Extract comprehensive match information for storytelling
+    const tossWinner = toss?.winner || 'Not specified';
+    const tossDecision = toss?.decision || 'Not specified';
+    const battingFirst = toss?.decision === 'bat' ? tossWinner : (tossWinner === team1?.name ? team2?.name : team1?.name);
+
+    // Get innings details
+    const firstInnings = innings.find(inn => inn.inningNumber === 1);
+    const secondInnings = innings.find(inn => inn.inningNumber === 2);
+
+    // Extract key players and performances
+    const getTopPerformers = (teamData, inningsData) => {
+      if (!teamData?.players) return [];
+
+      return teamData.players
+        .filter(player => player.batting || player.bowling)
+        .map(player => ({
+          name: player.name,
+          batting: player.batting,
+          bowling: player.bowling,
+          dismissal: player.dismissal
+        }))
+        .sort((a, b) => {
+          const aRuns = a.batting?.runs || 0;
+          const bRuns = b.batting?.runs || 0;
+          return bRuns - aRuns;
+        })
+        .slice(0, 3);
+    };
+
+    const team1TopPerformers = getTopPerformers(team1, firstInnings);
+    const team2TopPerformers = getTopPerformers(team2, secondInnings);
+
+    // Build comprehensive match context
+    const matchContext = {
+      basicInfo: `${team1?.name || 'Team 1'} vs ${team2?.name || 'Team 2'} at ${venue || 'the venue'} - ${matchType || 'cricket match'}`,
+      tossInfo: tossWinner !== 'Not specified' ? `${tossWinner} won the toss and chose to ${tossDecision}` : 'Toss details not available',
+      battingFirst: battingFirst || 'Batting order not specified',
+      currentStatus: status,
+      scores: {
+        team1: team1?.score?.runs || 0,
+        team2: team2?.score?.runs || 0,
+        team1Wickets: team1?.score?.wickets || 0,
+        team2Wickets: team2?.score?.wickets || 0
+      },
+      innings: innings.map(inn => ({
+        number: inn.inningNumber,
+        battingTeam: inn.battingTeam,
+        totalRuns: inn.totalRuns || 0,
+        totalWickets: inn.totalWickets || 0,
+        totalOvers: inn.totalOvers || 0,
+        keyEvents: inn.fallOfWickets || []
+      })),
+      topPerformers: {
+        team1: team1TopPerformers,
+        team2: team2TopPerformers
+      },
+      result: result ? {
+        winner: winner?.name || result.winner,
+        margin: result.margin,
+        playerOfMatch: result.playerOfMatch?.name
+      } : null
+    };
+
+    const prompt = `You are a professional cricket commentator telling the complete story of this cricket match. Use ALL the provided match data to create an engaging, narrative-driven commentary that tells the match story chronologically.
+
+MATCH DATA:
+${JSON.stringify(matchContext, null, 2)}
+
+INSTRUCTIONS:
+Create commentary in JSON format that tells the COMPLETE MATCH STORY:
+
+{
+  "matchOverview": "Write a compelling 3-4 sentence overview that sets the scene - how the match started (toss result, who batted first), the key phases, and current/final situation. Make it read like the opening of a match report.",
+  
+  "matchNarrative": "Tell the story chronologically in 4-6 detailed paragraphs covering: 1) Match setup and early play, 2) Key innings developments and turning points, 3) Exciting moments and standout performances, 4) Current situation or climax, 5) Match outcome if completed. Use cricket terminology and build drama.",
+  
+  "keyHighlights": "Array of 4-6 most exciting/crucial moments from the match, described in broadcast-commentary style (e.g., 'What a spectacular catch!', 'Brilliant innings coming to an end', 'Game-changing wicket!')",
+  
+  "playerSpotlight": "Focus on 2-3 standout performers with detailed analysis of their contributions, key moments, and impact on the match. Include specific scores, wickets, and memorable plays.",
+  
+  "tacticalAnalysis": "Analyze captaincy decisions, bowling changes, field placements, and strategic moments that influenced the game. Explain what worked and what didn't.",
+  
+  "matchPrediction": "For live matches: predict likely outcome with reasoning. For completed matches: analyze what decided the result and key factors.",
+  
+  "excitingCommentary": "3-4 punchy, dramatic commentary lines that could be used for live broadcast, capturing the tension, excitement, and key moments"
+}
+
+IMPORTANT: 
+- Use ALL the provided data - toss results, innings details, player performances, scores, wickets
+- Tell the story chronologically from start to current situation
+- Make it engaging and dramatic like professional cricket commentary
+- Include specific numbers, player names, and match events
+- For completed matches, explain the full journey to the result
+- For live matches, build anticipation about what might happen next`;
+
+    try {
+      const messages = [
+        {
+          role: 'system',
+          content: 'You are an expert cricket commentator who tells complete match stories using all available data. Your commentary should be engaging, chronological, and capture the drama of cricket matches.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ];
+
+      const response = await this.makeRequest(messages);
+      const content = response.choices[0].message.content;
+
+      // Try to parse as JSON, fallback to structured text if needed
+      try {
+        const parsed = JSON.parse(content);
+
+        // Ensure all required fields are present
+        return {
+          matchOverview: parsed.matchOverview || 'Match overview not available',
+          matchNarrative: parsed.matchNarrative || 'Match story not available',
+          keyHighlights: Array.isArray(parsed.keyHighlights) ? parsed.keyHighlights : ['Highlights not available'],
+          playerSpotlight: parsed.playerSpotlight || 'Player analysis not available',
+          tacticalAnalysis: parsed.tacticalAnalysis || 'Tactical analysis not available',
+          matchPrediction: parsed.matchPrediction || 'Prediction not available',
+          excitingCommentary: Array.isArray(parsed.excitingCommentary) ? parsed.excitingCommentary : ['Commentary not available']
+        };
+      } catch (parseError) {
+        // If JSON parsing fails, return a structured fallback
+        return {
+          matchOverview: content.split('\n').find(line => line.includes('Overview')) || content.substring(0, 300),
+          matchNarrative: content.split('\n').find(line => line.includes('Narrative')) || 'Match story unavailable',
+          keyHighlights: ['Match highlights not available'],
+          playerSpotlight: 'Key players analysis pending',
+          tacticalAnalysis: 'Strategic insights unavailable',
+          matchPrediction: 'Match outcome analysis pending',
+          excitingCommentary: ['What a thrilling contest!']
+        };
+      }
+    } catch (error) {
+      console.error('Error generating match commentary:', error);
+      return {
+        matchOverview: `The match between ${team1?.name || 'Team 1'} and ${team2?.name || 'Team 2'} at ${venue || 'the venue'} is currently ${status}`,
+        matchNarrative: 'Match story generation failed. Please check back later for detailed commentary.',
+        keyHighlights: ['Commentary generation temporarily unavailable'],
+        playerSpotlight: 'Player analysis will be available shortly',
+        tacticalAnalysis: 'Tactical insights pending',
+        matchPrediction: 'Match prediction analysis unavailable',
+        excitingCommentary: ['Stay tuned for live updates!']
+      };
+    }
+  }
+
+  static async predictMatchWinner(team1Data, team2Data, matchType = 'T20') {
+    const team1 = team1Data.team1;
+    const team2 = team2Data.team2;
+    const team1Players = team1Data.players || [];
+    const team2Players = team2Data.players || [];
+
+    // If GROQ API key is not available, return mock prediction
+    if (!process.env.GROQ_API_KEY) {
+      console.log('GROQ API key not available, returning mock prediction');
+      console.log('GROQ_API_KEY value:', process.env.GROQ_API_KEY);
+      return {
+        success: true,
+        analysis: {
+          team1: {
+            name: team1.name,
+            analysis: `${team1.name} has ${team1Players.length} players with diverse skills`,
+            winningPercentage: 52
+          },
+          team2: {
+            name: team2.name,
+            analysis: `${team2.name} has ${team2Players.length} players with good potential`,
+            winningPercentage: 48
+          },
+          keyFactors: ['Player experience', 'Team balance', 'Current form'],
+          recommendedStrategy: 'Focus on strong batting lineup and disciplined bowling',
+          confidence: 'medium',
+          matchType: matchType
+        }
+      };
+    }
+
+    // Build team summaries
+    const buildTeamSummary = (team, players) => {
+      const batsmen = players.filter(p => p.role === 'batsman' || p.role === 'wicketkeeper').slice(0, 4);
+      const bowlers = players.filter(p => p.role === 'bowler').slice(0, 4);
+      const allRounders = players.filter(p => p.role === 'allrounder').slice(0, 2);
+
+      return {
+        name: team.name,
+        batsmen: batsmen.map(p => ({
+          name: p.name,
+          avg: p.careerStats?.batting?.average || 0,
+          runs: p.careerStats?.batting?.runs || 0
+        })),
+        bowlers: bowlers.map(p => ({
+          name: p.name,
+          avg: p.careerStats?.bowling?.average || 0,
+          wkts: p.careerStats?.bowling?.wickets || 0
+        })),
+        allRounders: allRounders.map(p => ({
+          name: p.name,
+          batAvg: p.careerStats?.batting?.average || 0,
+          bowlAvg: p.careerStats?.bowling?.average || 0
+        }))
+      };
+    };
+
+    const team1Summary = buildTeamSummary(team1, team1Players);
+    const team2Summary = buildTeamSummary(team2, team2Players);
+
+    const prompt = `Based on these cricket teams, who would win a T20 match?
+
+Team 1: ${team1Summary.name} with players: ${team1Summary.batsmen.map(p => p.name).join(', ')}
+Team 2: ${team2Summary.name} with players: ${team2Summary.batsmen.map(p => p.name).join(', ')}
+
+Give a brief prediction with winning percentages.`;
+
+    // For development, return mock prediction
+    return {
+      success: true,
+      analysis: {
+        team1: {
+          name: team1.name,
+          analysis: `${team1.name} has ${team1Players.length} players with diverse skills`,
+          winningPercentage: 52
+        },
+        team2: {
+          name: team2.name,
+          analysis: `${team2.name} has ${team2Players.length} players with good potential`,
+          winningPercentage: 48
+        },
+        keyFactors: ['Player experience', 'Team balance', 'Current form'],
+        recommendedStrategy: 'Focus on strong batting lineup and disciplined bowling',
+        confidence: 'medium',
+        matchType: matchType
+      }
+    };
   }
 }
 

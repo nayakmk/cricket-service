@@ -26,6 +26,8 @@ if (!admin.apps.length) {
   });
 }
 
+const db = admin.firestore();
+
 // Collection Names for v2
 const V2_COLLECTIONS = {
   PLAYERS: 'players_v2',
@@ -36,6 +38,7 @@ const V2_COLLECTIONS = {
   TOURNAMENT_TEAMS: 'tournament_teams_v2',
   PLAYER_MATCH_STATS: 'player_match_stats_v2',
   TOURNAMENTS: 'tournaments_v2',
+  AUCTIONS: 'auctions_v2',
   SEQUENCES: 'sequences_v2'
 };
 
@@ -695,11 +698,147 @@ const V2_SCHEMAS = {
 
   // Sequences Collection Validation
   sequences: {
-    sequenceType: { type: 'string', required: true, enum: ['matches', 'players', 'teams', 'tournaments'] },
+    sequenceType: { type: 'string', required: true, enum: ['matches', 'players', 'teams', 'tournaments', 'auctions'] },
     currentValue: { type: 'number', required: true, min: 0 },
     description: { type: 'string', required: true },
     createdAt: { type: 'timestamp', required: true },
     updatedAt: { type: 'timestamp', required: true }
+  },
+
+  // Auctions Collection Validation
+  auctions: {
+    auctionId: { type: 'string', required: true, pattern: '^auction_\\d{4}_\\d{3}$' },
+    displayId: { type: 'number', required: true, min: 1, max: 999999 },
+    tournamentId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+    tournament: {
+      tournamentId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+      name: { type: 'string', required: true },
+      shortName: { type: 'string', required: true },
+      season: { type: 'string', required: true }
+    },
+    title: { type: 'string', required: true, minLength: 1, maxLength: 200 },
+    status: { type: 'string', required: true, enum: ['scheduled', 'active', 'paused', 'completed', 'cancelled'] },
+    auctionConfig: {
+      totalBudget: { type: 'number', required: true, min: 1000 },
+      minBidIncrement: { type: 'number', required: true, min: 10 },
+      basePricePerPlayer: { type: 'number', required: true, min: 100 },
+      maxPlayersPerTeam: { type: 'number', required: true, min: 1, max: 25 },
+      totalPlayersAuctioned: { type: 'number', required: true, min: 0 },
+      totalSoldPlayers: { type: 'number', required: true, min: 0 },
+      totalUnsoldPlayers: { type: 'number', required: true, min: 0 }
+    },
+    teams: {
+      type: 'array',
+      items: {
+        teamId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+        team: {
+          teamId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+          name: { type: 'string', required: true },
+          shortName: { type: 'string', required: true }
+        },
+        totalBudget: { type: 'number', required: true, min: 0 },
+        remainingBudget: { type: 'number', required: true, min: 0 },
+        spentBudget: { type: 'number', required: true, min: 0 },
+        playersCount: { type: 'number', required: true, min: 0 },
+        players: {
+          type: 'array',
+          items: {
+            playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+            player: {
+              playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+              name: { type: 'string', required: true },
+              role: { type: 'string', required: true }
+            },
+            basePrice: { type: 'number', required: true, min: 0 },
+            finalPrice: { type: 'number', required: true, min: 0 },
+            purchasedAt: { type: 'timestamp', required: true }
+          }
+        }
+      }
+    },
+    soldPlayers: {
+      type: 'array',
+      items: {
+        playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+        player: {
+          playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+          name: { type: 'string', required: true },
+          role: { type: 'string', required: true }
+        },
+        basePrice: { type: 'number', required: true, min: 0 },
+        finalPrice: { type: 'number', required: true, min: 0 },
+        soldTo: { type: 'string', required: true, pattern: '^\\d{19}$' },
+        soldToTeamName: { type: 'string', required: true },
+        soldAt: { type: 'timestamp', required: true },
+        bidHistory: {
+          type: 'array',
+          items: {
+            teamId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+            teamName: { type: 'string', required: true },
+            amount: { type: 'number', required: true, min: 0 },
+            timestamp: { type: 'timestamp', required: true }
+          }
+        }
+      }
+    },
+    unsoldPlayers: {
+      type: 'array',
+      items: {
+        playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+        player: {
+          playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+          name: { type: 'string', required: true },
+          role: { type: 'string', required: true }
+        },
+        basePrice: { type: 'number', required: true, min: 0 },
+        status: { type: 'string', required: true, enum: ['unsold'] },
+        unsoldAt: { type: 'timestamp', required: true }
+      }
+    },
+    auctionSummary: {
+      totalTeams: { type: 'number', required: true, min: 1 },
+      totalPlayers: { type: 'number', required: true, min: 0 },
+      soldPlayers: { type: 'number', required: true, min: 0 },
+      unsoldPlayers: { type: 'number', required: true, min: 0 },
+      totalAuctionValue: { type: 'number', required: true, min: 0 },
+      averagePlayerPrice: { type: 'number', required: true, min: 0 },
+      highestBid: { type: 'number', required: true, min: 0 },
+      lowestBid: { type: 'number', required: true, min: 0 },
+      mostExpensivePlayer: {
+        playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+        name: { type: 'string', required: true },
+        finalPrice: { type: 'number', required: true, min: 0 },
+        soldTo: { type: 'string', required: true, pattern: '^\\d{19}$' }
+      },
+      teamSpending: {
+        type: 'array',
+        items: {
+          teamId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+          teamName: { type: 'string', required: true },
+          totalSpent: { type: 'number', required: true, min: 0 },
+          averageSpentPerPlayer: { type: 'number', required: true, min: 0 },
+          playersCount: { type: 'number', required: true, min: 0 }
+        }
+      }
+    },
+    currentPlayer: {
+      playerId: { type: 'string', nullable: true, pattern: '^\\d{19}$' },
+      player: {
+        playerId: { type: 'string', required: true, pattern: '^\\d{19}$' },
+        name: { type: 'string', required: true },
+        role: { type: 'string', required: true }
+      },
+      basePrice: { type: 'number', required: true, min: 0 },
+      currentBid: { type: 'number', required: true, min: 0 },
+      biddingTeam: { type: 'string', nullable: true, pattern: '^\\d{19}$' },
+      biddingTeamName: { type: 'string', nullable: true },
+      timeRemaining: { type: 'number', required: true, min: 0 },
+      bidStartTime: { type: 'timestamp', required: true }
+    },
+    createdAt: { type: 'timestamp', required: true },
+    updatedAt: { type: 'timestamp', required: true },
+    startedAt: { type: 'timestamp', nullable: true },
+    completedAt: { type: 'timestamp', nullable: true }
   }
 };
 
@@ -850,6 +989,9 @@ module.exports = {
     innings: getV2Collection('INNINGS'),
     tournamentTeams: getV2Collection('TOURNAMENT_TEAMS'),
     playerMatchStats: getV2Collection('PLAYER_MATCH_STATS'),
-    tournaments: getV2Collection('TOURNAMENTS')
-  }
+    tournaments: getV2Collection('TOURNAMENTS'),
+    auctions: getV2Collection('AUCTIONS')
+  },
+  db,
+  admin
 };

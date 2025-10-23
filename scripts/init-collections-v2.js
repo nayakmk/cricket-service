@@ -19,11 +19,8 @@ async function initializeV2Collections() {
       'players_v2',
       'teams_v2',
       'matches_v2',
-      'match_squads_v2',
-      'innings_v2',
-      'tournament_teams_v2',
-      'player_match_stats_v2',
-      'tournaments_v2'
+      'tournaments_v2',
+      'auctions_v2'
     ];
 
     console.log('📋 Collections to initialize:', collections);
@@ -96,11 +93,8 @@ async function cleanupInitDocuments() {
     'players_v2',
     'teams_v2',
     'matches_v2',
-    'match_squads_v2',
-    'innings_v2',
-    'tournament_teams_v2',
-    'player_match_stats_v2',
-    'tournaments_v2'
+    'tournaments_v2',
+    'auctions_v2'
   ];
 
   try {
@@ -141,7 +135,8 @@ async function verifyCollections() {
     'innings_v2',
     'tournament_teams_v2',
     'player_match_stats_v2',
-    'tournaments_v2'
+    'tournaments_v2',
+    'auctions_v2'
   ];
 
   try {

@@ -1,5 +1,6 @@
 const { db, V2_COLLECTIONS, V2_SCHEMAS } = require('../../config/database-v2');
 const { sequenceManager } = require('../../utils/sequenceManager');
+const admin = require('firebase-admin');
 
 // Helper function to find document by displayId in v2 collections
 async function findDocumentByDisplayId(collection, displayId) {
@@ -304,6 +305,60 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           success: true,
           data: teamData
+        }),
+      };
+    }
+
+    // GET /api/v2/teams/{id}/players - Get players for a specific team
+    if (method === 'GET' && path.match(/^\/[^\/]+\/players$/)) {
+      const displayId = path.split('/')[1];
+      const teamDoc = await findDocumentByDisplayId(V2_COLLECTIONS.TEAMS, displayId);
+
+      if (!teamDoc) {
+        return {
+          statusCode: 404,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Team not found'
+          }),
+        };
+      }
+
+      const teamData = teamDoc.data();
+
+      // Get players for this team
+      let playersSnapshot;
+      if (teamData.playerIds && Array.isArray(teamData.playerIds) && teamData.playerIds.length > 0) {
+        // If team has specific player IDs, fetch those players
+        playersSnapshot = await db.collection(V2_COLLECTIONS.PLAYERS)
+          .where(admin.firestore.FieldPath.documentId(), 'in', teamData.playerIds.slice(0, 10))
+          .get();
+      } else {
+        // Otherwise, fetch all players (fallback - not ideal for production)
+        playersSnapshot = await db.collection(V2_COLLECTIONS.PLAYERS).limit(50).get();
+      }
+
+      const players = [];
+      playersSnapshot.forEach(doc => {
+        players.push({
+          id: doc.id,
+          displayId: doc.data().displayId,
+          ...doc.data()
+        });
+      });
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          success: true,
+          data: players,
+          team: {
+            id: teamData.displayId,
+            name: teamData.name,
+            shortName: teamData.shortName
+          }
         }),
       };
     }

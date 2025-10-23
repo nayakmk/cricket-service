@@ -3,6 +3,8 @@
 /api/v2/matches/* /.netlify/functions/matches-v2 200
 /api/v2/teams/* /.netlify/functions/teams-v2 200
 /api/v2/players/* /.netlify/functions/players-v2 200
+/api/v2/news/* /.netlify/functions/news-v2 200
+/api/v2/auctions/* /.netlify/functions/auctions-v2 200
 
 # V1 APIs
 /api/matches/* /.netlify/functions/matches 200

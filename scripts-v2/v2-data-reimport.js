@@ -22,7 +22,8 @@ class JSONToV2Migration {
       players: { processed: 0, migrated: 0, errors: 0 },
       matches: { processed: 0, migrated: 0, errors: 0 },
       matchSquads: { processed: 0, migrated: 0, errors: 0 },
-      teamPlayers: { processed: 0, migrated: 0, errors: 0 }
+      teamPlayers: { processed: 0, migrated: 0, errors: 0 },
+      teamStats: { processed: 0, migrated: 0, errors: 0 }
     };
 
     // In-memory caches for lookups
@@ -179,6 +180,10 @@ class JSONToV2Migration {
       console.log('\n👥 Step 5: Populating teams with players...');
       await this.populateTeamsWithPlayers();
 
+      // Step 6: Calculate and update team statistics
+      console.log('\n📊 Step 6: Calculating team statistics...');
+      await this.calculateAndUpdateTeamStats();
+
       this.printMigrationSummary();
 
     } catch (error) {
@@ -233,7 +238,7 @@ class JSONToV2Migration {
         // Cache for later use
         this.teamsMap.set(teamName, {
           id: teamDocId,
-          numericId: teamData.numericId,
+          teamId: teamData.teamId,
           data: teamData
         });
 
@@ -268,33 +273,39 @@ class JSONToV2Migration {
     const numericId = (baseId + BigInt(index)).toString();
 
     return {
-      numericId: numericId,
+      teamId: numericId,
       displayId: index,
       name: teamName,
       shortName: teamName.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 3),
+      isActive: true,
       externalReferenceId: teamName, // Original team name from JSON
       captainId: null,
       captain: null,
       viceCaptainId: null,
       viceCaptain: null,
       homeGround: 'MM Sports Park- Box Cricket',
-      players: [], // Will be populated later
-      recentMatches: [],
+      players: [], // Will be populated with detailed player info later
+      recentMatches: [], // Will be populated with recent match history
       tournaments: [{
         tournamentId: '1000000000000000001',
-        name: 'EPL WEEKEND MAHAMUKABALA',
-        shortName: 'EPL',
-        season: '2024'
+        tournament: {
+          tournamentId: '1000000000000000001',
+          name: 'EPL WEEKEND MAHAMUKABALA',
+          season: '2024'
+        },
+        matchesPlayed: 0,
+        matchesWon: 0,
+        position: 0,
+        points: 0
       }],
       teamStats: {
         matchesPlayed: 0,
-        wins: 0,
-        losses: 0,
+        matchesWon: 0,
+        matchesLost: 0,
         winPercentage: 0,
         totalPlayers: 0,
         avgPlayersPerMatch: 0
       },
-      isActive: true,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     };
@@ -329,9 +340,9 @@ class JSONToV2Migration {
         const playerName = playersArray[i];
         const playerData = this.createPlayerData(playerName, i + 1);
 
-        // Check if player already exists by numericId
+        // Check if player already exists by playerId
         const existingPlayerQuery = await this.db.collection(V2_COLLECTIONS.PLAYERS)
-          .where('numericId', '==', playerData.numericId)
+          .where('playerId', '==', playerData.playerId)
           .limit(1)
           .get();
 
@@ -342,13 +353,13 @@ class JSONToV2Migration {
           // Player already exists, skip creation
           const existingDoc = existingPlayerQuery.docs[0];
           playerDocId = existingDoc.id;
-          console.log(`Player already exists: ${playerData.name} (${playerData.numericId})`);
+          console.log(`Player already exists: ${playerData.name} (${playerData.playerId})`);
           
           // Update cache with existing player data
           const existingData = existingDoc.data();
           this.playersMap.set(playerName, {
             id: playerDocId,
-            numericId: existingData.numericId,
+            playerId: existingData.playerId,
             data: existingData,
             teams: [] // Track which teams this player belongs to
           });
@@ -359,7 +370,7 @@ class JSONToV2Migration {
           // Create new player
           playerDocRef = this.db.collection(V2_COLLECTIONS.PLAYERS).doc(); // Auto-generated UUID
           playerDocId = playerDocRef.id;
-          console.log(`Creating new player: ${playerData.name} (${playerData.numericId})`);
+          console.log(`Creating new player: ${playerData.name} (${playerData.playerId})`);
           
           currentBatch.set(playerDocRef, playerData);
         }
@@ -367,7 +378,7 @@ class JSONToV2Migration {
         // Cache for later use
         this.playersMap.set(playerName, {
           id: playerDocId,
-          numericId: playerData.numericId,
+          playerId: playerData.playerId,
           data: playerData,
           teams: [] // Track which teams this player belongs to
         });
@@ -402,18 +413,34 @@ class JSONToV2Migration {
     const numericId = (baseId + BigInt(index)).toString();
 
     return {
-      numericId: numericId,
+      playerId: numericId,
       displayId: index,
       name: playerName,
-      externalReferenceId: playerName, // Original player name from JSON
+      email: `${playerName.toLowerCase().replace(/\s+/g, '.')}@cricketapp.local`, // Generate email for validation
+      isActive: true,
       role: 'batsman', // Default, will be updated based on actual performance
       battingStyle: 'RHB', // Default
       bowlingStyle: null,
-      preferredTeamId: null, // Will be set later
-      preferredTeam: null,
-      dateOfBirth: null,
+      isWicketKeeper: false, // Default
       nationality: 'Unknown',
-      isActive: true,
+      avatar: null,
+      externalReferenceId: playerName, // Original player name from JSON
+      preferredTeamId: null, // Will be set later
+      preferredTeam: null, // Will be set later
+      teamsPlayedFor: [], // Will be populated with team history
+      recentMatches: [], // Will be populated with recent match history
+      tournamentsPlayed: [{
+        tournamentId: '1000000000000000001',
+        tournament: {
+          tournamentId: '1000000000000000001',
+          name: 'EPL WEEKEND MAHAMUKABALA',
+          season: '2024'
+        },
+        matchesPlayed: 0,
+        totalRuns: 0,
+        totalWickets: 0,
+        manOfTheSeries: false
+      }],
       careerStats: {
         batting: {
           matchesPlayed: 0,
@@ -432,7 +459,7 @@ class JSONToV2Migration {
           average: 0,
           economyRate: 0,
           strikeRate: 0,
-          bestBowling: '0/0',
+          bestBowling: null,
           fiveWicketHauls: 0,
           hatTricks: 0
         },
@@ -448,7 +475,10 @@ class JSONToV2Migration {
           winPercentage: 0
         }
       },
-      recentMatches: [],
+      seasonStats: {
+        season: '2024',
+        matchesPlayed: 0
+      },
       achievements: {
         batting: [],
         bowling: [],
@@ -560,9 +590,9 @@ class JSONToV2Migration {
 
         const teamRef = this.db.collection(V2_COLLECTIONS.TEAMS).doc(teamData.id);  // Use the actual document ID
         currentBatch.update(teamRef, {
-          captainId: captainPlayer.data.numericId.toString(),
+          captainId: captainPlayer.data.playerId.toString(),
           captain: {
-            playerId: captainPlayer.data.numericId.toString(),
+            playerId: captainPlayer.data.playerId.toString(),
             name: captainName,
             role: captainPlayer.data.role
           },
@@ -604,7 +634,7 @@ class JSONToV2Migration {
     }
 
     // Extract scores from innings
-    const scores = this.extractScoresFromInnings(match.innings || []);
+    const scores = this.extractScoresFromInnings(match, match.innings || []);
 
     // Extract captain names from player data
     const captains = this.extractCaptainNames(match);
@@ -612,37 +642,81 @@ class JSONToV2Migration {
     // Extract players grouped by team
     const teamPlayers = this.extractPlayersByTeam(match, team1Data, team2Data);
 
-    // Create nested team structure with players and scores
+    // Create innings data for both teams
+    const team1Players = this.extractSquadPlayers(match, team1Data);
+    const team2Players = this.extractSquadPlayers(match, team2Data);
+
+    // Helper function to find dismissal data for a player
+    const findPlayerDismissal = (playerName, teamName) => {
+      if (!match.innings) return null;
+
+      for (const inning of match.innings) {
+        // Check if this inning belongs to the player's team
+        if (inning.team === teamName || inning.battingTeam === teamName) {
+          if (inning.batting && Array.isArray(inning.batting)) {
+            const playerBatting = inning.batting.find(batter =>
+              batter.name && batter.name.toLowerCase() === playerName.toLowerCase()
+            );
+            if (playerBatting && playerBatting.how_out) {
+              return playerBatting.how_out;
+            }
+          }
+        }
+      }
+      return null;
+    };
+
+    // Create team 1 innings
+    const team1Innings = this.createInningsData(
+      match,
+      team1Data,
+      team1Players,
+      captains.team1,
+      findPlayerDismissal
+    );
+
+    // Create team 2 innings
+    const team2Innings = this.createInningsData(
+      match,
+      team2Data,
+      team2Players,
+      captains.team2,
+      findPlayerDismissal
+    );
+
+    // Create nested team structure with players, scores, and innings
     const team1 = {
-      id: team1Data.numericId,
+      id: team1Data.teamId,
       name: team1Data.data.name,
       shortName: team1Data.data.shortName,
       squad: {
-        teamId: team1Data.numericId,
+        teamId: team1Data.teamId,
         name: team1Data.data.name,
         shortName: team1Data.data.shortName,
         captainName: captains.team1.name,
         captainId: captains.team1.id
       },
-      squadId: `${numericId}_${team1Data.numericId}`,
+      squadId: `${numericId}_${team1Data.teamId}`,
       score: scores.team1,
-      players: teamPlayers.team1
+      players: teamPlayers.team1,
+      ...(team1Innings && { innings: team1Innings })
     };
 
     const team2 = {
-      id: team2Data.numericId,
+      id: team2Data.teamId,
       name: team2Data.data.name,
       shortName: team2Data.data.shortName,
       squad: {
-        teamId: team2Data.numericId,
+        teamId: team2Data.teamId,
         name: team2Data.data.name,
         shortName: team2Data.data.shortName,
         captainName: captains.team2.name,
         captainId: captains.team2.id
       },
-      squadId: `${numericId}_${team2Data.numericId}`,
+      squadId: `${numericId}_${team2Data.teamId}`,
       score: scores.team2,
-      players: teamPlayers.team2
+      players: teamPlayers.team2,
+      ...(team2Innings && { innings: team2Innings })
     };
 
     // Determine winner
@@ -673,8 +747,8 @@ class JSONToV2Migration {
       team2: team2,
 
       toss: match.toss ? {
-        winnerSquadId: match.toss.winner === match.teams?.team1 ? team1Data.numericId : team2Data.numericId,
-        winnerTeamId: match.toss.winner === match.teams?.team1 ? team1Data.numericId : team2Data.numericId,
+        winnerSquadId: match.toss.winner === match.teams?.team1 ? team1Data.teamId : team2Data.teamId,
+        winnerTeamId: match.toss.winner === match.teams?.team1 ? team1Data.teamId : team2Data.teamId,
         winnerTeamName: match.toss.winner,
         decision: match.toss.decision
       } : null,
@@ -692,14 +766,14 @@ class JSONToV2Migration {
     };
   }
 
-  extractScoresFromInnings(innings) {
+  extractScoresFromInnings(match, innings) {
     const scores = {
       team1: { runs: 0, wickets: 0, overs: 0, declared: false },
       team2: { runs: 0, wickets: 0, overs: 0, declared: false }
     };
 
     for (const inning of innings) {
-      const teamKey = inning.team === innings[0]?.team ? 'team1' : 'team2';
+      const teamKey = inning.team === match.teams?.team1 ? 'team1' : 'team2';
 
       if (inning.score) {
         const scoreParts = inning.score.split('/');
@@ -757,21 +831,21 @@ class JSONToV2Migration {
 
           // Resolve player IDs from the players map
           if (this.playersMap.has(fow.player)) {
-            dismissalDetails.player.playerId = this.playersMap.get(fow.player).numericId;
+            dismissalDetails.player.playerId = this.playersMap.get(fow.player).playerId;
           }
 
           if (dismissalDetails.dismissal.bowler && this.playersMap.has(dismissalDetails.dismissal.bowler.name)) {
-            dismissalDetails.dismissal.bowler.playerId = this.playersMap.get(dismissalDetails.dismissal.bowler.name).numericId;
+            dismissalDetails.dismissal.bowler.playerId = this.playersMap.get(dismissalDetails.dismissal.bowler.name).playerId;
           }
 
           if (dismissalDetails.dismissal.fielder && this.playersMap.has(dismissalDetails.dismissal.fielder.name)) {
-            dismissalDetails.dismissal.fielder.playerId = this.playersMap.get(dismissalDetails.dismissal.fielder.name).numericId;
+            dismissalDetails.dismissal.fielder.playerId = this.playersMap.get(dismissalDetails.dismissal.fielder.name).playerId;
           }
 
           if (dismissalDetails.dismissal.fielders) {
             dismissalDetails.dismissal.fielders = dismissalDetails.dismissal.fielders.map(fielder => {
               if (this.playersMap.has(fielder.name)) {
-                fielder.playerId = this.playersMap.get(fielder.name).numericId;
+                fielder.playerId = this.playersMap.get(fielder.name).playerId;
               }
               return fielder;
             });
@@ -804,7 +878,7 @@ class JSONToV2Migration {
           captains[battingTeamKey].name = batsman.name;
           const playerData = this.playersMap.get(batsman.name);
           if (playerData) {
-            captains[battingTeamKey].id = playerData.numericId;
+            captains[battingTeamKey].id = playerData.playerId;
           }
           break;
         }
@@ -816,7 +890,7 @@ class JSONToV2Migration {
           captains[bowlingTeamKey].name = bowler.name;
           const playerData = this.playersMap.get(bowler.name);
           if (playerData) {
-            captains[bowlingTeamKey].id = playerData.numericId;
+            captains[bowlingTeamKey].id = playerData.playerId;
           }
           break;
         }
@@ -847,28 +921,36 @@ class JSONToV2Migration {
       // Add batsmen to the batting team
       for (const batsman of inning.batting || []) {
         if (!addedPlayers.has(batsman.name)) {
-          const playerData = this.playersMap.get(batsman.name);
-          if (playerData) {
-            // Track which team this player belongs to
-            const teamName = battingTeamKey === 'team1' ? match.teams?.team1 : match.teams?.team2;
-            if (teamName && !playerData.teams.includes(teamName)) {
-              playerData.teams.push(teamName);
-            }
-            teamPlayers[battingTeamKey].push({
-              playerId: playerData.numericId,
-              name: batsman.name,
-              role: batsman.is_wicket_keeper ? 'wicket-keeper' : 'batsman',
-              batting: {
-                runs: batsman.runs || 0,
-                balls: batsman.balls || 0,
-                fours: batsman.fours || 0,
-                sixes: batsman.sixes || 0
-              },
-              bowling: { wickets: 0, runs: 0, overs: 0 }, // Will be updated from bowling data
-              fielding: { catches: 0, runOuts: 0 }
-            });
-            addedPlayers.add(batsman.name);
+          let playerData = this.playersMap.get(batsman.name);
+          if (!playerData) {
+            // Player not in cache, create a temporary player entry
+            console.warn(`⚠️  Player "${batsman.name}" not found in cache, creating temporary entry`);
+            const tempPlayerId = `temp_${batsman.name.replace(/\s+/g, '_').toLowerCase()}`;
+            playerData = {
+              playerId: tempPlayerId,
+              data: { playerId: tempPlayerId, name: batsman.name }
+            };
           }
+          // Track which team this player belongs to
+          const teamName = battingTeamKey === 'team1' ? match.teams?.team1 : match.teams?.team2;
+          if (teamName && !playerData.teams?.includes(teamName)) {
+            if (!playerData.teams) playerData.teams = [];
+            playerData.teams.push(teamName);
+          }
+          teamPlayers[battingTeamKey].push({
+            playerId: playerData.playerId,
+            name: batsman.name,
+            role: batsman.is_wicket_keeper ? 'wicket-keeper' : 'batsman',
+            batting: {
+              runs: batsman.runs || 0,
+              balls: batsman.balls || 0,
+              fours: batsman.fours || 0,
+              sixes: batsman.sixes || 0
+            },
+            bowling: { wickets: 0, runs: 0, overs: 0 }, // Will be updated from bowling data
+            fielding: { catches: 0, runOuts: 0 }
+          });
+          addedPlayers.add(batsman.name);
         } else {
           // Update existing player's batting stats
           const existingPlayer = teamPlayers[battingTeamKey].find(p => p.name === batsman.name) ||
@@ -929,27 +1011,35 @@ class JSONToV2Migration {
           existingPlayer.bowling.overs += parseFloat(bowler.overs || 0);
         } else if (!addedPlayers.has(bowler.name)) {
           // Add new bowler to the bowling team
-          const playerData = this.playersMap.get(bowler.name);
-          if (playerData) {
-            // Track which team this player belongs to
-            const teamName = bowlingTeamKey === 'team1' ? match.teams?.team1 : match.teams?.team2;
-            if (teamName && !playerData.teams.includes(teamName)) {
-              playerData.teams.push(teamName);
-            }
-            teamPlayers[bowlingTeamKey].push({
-              playerId: playerData.numericId,
-              name: bowler.name,
-              role: 'bowler',
-              batting: { runs: 0, balls: 0, fours: 0, sixes: 0 },
-              bowling: {
-                wickets: bowler.wickets || 0,
-                runs: bowler.runs || 0,
-                overs: parseFloat(bowler.overs || 0)
-              },
-              fielding: { catches: 0, runOuts: 0 }
-            });
-            addedPlayers.add(bowler.name);
+          let playerData = this.playersMap.get(bowler.name);
+          if (!playerData) {
+            // Player not in cache, create a temporary player entry
+            console.warn(`⚠️  Player "${bowler.name}" not found in cache, creating temporary entry`);
+            const tempPlayerId = `temp_${bowler.name.replace(/\s+/g, '_').toLowerCase()}`;
+            playerData = {
+              playerId: tempPlayerId,
+              data: { playerId: tempPlayerId, name: bowler.name }
+            };
           }
+          // Track which team this player belongs to
+          const teamName = bowlingTeamKey === 'team1' ? match.teams?.team1 : match.teams?.team2;
+          if (teamName && !playerData.teams?.includes(teamName)) {
+            if (!playerData.teams) playerData.teams = [];
+            playerData.teams.push(teamName);
+          }
+          teamPlayers[bowlingTeamKey].push({
+            playerId: playerData.playerId,
+            name: bowler.name,
+            role: 'bowler',
+            batting: { runs: 0, balls: 0, fours: 0, sixes: 0 },
+            bowling: {
+              wickets: bowler.wickets || 0,
+              runs: bowler.runs || 0,
+              overs: parseFloat(bowler.overs || 0)
+            },
+            fielding: { catches: 0, runOuts: 0 }
+          });
+          addedPlayers.add(bowler.name);
         }
       }
     }
@@ -968,8 +1058,8 @@ class JSONToV2Migration {
       };
     }
 
-    const winnerTeamId = match.result.winner === match.teams?.team1 ? team1Data.numericId :
-                        match.result.winner === match.teams?.team2 ? team2Data.numericId : null;
+    const winnerTeamId = match.result.winner === match.teams?.team1 ? team1Data.teamId :
+                        match.result.winner === match.teams?.team2 ? team2Data.teamId : null;
 
     return {
       winnerSquadId: winnerTeamId,
@@ -1008,7 +1098,11 @@ class JSONToV2Migration {
         const team2Data = this.teamsMap.get(match.teams?.team2);
 
         if (!team1Data || !team2Data) {
-          console.warn(`Teams not found for match ${match.match_id}, skipping innings embedding`);
+          console.warn(`Teams not found for match ${match.match_id}: team1=${match.teams?.team1} (found: ${!!team1Data}), team2=${match.teams?.team2} (found: ${!!team2Data})`);
+          continue;
+        }
+        if (!team1Data.teamId || !team2Data.teamId) {
+          console.warn(`Teams missing teamId for match ${match.match_id}: team1=${match.teams?.team1} (teamId: ${team1Data.teamId}), team2=${match.teams?.team2} (teamId: ${team2Data.teamId})`);
           continue;
         }
 
@@ -1019,54 +1113,12 @@ class JSONToV2Migration {
         const team1Players = this.extractSquadPlayers(match, team1Data);
         const team2Players = this.extractSquadPlayers(match, team2Data);
 
-        // Create innings data for both teams
-        const inningsData = [];
+        // Update player career stats based on this match performance
+        await this.updatePlayerCareerStats(match, team1Players, team2Players, team1Data, team2Data);
 
-        // Helper function to find dismissal data for a player
-        const findPlayerDismissal = (playerName, teamName) => {
-          if (!match.innings) return null;
-
-          for (const inning of match.innings) {
-            // Check if this inning belongs to the player's team
-            if (inning.team === teamName || inning.battingTeam === teamName) {
-              if (inning.batting && Array.isArray(inning.batting)) {
-                const playerBatting = inning.batting.find(batter =>
-                  batter.name && batter.name.toLowerCase() === playerName.toLowerCase()
-                );
-                if (playerBatting && playerBatting.how_out) {
-                  return playerBatting.how_out;
-                }
-              }
-            }
-          }
-          return null;
-        };
-
-        // Create team 1 innings
-        const team1Innings = this.createInningsData(
-          match,
-          team1Data,
-          team1Players,
-          captains.team1,
-          findPlayerDismissal
-        );
-        if (team1Innings) inningsData.push(team1Innings);
-
-        // Create team 2 innings
-        const team2Innings = this.createInningsData(
-          match,
-          team2Data,
-          team2Players,
-          captains.team2,
-          findPlayerDismissal
-        );
-        if (team2Innings) inningsData.push(team2Innings);
-
-        // Update the match document with innings data
-        currentBatch.update(matchDoc.ref, {
-          innings: inningsData,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
+        // Increment processed count (2 teams per match)
+        this.stats.matchSquads.processed += 2;
+        this.stats.matchSquads.migrated += 2;
         batchCount++;
 
         // Update player career stats based on this match performance
@@ -1109,8 +1161,8 @@ class JSONToV2Migration {
     }
 
     // Calculate winner team ID
-    const winnerTeamId = match.result?.winner === match.teams?.team1 ? team1Data.numericId :
-                        match.result?.winner === match.teams?.team2 ? team2Data.numericId : null;
+    const winnerTeamId = match.result?.winner === match.teams?.team1 ? team1Data.teamId :
+                        match.result?.winner === match.teams?.team2 ? team2Data.teamId : null;
     // Process all players from both teams
     const playersToUpdate = [...team1Players, ...team2Players];
     const maxBatchSize = 500; // Firestore batch limit
@@ -1122,14 +1174,14 @@ class JSONToV2Migration {
 
     for (const player of playersToUpdate) {
       try {
-        // Find player document by numericId since player.playerId is now numericId
+        // Find player document by playerId
         const playerQuery = await this.db.collection(V2_COLLECTIONS.PLAYERS)
-          .where('numericId', '==', player.playerId)
+          .where('playerId', '==', player.playerId)
           .limit(1)
           .get();
         
         if (playerQuery.empty) {
-          console.warn(`Player with numericId ${player.playerId} not found, skipping career stats update`);
+          console.warn(`Player with playerId ${player.playerId} not found, skipping career stats update`);
           continue;
         }        const playerDoc = playerQuery.docs[0];
         const playerRef = playerDoc.ref;
@@ -1173,7 +1225,8 @@ class JSONToV2Migration {
           }
 
           // Update best bowling
-          const currentBest = careerStats.bowling.bestBowling.split('/').map(Number);
+          const currentBestBowling = careerStats.bowling.bestBowling || '0/0';
+          const currentBest = currentBestBowling.split('/').map(Number);
           const newWickets = player.bowling.wickets;
           const newRuns = player.bowling.runs;
 
@@ -1237,7 +1290,7 @@ class JSONToV2Migration {
         const matchSummary = {
           matchId: match.match_id,
           date: new Date(match.date || Date.now()),
-          opponent: player.teamId === team1Data.numericId.toString() ? match.teams?.team2 : match.teams?.team1,
+          opponent: player.teamId === team1Data.teamId ? match.teams?.team2 : match.teams?.team1,
           result: winnerTeamId === player.teamId ? 'Won' : 'Lost'
         };
 
@@ -1257,7 +1310,7 @@ class JSONToV2Migration {
         const recentTeams = playerData.recentTeams || [];
         const teamInfo = {
           teamId: player.teamId,
-          teamName: player.teamId === team1Data.numericId.toString() ? match.teams?.team1 : match.teams?.team2,
+          teamName: player.teamId === team1Data.teamId ? match.teams?.team1 : match.teams?.team2,
           lastPlayed: new Date(match.date || Date.now()),
           matchesPlayed: 1
         };
@@ -1318,46 +1371,130 @@ class JSONToV2Migration {
   createInningsData(match, teamData, squadPlayers, captainInfo, findPlayerDismissal) {
     // Helper function to clean undefined values from objects
     const cleanObject = (obj) => {
+      if (obj === null || obj === undefined) return undefined;
+      if (typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) {
+        const cleanedArray = obj.map(cleanObject).filter(item => item !== undefined);
+        return cleanedArray;
+      }
       const cleaned = {};
       for (const [key, value] of Object.entries(obj)) {
-        if (value !== undefined) {
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            cleaned[key] = cleanObject(value);
-          } else if (Array.isArray(value)) {
-            cleaned[key] = value.map(item =>
-              typeof item === 'object' && item !== null ? cleanObject(item) : item
-            );
-          } else {
-            cleaned[key] = value;
-          }
+        const cleanedValue = cleanObject(value);
+        if (cleanedValue !== undefined) {
+          cleaned[key] = cleanedValue;
         }
       }
       return cleaned;
     };
 
-    return cleanObject({
-      teamId: teamData.numericId.toString(),
-      teamName: teamData.data.name,
-      captain: captainInfo.id ? {
-        playerId: captainInfo.id,
-        name: captainInfo.name
-      } : undefined,
-      viceCaptain: undefined, // Can be set if available in future
-      batting: squadPlayers.map((player, index) => cleanObject({
-        playerId: player.playerId,
-        name: player.name,
-        role: player.role,
-        battingOrder: player.battingOrder || (index + 1),
-        bowlingOrder: player.bowlingOrder || null,
-        battingStyle: player.battingStyle || 'RHB',
-        bowlingStyle: player.bowlingStyle || null,
-        isCaptain: player.playerId === captainInfo.id,
-        isWicketKeeper: player.role === 'wicket-keeper',
-        dismissal: findPlayerDismissal(player.name, teamData.data.name),
-        // Include any other player data
-        ...player
-      }))
-    });
+    try {
+      if (!teamData || !teamData.teamId || !teamData.data || !teamData.data.name) {
+        console.error(`Invalid teamData for innings creation:`, teamData);
+        return null;
+      }
+
+      // Find the innings data for this team from the match JSON
+      const teamInnings = match.innings?.find(innings =>
+        innings.team === teamData.data.name ||
+        innings.battingTeam === teamData.data.name
+      );
+
+      if (!teamInnings) {
+        console.warn(`No innings data found for team ${teamData.data.name} in match ${match.match_id}`);
+        console.warn(`Available innings teams:`, match.innings?.map(i => i.team));
+        return null;
+      }
+
+      // Create the innings structure with actual data from JSON
+      const inningsData = {
+        teamId: teamData.teamId,
+        teamName: teamData.data.name,
+        score: teamInnings.score,
+        overs: teamInnings.overs,
+        extras: teamInnings.extras,
+        captain: captainInfo.id ? {
+          playerId: captainInfo.id,
+          name: captainInfo.name
+        } : null,
+        viceCaptain: null,
+        batting: teamInnings.batting?.map(batter => ({
+          playerId: this.findPlayerIdByName(batter.name) || `temp_${batter.name.replace(/\s+/g, '_').toLowerCase()}`,
+          name: batter.name,
+          role: batter.is_wicket_keeper ? 'wicket-keeper' : 'batsman',
+          battingOrder: null, // Will be set based on actual order
+          bowlingOrder: null,
+          battingStyle: batter.batting_style || 'RHB',
+          bowlingStyle: null,
+          isCaptain: batter.is_captain || false,
+          isWicketKeeper: batter.is_wicket_keeper || false,
+          runs: batter.runs || 0,
+          balls: batter.balls || 0,
+          fours: batter.fours || 0,
+          sixes: batter.sixes || 0,
+          strikeRate: batter.sr || 0,
+          howOut: batter.how_out ? {
+            type: batter.how_out.type,
+            text: batter.how_out.text,
+            bowler: batter.how_out.bowler,
+            fielder: batter.how_out.fielder,
+            fielders: batter.how_out.fielders
+          } : null
+        })) || [],
+        bowling: teamInnings.bowling?.map(bowler => ({
+          playerId: this.findPlayerIdByName(bowler.name) || `temp_${bowler.name.replace(/\s+/g, '_').toLowerCase()}`,
+          name: bowler.name,
+          overs: bowler.overs || 0,
+          maidens: bowler.maidens || 0,
+          runs: bowler.runs || 0,
+          wickets: bowler.wickets || 0,
+          dots: bowler.dots || 0,
+          fours: bowler.fours || 0,
+          sixes: bowler.sixes || 0,
+          wides: bowler.wides || 0,
+          noBalls: bowler.noballs || bowler.no_balls || 0,
+          economy: bowler.eco || 0,
+          isCaptain: bowler.is_captain || false,
+          isWicketKeeper: bowler.is_wicket_keeper || false
+        })) || [],
+        fallOfWickets: teamInnings.fall_of_wickets?.map(fow => ({
+          score: fow.score,
+          wicket: fow.wicket,
+          player: fow.player,
+          over: fow.over
+        })) || [],
+        didNotBat: teamInnings.did_not_bat || []
+      };
+
+      return inningsData;
+    } catch (error) {
+      console.error(`Error creating innings data for team ${teamData.data.name}:`, error);
+      return null;
+    }
+  }
+
+  findPlayerIdByName(playerName) {
+    if (!playerName) return null;
+
+    // Search through the players map for a matching name
+    for (const [nameKey, playerData] of this.playersMap.entries()) {
+      if (playerData.data?.name && playerData.data.name.toLowerCase() === playerName.toLowerCase()) {
+        return playerData.playerId;
+      }
+    }
+
+    // If not found, try a fuzzy match (remove extra spaces, etc.)
+    const normalizedName = playerName.toLowerCase().trim();
+    for (const [nameKey, playerData] of this.playersMap.entries()) {
+      if (playerData.data?.name) {
+        const normalizedPlayerName = playerData.data.name.toLowerCase().trim();
+        if (normalizedPlayerName === normalizedName) {
+          return playerData.playerId;
+        }
+      }
+    }
+
+    console.warn(`Player ID not found for name: ${playerName}`);
+    return null;
   }
 
   async createMatchSquadDocument(match, matchNumericId, teamData, opponentTeamData, captainInfo, displayId) {
@@ -1379,13 +1516,13 @@ class JSONToV2Migration {
     }
 
     // Create the match squad document
-    const matchSquadId = `${teamData.numericId}_${match.match_id}`;
+    const matchSquadId = `${matchNumericId}_${teamData.teamId}`;
 
     return {
       matchSquadId: matchSquadId,
       displayId: displayId,
       matchId: matchNumericId.toString(),
-      teamId: teamData.numericId.toString(),
+      teamId: teamData.teamId.toString(),
       match: {
         matchId: matchNumericId.toString(),
         title: `${match.teams?.team1 || 'Team 1'} vs ${match.teams?.team2 || 'Team 2'}`,
@@ -1395,7 +1532,7 @@ class JSONToV2Migration {
         status: 'completed'
       },
       team: {
-        teamId: teamData.numericId.toString(),
+        teamId: teamData.teamId.toString(),
         name: teamData.data.name,
         shortName: teamData.data.shortName
       },
@@ -1419,7 +1556,7 @@ class JSONToV2Migration {
       } : null,
       wicketKeepers: wicketKeepers,
       opponentSquad: {
-        teamId: opponentTeamData.numericId.toString(),
+        teamId: opponentTeamData.teamId.toString(),
         name: opponentTeamData.data.name,
         shortName: opponentTeamData.data.shortName
       },
@@ -1468,7 +1605,7 @@ class JSONToV2Migration {
           if (!playerStats.has(playerName)) {
             playerStats.set(playerName, {
               playerId: null,
-              teamId: teamData.numericId.toString(),
+              teamId: teamData.teamId,
               name: playerName,
               role: batsman.is_wicket_keeper ? 'wicket-keeper' : 'batsman',
               battingStyle: batsman.batting_style || 'RHB',
@@ -1514,7 +1651,7 @@ class JSONToV2Migration {
           if (!playerStats.has(playerName)) {
             playerStats.set(playerName, {
               playerId: null,
-              teamId: teamData.numericId.toString(),
+              teamId: teamData.teamId,
               name: playerName,
               role: 'bowler',
               battingStyle: 'RHB',
@@ -1577,7 +1714,7 @@ class JSONToV2Migration {
     const playersArray = Array.from(playerStats.values()).map(player => {
       const playerData = this.playersMap.get(player.name);
       if (playerData) {
-        player.playerId = playerData.numericId;
+        player.playerId = playerData.playerId;
       }
 
       // Set batting and bowling orders from the maps
@@ -1599,38 +1736,60 @@ class JSONToV2Migration {
     console.log('🚀 Starting Team Players Population...');
 
     try {
-      // Get all match squads directly to build team-player relationships
-      const squadsSnapshot = await this.db.collection(V2_COLLECTIONS.MATCH_SQUADS).get();
-      const squads = squadsSnapshot.docs.map(doc => ({
+      // Get all matches to extract players from embedded innings data
+      const matchesSnapshot = await this.db.collection(V2_COLLECTIONS.MATCHES).get();
+      const matches = matchesSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
 
-      console.log(`Found ${squads.length} match squads to process`);
+      console.log(`Found ${matches.length} matches to process for player extraction`);
 
-      // Build team-player mapping from squad data
+      // Build team-player mapping from innings data in matches
       const teamPlayersMap = new Map();
 
-      for (const squad of squads) {
-        const teamId = squad.team?.teamId;
-        if (!teamId) {
-          console.log(`⚠️  Skipping squad ${squad.id} - no teamId found`);
-          continue;
+      for (const match of matches) {
+        // Process innings data from both teams
+        const teamsToProcess = [];
+        if (match.team1?.innings) {
+          teamsToProcess.push({ teamId: match.team1.id, innings: match.team1.innings });
+        }
+        if (match.team2?.innings) {
+          teamsToProcess.push({ teamId: match.team2.id, innings: match.team2.innings });
         }
 
-        if (!teamPlayersMap.has(teamId)) {
-          teamPlayersMap.set(teamId, new Map());
-        }
+        for (const { teamId, innings } of teamsToProcess) {
+          if (!teamId) continue;
 
-        // Add all players from this squad to the team
-        for (const player of squad.players || []) {
-          teamPlayersMap.get(teamId).set(player.playerId, {
-            playerId: player.playerId,
-            name: player.name,
-            role: player.role,
-            battingStyle: player.battingStyle,
-            avatar: player.avatar || null
-          });
+          if (!teamPlayersMap.has(teamId)) {
+            teamPlayersMap.set(teamId, new Map());
+          }
+
+          // Extract players from batting data
+          for (const batsman of innings.batting || []) {
+            if (batsman.playerId && batsman.name) {
+              teamPlayersMap.get(teamId).set(batsman.playerId, {
+                playerId: batsman.playerId,
+                name: batsman.name,
+                role: batsman.role || 'batsman',
+                battingStyle: batsman.battingStyle || null,
+                avatar: batsman.avatar || null
+              });
+            }
+          }
+
+          // Extract players from bowling data
+          for (const bowler of innings.bowling || []) {
+            if (bowler.playerId && bowler.name) {
+              teamPlayersMap.get(teamId).set(bowler.playerId, {
+                playerId: bowler.playerId,
+                name: bowler.name,
+                role: bowler.role || 'bowler',
+                battingStyle: bowler.battingStyle || null,
+                avatar: bowler.avatar || null
+              });
+            }
+          }
         }
       }
 
@@ -1651,12 +1810,12 @@ class JSONToV2Migration {
 
       for (const team of teams) {
         try {
-          console.log(`Updating team: ${team.name} (${team.numericId})`);
+          console.log(`Updating team: ${team.name} (${team.teamId})`);
 
-          const teamPlayerMap = teamPlayersMap.get(team.numericId);
+          const teamPlayerMap = teamPlayersMap.get(team.teamId);
           const teamPlayers = teamPlayerMap ? Array.from(teamPlayerMap.values()) : [];
 
-          console.log(`Found ${teamPlayers.length} players in matches for team ${team.name} (${team.numericId})`);
+          console.log(`Found ${teamPlayers.length} players in matches for team ${team.name} (${team.teamId})`);
 
           if (teamPlayers.length === 0) {
             console.log(`⚠️  No players found for team ${team.name}, skipping update`);
@@ -1666,15 +1825,12 @@ class JSONToV2Migration {
           // Get stats for each player
           const playersWithStats = [];
           for (const player of teamPlayers) {
-            const playerStats = await this.getPlayerStatsForTeam(player.playerId, team.numericId);
+            const playerStats = await this.getPlayerStatsForTeam(player.playerId, team.teamId);
 
             playersWithStats.push({
               playerId: player.playerId,
               player: player,
-              matchesPlayed: playerStats.matchesPlayed,
-              totalRuns: playerStats.totalRuns,
-              totalWickets: playerStats.totalWickets,
-              lastPlayed: playerStats.lastPlayed || admin.firestore.Timestamp.now(),
+              stats: playerStats, // Use the full enhanced stats structure
               isCaptain: player.playerId === team.captainId,
               isViceCaptain: player.playerId === team.viceCaptainId
             });
@@ -1721,11 +1877,11 @@ class JSONToV2Migration {
     // Get all matches where this player participated for this team
     // Now we need to query matches and look in the innings data
     const matches = await this.db.collection(V2_COLLECTIONS.MATCHES)
-      .where('team1Id', '==', teamId)
+      .where('team1.id', '==', teamId)
       .get();
 
     const matches2 = await this.db.collection(V2_COLLECTIONS.MATCHES)
-      .where('team2Id', '==', teamId)
+      .where('team2.id', '==', teamId)
       .get();
 
     const allMatches = [...matches.docs, ...matches2.docs];
@@ -1735,41 +1891,320 @@ class JSONToV2Migration {
     let totalWickets = 0;
     let lastPlayed = null;
 
+    // Enhanced batting stats
+    let battingInnings = 0;
+    let notOuts = 0;
+    let highestScore = 0;
+    let centuries = 0;
+    let fifties = 0;
+    let ducks = 0;
+    let totalBallsFaced = 0;
+
+    // Enhanced bowling stats
+    let bowlingInnings = 0;
+    let totalOvers = 0;
+    let totalRunsConceded = 0;
+    let maidens = 0;
+    let bestBowlingFigures = { wickets: 0, runs: 0 };
+    let fiveWicketHauls = 0;
+
+    // Fielding stats
+    let catches = 0;
+    let runOuts = 0;
+
     for (const matchDoc of allMatches) {
       const match = matchDoc.data();
 
       // Find the innings for this team
-      const teamInnings = match.innings?.find(inning => inning.teamId === teamId);
+      let teamInnings = null;
+      if (match.team1?.id === teamId && match.team1?.innings) {
+        teamInnings = match.team1.innings;
+      } else if (match.team2?.id === teamId && match.team2?.innings) {
+        teamInnings = match.team2.innings;
+      }
+
       if (!teamInnings) continue;
 
       const player = teamInnings.batting?.find(p => p.playerId === playerId);
       if (player) {
         matchesPlayed++;
 
-        // Add batting stats
+        // Enhanced batting stats
         if (player.batting) {
-          totalRuns += player.batting.runs || 0;
+          battingInnings++;
+          const runs = player.batting.runs || 0;
+          const balls = player.batting.balls || 0;
+          const isNotOut = player.batting.notOut || false;
+
+          totalRuns += runs;
+          totalBallsFaced += balls;
+
+          if (!isNotOut) {
+            notOuts++;
+          }
+
+          if (runs > highestScore) {
+            highestScore = runs;
+          }
+
+          if (runs >= 100) {
+            centuries++;
+          } else if (runs >= 50) {
+            fifties++;
+          }
+
+          if (runs === 0 && !isNotOut) {
+            ducks++;
+          }
         }
 
-        // Add bowling stats
+        // Enhanced bowling stats
         if (player.bowling) {
-          totalWickets += player.bowling.wickets || 0;
+          bowlingInnings++;
+          const wickets = player.bowling.wickets || 0;
+          const runsConceded = player.bowling.runs || 0;
+          const overs = player.bowling.overs || 0;
+          const maidenOvers = player.bowling.maidens || 0;
+
+          totalWickets += wickets;
+          totalRunsConceded += runsConceded;
+          totalOvers += overs;
+          maidens += maidenOvers;
+
+          // Track best bowling figures
+          if (wickets > bestBowlingFigures.wickets ||
+              (wickets === bestBowlingFigures.wickets && runsConceded < bestBowlingFigures.runs)) {
+            bestBowlingFigures = { wickets, runs: runsConceded };
+          }
+
+          if (wickets >= 5) {
+            fiveWicketHauls++;
+          }
+        }
+
+        // Fielding stats
+        if (player.fielding) {
+          catches += player.fielding.catches || 0;
+          runOuts += player.fielding.runOuts || 0;
         }
 
         // Track last played date
-        const matchDate = match.date?.toDate ? match.date.toDate() : new Date(match.date);
-        if (!lastPlayed || matchDate > lastPlayed) {
-          lastPlayed = matchDate;
+        let matchDate = null;
+        try {
+          if (match.date?.toDate) {
+            matchDate = match.date.toDate();
+          } else if (match.date) {
+            matchDate = new Date(match.date);
+          }
+          // Validate the date
+          if (matchDate && !isNaN(matchDate.getTime())) {
+            if (!lastPlayed || matchDate > lastPlayed) {
+              lastPlayed = matchDate;
+            }
+          }
+        } catch (error) {
+          console.warn(`Invalid date format for match ${match.externalReferenceId}: ${match.date}`);
         }
       }
     }
 
+    // Calculate derived stats
+    const battingAverage = battingInnings > notOuts ? parseFloat((totalRuns / (battingInnings - notOuts)).toFixed(2)) : 0.00;
+    const strikeRate = totalBallsFaced > 0 ? parseFloat(((totalRuns / totalBallsFaced) * 100).toFixed(2)) : 0.00;
+    const bowlingAverage = totalWickets > 0 ? parseFloat((totalRunsConceded / totalWickets).toFixed(2)) : 0.00;
+    const economyRate = totalOvers > 0 ? parseFloat((totalRunsConceded / totalOvers).toFixed(2)) : 0.00;
+
     return {
       matchesPlayed,
-      totalRuns,
-      totalWickets,
+      batting: {
+        innings: battingInnings,
+        runs: totalRuns,
+        highest: highestScore,
+        average: battingAverage,
+        strikeRate: strikeRate,
+        centuries,
+        fifties,
+        ducks,
+        notOuts
+      },
+      bowling: {
+        innings: bowlingInnings,
+        wickets: totalWickets,
+        runs: totalRunsConceded,
+        overs: totalOvers,
+        maidens,
+        bestFigures: `${bestBowlingFigures.wickets}/${bestBowlingFigures.runs}`,
+        average: bowlingAverage,
+        economy: economyRate,
+        fiveWicketHauls
+      },
+      fielding: {
+        catches,
+        runOuts
+      },
       lastPlayed: lastPlayed ? admin.firestore.Timestamp.fromDate(lastPlayed) : null
     };
+  }
+
+  async calculateAndUpdateTeamStats() {
+    console.log('📊 Calculating comprehensive team statistics...');
+
+    try {
+      // Get all teams
+      const teamsSnapshot = await this.db.collection(V2_COLLECTIONS.TEAMS).get();
+      const teams = teamsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ref: doc.ref,
+        ...doc.data()
+      }));
+
+      console.log(`Found ${teams.length} teams to calculate stats for`);
+
+      let updatedCount = 0;
+      let errorCount = 0;
+
+      for (const team of teams) {
+        try {
+          console.log(`Calculating stats for team: ${team.name} (${team.teamId})`);
+
+          // Get all matches where this team participated
+          // Since Firestore doesn't support querying nested fields, get all matches and filter in memory
+          const allMatchesSnapshot = await this.db.collection(V2_COLLECTIONS.MATCHES).get();
+          const allMatches = allMatchesSnapshot.docs.filter(doc => {
+            const match = doc.data();
+            return match.team1?.id === team.teamId || match.team2?.id === team.teamId;
+          });
+
+          // Calculate team statistics
+          const teamStats = {
+            matchesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            winPercentage: 0,
+            totalRunsScored: 0,
+            totalRunsConceded: 0,
+            totalWicketsTaken: 0,
+            totalWicketsLost: 0,
+            highestScore: 0,
+            lowestScore: null,
+            averageScore: 0,
+            lastPlayed: null,
+            recentMatches: []
+          };
+
+          for (const matchDoc of allMatches) {
+            const match = matchDoc.data();
+            teamStats.matchesPlayed++;
+
+            // Find the innings for this team
+            const teamInnings = match.innings?.find(inning => inning.teamId === team.teamId);
+            const opponentInnings = match.innings?.find(inning => inning.teamId !== team.teamId);
+
+            if (teamInnings) {
+              // Calculate runs scored and wickets lost
+              const runsScored = teamInnings.batting?.reduce((total, batsman) => total + (batsman.runs || 0), 0) || 0;
+              const wicketsLost = teamInnings.batting?.filter(batsman => batsman.how_out && batsman.how_out.type !== 'not out').length || 0;
+
+              teamStats.totalRunsScored += runsScored;
+              teamStats.totalWicketsLost += wicketsLost;
+
+              // Track highest/lowest scores
+              if (runsScored > teamStats.highestScore) {
+                teamStats.highestScore = runsScored;
+              }
+              if (teamStats.lowestScore === null || runsScored < teamStats.lowestScore) {
+                teamStats.lowestScore = runsScored;
+              }
+            }
+
+            if (opponentInnings) {
+              // Calculate wickets taken and runs conceded
+              const wicketsTaken = opponentInnings.bowling?.reduce((total, bowler) => total + (bowler.wickets || 0), 0) || 0;
+              const runsConceded = opponentInnings.batting?.reduce((total, batsman) => total + (batsman.runs || 0), 0) || 0;
+
+              teamStats.totalWicketsTaken += wicketsTaken;
+              teamStats.totalRunsConceded += runsConceded;
+            }
+
+            // Determine match result
+            if (match.result?.winnerTeamId === team.teamId) {
+              teamStats.wins++;
+            } else if (match.result?.winnerTeamId && match.result.winnerTeamId !== team.teamId) {
+              teamStats.losses++;
+            } else {
+              teamStats.draws++;
+            }
+
+            // Track last played date
+            const matchDate = match.scheduledDate?.toDate ? match.scheduledDate.toDate() : new Date(match.scheduledDate || Date.now());
+            if (!teamStats.lastPlayed || matchDate > teamStats.lastPlayed) {
+              teamStats.lastPlayed = matchDate;
+            }
+
+            // Add to recent matches (keep last 5)
+            const opponentName = match.team1?.id === team.teamId ? match.team2?.name : match.team1?.name;
+            const matchSummary = {
+              matchId: match.numericId || matchDoc.id,
+              opponent: opponentName,
+              result: match.result?.winner === team.name ? 'Won' : (match.result?.winner ? 'Lost' : 'Draw'),
+              runsScored: teamInnings?.batting?.reduce((total, batsman) => total + (batsman.runs || 0), 0) || 0,
+              runsConceded: opponentInnings?.batting?.reduce((total, batsman) => total + (batsman.runs || 0), 0) || 0,
+              date: matchDate
+            };
+
+            teamStats.recentMatches.unshift(matchSummary);
+            if (teamStats.recentMatches.length > 5) {
+              teamStats.recentMatches.pop();
+            }
+          }
+
+          // Calculate derived statistics
+          teamStats.winPercentage = teamStats.matchesPlayed > 0 ? (teamStats.wins / teamStats.matchesPlayed) * 100 : 0;
+          teamStats.averageScore = teamStats.matchesPlayed > 0 ? teamStats.totalRunsScored / teamStats.matchesPlayed : 0;
+
+          // Convert dates to Firestore timestamps
+          if (teamStats.lastPlayed) {
+            teamStats.lastPlayed = admin.firestore.Timestamp.fromDate(teamStats.lastPlayed);
+          }
+
+          teamStats.recentMatches = teamStats.recentMatches.map(match => ({
+            ...match,
+            date: admin.firestore.Timestamp.fromDate(match.date)
+          }));
+
+          // Update team with statistics
+          await team.ref.update({
+            teamStats: teamStats,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+
+          console.log(`✅ Updated ${team.name} with stats: ${teamStats.matchesPlayed} matches, ${teamStats.wins} wins, ${teamStats.losses} losses`);
+          updatedCount++;
+
+        } catch (error) {
+          console.error(`❌ Failed to calculate stats for team ${team.name}:`, error);
+          errorCount++;
+        }
+      }
+
+      // Update stats
+      this.stats.teamStats.processed = teams.length;
+      this.stats.teamStats.migrated = updatedCount;
+      this.stats.teamStats.errors = errorCount;
+
+      console.log(`\n📊 Team Statistics Calculation Summary:`);
+      console.log(`Updated: ${updatedCount}/${teams.length} teams`);
+      console.log(`Errors: ${errorCount}`);
+
+      if (errorCount === 0) {
+        console.log('\n✅ All team statistics calculated successfully!');
+      }
+
+    } catch (error) {
+      console.error('❌ Team statistics calculation failed:', error);
+      throw error;
+    }
   }
 
   printMigrationSummary() {
@@ -1780,10 +2215,11 @@ class JSONToV2Migration {
     console.log(`Matches: ${this.stats.matches.migrated}/${this.stats.matches.processed} migrated (${this.stats.matches.errors} errors)`);
     console.log(`Match Innings: ${this.stats.matchSquads.migrated}/${this.stats.matchSquads.processed} embedded (${this.stats.matchSquads.errors} errors)`);
     console.log(`Team Players: ${this.stats.teamPlayers.migrated}/${this.stats.teamPlayers.processed} migrated (${this.stats.teamPlayers.errors} errors)`);
+    console.log(`Team Stats: ${this.stats.teamStats.migrated}/${this.stats.teamStats.processed} migrated (${this.stats.teamStats.errors} errors)`);
 
-    const totalMigrated = this.stats.teams.migrated + this.stats.players.migrated + this.stats.matches.migrated + this.stats.matchSquads.migrated + this.stats.teamPlayers.migrated;
-    const totalProcessed = this.stats.teams.processed + this.stats.players.processed + this.stats.matches.processed + this.stats.matchSquads.processed + this.stats.teamPlayers.processed;
-    const totalErrors = this.stats.teams.errors + this.stats.players.errors + this.stats.matches.errors + this.stats.matchSquads.errors + this.stats.teamPlayers.errors;
+    const totalMigrated = this.stats.teams.migrated + this.stats.players.migrated + this.stats.matches.migrated + this.stats.matchSquads.migrated + this.stats.teamPlayers.migrated + this.stats.teamStats.migrated;
+    const totalProcessed = this.stats.teams.processed + this.stats.players.processed + this.stats.matches.processed + this.stats.matchSquads.processed + this.stats.teamPlayers.processed + this.stats.teamStats.processed;
+    const totalErrors = this.stats.teams.errors + this.stats.players.errors + this.stats.matches.errors + this.stats.matchSquads.errors + this.stats.teamPlayers.errors + this.stats.teamStats.errors;
 
     console.log(`\nTotal: ${totalMigrated}/${totalProcessed} migrated (${totalErrors} errors)`);
 

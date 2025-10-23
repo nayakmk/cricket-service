@@ -1,0 +1,491 @@
+{
+  "auctionId": "auction_2025_001",
+  "tournamentId": "tournament_2025_cricket_league",
+  "tournamentName": "Cricket League 2025",
+  "auctionConfig": {
+    "totalBudget": 10000,
+    "minBidIncrement": 100,
+    "basePricePerPlayer": 500,
+    "maxPlayersPerTeam": 15,
+    "status": "completed",
+    "createdAt": "2025-10-20T10:00:00Z",
+    "completedAt": "2025-10-20T14:30:00Z",
+    "totalPlayersAuctioned": 45,
+    "totalSoldPlayers": 42,
+    "totalUnsoldPlayers": 3
+  },
+  "teams": [
+    {
+      "id": "team_001",
+      "name": "Mumbai Indians",
+      "shortName": "MI",
+      "totalBudget": 10000,
+      "remainingBudget": 1250,
+      "spentBudget": 8750,
+      "playersCount": 15,
+      "players": [
+        {
+          "playerId": "player_001",
+          "name": "Rohit Sharma",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 1200,
+          "purchasedAt": "2025-10-20T10:15:00Z"
+        },
+        {
+          "playerId": "player_002",
+          "name": "Jasprit Bumrah",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 950,
+          "purchasedAt": "2025-10-20T10:30:00Z"
+        },
+        {
+          "playerId": "player_003",
+          "name": "Suryakumar Yadav",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 1100,
+          "purchasedAt": "2025-10-20T10:45:00Z"
+        },
+        {
+          "playerId": "player_004",
+          "name": "Ishan Kishan",
+          "role": "wicket-keeper",
+          "basePrice": 500,
+          "finalPrice": 800,
+          "purchasedAt": "2025-10-20T11:00:00Z"
+        },
+        {
+          "playerId": "player_005",
+          "name": "Hardik Pandya",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 1300,
+          "purchasedAt": "2025-10-20T11:15:00Z"
+        },
+        {
+          "playerId": "player_006",
+          "name": "Kieron Pollard",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 900,
+          "purchasedAt": "2025-10-20T11:30:00Z"
+        },
+        {
+          "playerId": "player_007",
+          "name": "Trent Boult",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 850,
+          "purchasedAt": "2025-10-20T11:45:00Z"
+        },
+        {
+          "playerId": "player_008",
+          "name": "Quinton de Kock",
+          "role": "wicket-keeper",
+          "basePrice": 500,
+          "finalPrice": 750,
+          "purchasedAt": "2025-10-20T12:00:00Z"
+        },
+        {
+          "playerId": "player_009",
+          "name": "Rahul Chahar",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 600,
+          "purchasedAt": "2025-10-20T12:15:00Z"
+        },
+        {
+          "playerId": "player_010",
+          "name": "Anmolpreet Singh",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 550,
+          "purchasedAt": "2025-10-20T12:30:00Z"
+        },
+        {
+          "playerId": "player_011",
+          "name": "Jayant Yadav",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 650,
+          "purchasedAt": "2025-10-20T12:45:00Z"
+        },
+        {
+          "playerId": "player_012",
+          "name": "Mohsin Khan",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 700,
+          "purchasedAt": "2025-10-20T13:00:00Z"
+        },
+        {
+          "playerId": "player_013",
+          "name": "Arjun Tendulkar",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 800,
+          "purchasedAt": "2025-10-20T13:15:00Z"
+        },
+        {
+          "playerId": "player_014",
+          "name": "Tilak Varma",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 900,
+          "purchasedAt": "2025-10-20T13:30:00Z"
+        },
+        {
+          "playerId": "player_015",
+          "name": "Tim David",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 1000,
+          "purchasedAt": "2025-10-20T13:45:00Z"
+        }
+      ]
+    },
+    {
+      "id": "team_002",
+      "name": "Chennai Super Kings",
+      "shortName": "CSK",
+      "totalBudget": 10000,
+      "remainingBudget": 1800,
+      "spentBudget": 8200,
+      "playersCount": 15,
+      "players": [
+        {
+          "playerId": "player_016",
+          "name": "MS Dhoni",
+          "role": "wicket-keeper",
+          "basePrice": 500,
+          "finalPrice": 1400,
+          "purchasedAt": "2025-10-20T10:05:00Z"
+        },
+        {
+          "playerId": "player_017",
+          "name": "Ruturaj Gaikwad",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 1000,
+          "purchasedAt": "2025-10-20T10:20:00Z"
+        },
+        {
+          "playerId": "player_018",
+          "name": "Deepak Chahar",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 850,
+          "purchasedAt": "2025-10-20T10:35:00Z"
+        },
+        {
+          "playerId": "player_019",
+          "name": "Shivam Dube",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 950,
+          "purchasedAt": "2025-10-20T10:50:00Z"
+        },
+        {
+          "playerId": "player_020",
+          "name": "Ambati Rayudu",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 700,
+          "purchasedAt": "2025-10-20T11:05:00Z"
+        },
+        {
+          "playerId": "player_021",
+          "name": "Ravindra Jadeja",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 1200,
+          "purchasedAt": "2025-10-20T11:20:00Z"
+        },
+        {
+          "playerId": "player_022",
+          "name": "Moeen Ali",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 1100,
+          "purchasedAt": "2025-10-20T11:35:00Z"
+        },
+        {
+          "playerId": "player_023",
+          "name": "Lungi Ngidi",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 900,
+          "purchasedAt": "2025-10-20T11:50:00Z"
+        },
+        {
+          "playerId": "player_024",
+          "name": "Robin Uthappa",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 650,
+          "purchasedAt": "2025-10-20T12:05:00Z"
+        },
+        {
+          "playerId": "player_025",
+          "name": "Dwayne Bravo",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 800,
+          "purchasedAt": "2025-10-20T12:20:00Z"
+        },
+        {
+          "playerId": "player_026",
+          "name": "Faf du Plessis",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 750,
+          "purchasedAt": "2025-10-20T12:35:00Z"
+        },
+        {
+          "playerId": "player_027",
+          "name": "Mitchell Santner",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 850,
+          "purchasedAt": "2025-10-20T12:50:00Z"
+        },
+        {
+          "playerId": "player_028",
+          "name": "Tushar Deshpande",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 600,
+          "purchasedAt": "2025-10-20T13:05:00Z"
+        },
+        {
+          "playerId": "player_029",
+          "name": "Subhranshu Senapati",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 550,
+          "purchasedAt": "2025-10-20T13:20:00Z"
+        },
+        {
+          "playerId": "player_030",
+          "name": "Maheesh Theekshana",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 950,
+          "purchasedAt": "2025-10-20T13:35:00Z"
+        }
+      ]
+    },
+    {
+      "id": "team_003",
+      "name": "Royal Challengers Bangalore",
+      "shortName": "RCB",
+      "totalBudget": 10000,
+      "remainingBudget": 2100,
+      "spentBudget": 7900,
+      "playersCount": 12,
+      "players": [
+        {
+          "playerId": "player_031",
+          "name": "Virat Kohli",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 1500,
+          "purchasedAt": "2025-10-20T10:10:00Z"
+        },
+        {
+          "playerId": "player_032",
+          "name": "AB de Villiers",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 1200,
+          "purchasedAt": "2025-10-20T10:25:00Z"
+        },
+        {
+          "playerId": "player_033",
+          "name": "Glenn Maxwell",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 1300,
+          "purchasedAt": "2025-10-20T10:40:00Z"
+        },
+        {
+          "playerId": "player_034",
+          "name": "Mohammed Siraj",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 900,
+          "purchasedAt": "2025-10-20T10:55:00Z"
+        },
+        {
+          "playerId": "player_035",
+          "name": "Yuzvendra Chahal",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 1000,
+          "purchasedAt": "2025-10-20T11:10:00Z"
+        },
+        {
+          "playerId": "player_036",
+          "name": "Rajat Patidar",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 700,
+          "purchasedAt": "2025-10-20T11:25:00Z"
+        },
+        {
+          "playerId": "player_037",
+          "name": "Dinesh Karthik",
+          "role": "wicket-keeper",
+          "basePrice": 500,
+          "finalPrice": 850,
+          "purchasedAt": "2025-10-20T11:40:00Z"
+        },
+        {
+          "playerId": "player_038",
+          "name": "Harshal Patel",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 750,
+          "purchasedAt": "2025-10-20T11:55:00Z"
+        },
+        {
+          "playerId": "player_039",
+          "name": "Josh Hazlewood",
+          "role": "bowler",
+          "basePrice": 500,
+          "finalPrice": 1100,
+          "purchasedAt": "2025-10-20T12:10:00Z"
+        },
+        {
+          "playerId": "player_040",
+          "name": "Faf du Plessis",
+          "role": "batsman",
+          "basePrice": 500,
+          "finalPrice": 600,
+          "purchasedAt": "2025-10-20T12:25:00Z"
+        },
+        {
+          "playerId": "player_041",
+          "name": "Wanindu Hasaranga",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 950,
+          "purchasedAt": "2025-10-20T12:40:00Z"
+        },
+        {
+          "playerId": "player_042",
+          "name": "Michael Bracewell",
+          "role": "all-rounder",
+          "basePrice": 500,
+          "finalPrice": 650,
+          "purchasedAt": "2025-10-20T12:55:00Z"
+        }
+      ]
+    }
+  ],
+  "soldPlayers": [
+    {
+      "playerId": "player_001",
+      "name": "Rohit Sharma",
+      "role": "batsman",
+      "basePrice": 500,
+      "finalPrice": 1200,
+      "soldTo": "team_001",
+      "soldToTeamName": "Mumbai Indians",
+      "soldAt": "2025-10-20T10:15:00Z",
+      "bidHistory": [
+        {
+          "teamId": "team_001",
+          "teamName": "Mumbai Indians",
+          "amount": 600,
+          "timestamp": "2025-10-20T10:12:00Z"
+        },
+        {
+          "teamId": "team_002",
+          "teamName": "Chennai Super Kings",
+          "amount": 700,
+          "timestamp": "2025-10-20T10:13:00Z"
+        },
+        {
+          "teamId": "team_001",
+          "teamName": "Mumbai Indians",
+          "amount": 1200,
+          "timestamp": "2025-10-20T10:15:00Z"
+        }
+      ]
+    }
+  ],
+  "unsoldPlayers": [
+    {
+      "playerId": "player_043",
+      "name": "Player 43",
+      "role": "batsman",
+      "basePrice": 500,
+      "status": "unsold",
+      "unsoldAt": "2025-10-20T14:00:00Z"
+    },
+    {
+      "playerId": "player_044",
+      "name": "Player 44",
+      "role": "bowler",
+      "basePrice": 500,
+      "status": "unsold",
+      "unsoldAt": "2025-10-20T14:10:00Z"
+    },
+    {
+      "playerId": "player_045",
+      "name": "Player 45",
+      "role": "all-rounder",
+      "basePrice": 500,
+      "status": "unsold",
+      "unsoldAt": "2025-10-20T14:20:00Z"
+    }
+  ],
+  "auctionSummary": {
+    "totalTeams": 3,
+    "totalPlayers": 45,
+    "soldPlayers": 42,
+    "unsoldPlayers": 3,
+    "totalAuctionValue": 265000,
+    "averagePlayerPrice": 6310,
+    "highestBid": 1500,
+    "lowestBid": 550,
+    "mostExpensivePlayer": {
+      "playerId": "player_031",
+      "name": "Virat Kohli",
+      "finalPrice": 1500,
+      "soldTo": "team_003"
+    },
+    "teamSpending": [
+      {
+        "teamId": "team_001",
+        "teamName": "Mumbai Indians",
+        "totalSpent": 8750,
+        "averageSpentPerPlayer": 583,
+        "playersCount": 15
+      },
+      {
+        "teamId": "team_002",
+        "teamName": "Chennai Super Kings",
+        "totalSpent": 8200,
+        "averageSpentPerPlayer": 547,
+        "playersCount": 15
+      },
+      {
+        "teamId": "team_003",
+        "teamName": "Royal Challengers Bangalore",
+        "totalSpent": 7900,
+        "averageSpentPerPlayer": 658,
+        "playersCount": 12
+      }
+    ]
+  },
+  "metadata": {
+    "version": "1.0",
+    "generatedAt": "2025-10-20T14:30:00Z",
+    "generatedBy": "Cricket League Auction System",
+    "format": "auction-results-v1"
+  }
+}

@@ -1,7 +1,9 @@
 const { db, V2_COLLECTIONS, V2_SCHEMAS } = require('../../config/database-v2');
+const admin = require('firebase-admin');
 const { sequenceManager } = require('../../utils/sequenceManager');
 const { TeamStatisticsManager } = require('../../utils/teamStatisticsManager');
 const { PlayerImpactManager } = require('../../utils/playerImpactManager');
+const { GroqService } = require('../../utils/groqService');
 
 // Helper function to find dismissal data for a player from match innings
 function findPlayerDismissal(matchData, playerName, teamName, team1Players, team2Players) {
@@ -200,10 +202,10 @@ exports.handler = async (event, context) => {
 
   try {
     // Handle both direct function calls and API route calls
-    let path = event.path;
-    if (path.startsWith('/.netlify/functions/matches-v2')) {
+    let path = event.path || '';
+    if (path.startsWith && path.startsWith('/.netlify/functions/matches-v2')) {
       path = path.replace('/.netlify/functions/matches-v2', '');
-    } else if (path.startsWith('/api/v2/matches')) {
+    } else if (path.startsWith && path.startsWith('/api/v2/matches')) {
       path = path.replace('/api/v2/matches', '');
     }
 
@@ -263,11 +265,10 @@ exports.handler = async (event, context) => {
         for (const doc of snapshot.docs) {
           const tournamentData = doc.data();
           tournaments.push({
-            id: tournamentData.numericId,
-            numericId: tournamentData.numericId,
+            id: tournamentData.displayId,
             displayId: tournamentData.displayId || tournamentData.numericId,
             name: tournamentData.name,
-            shortName: tournamentData.shortName || tournamentData.name.substring(0, 3).toUpperCase(),
+            shortName: tournamentData.shortName || (tournamentData.name ? tournamentData.name.substring(0, 3).toUpperCase() : 'UNK'),
             season: tournamentData.season,
             status: tournamentData.status || 'active'
           });
@@ -328,7 +329,8 @@ exports.handler = async (event, context) => {
         includePlayers = 'false',
         includePerformance = 'false',
         includeImpactScores = 'false',
-        includeDismissals = 'false'
+        includeDismissals = 'false',
+        includeCommentary = 'false'
       } = event.queryStringParameters || {};
       
       const pageNum = parseInt(page);
@@ -337,6 +339,7 @@ exports.handler = async (event, context) => {
       const includePerformanceFlag = includePerformance === 'true';
       const includeImpactScoresFlag = includeImpactScores === 'true';
       const includeDismissalsFlag = includeDismissals === 'true';
+      const includeCommentaryFlag = includeCommentary === 'true';
       const offset = (pageNum - 1) * limitNum;
 
       let query = db.collection(V2_COLLECTIONS.MATCHES);
@@ -351,10 +354,15 @@ exports.handler = async (event, context) => {
       const validOrderFields = ['scheduledDate', 'createdAt', 'updatedAt', 'displayId'];
       const validDirections = ['asc', 'desc'];
 
-      if (validOrderFields.includes(orderBy) && validDirections.includes(orderDirection)) {
+      // When status is filtered, we can't order by scheduledDate without a composite index
+      // In that case, skip custom ordering and use document ID ordering as fallback
+      if (status && orderBy === 'scheduledDate') {
+        // Skip ordering to avoid composite index requirement when status is filtered
+        // Firestore will return results in document ID order
+      } else if (validOrderFields.includes(orderBy) && validDirections.includes(orderDirection)) {
         query = query.orderBy(orderBy, orderDirection);
       } else {
-        // Default ordering by scheduledDate descending
+        // Default ordering by scheduledDate descending (only when no status filter)
         query = query.orderBy('scheduledDate', 'desc');
       }
 
@@ -379,17 +387,19 @@ exports.handler = async (event, context) => {
       // Only fetch performance data if needed (squad data now comes from match documents)
       let performanceMap = {};
       const matchIds = [];
+      let teamsMap = {};
+      let playersMap = {};
 
       if (includePlayersFlag || includePerformanceFlag || includeImpactScoresFlag || includeDismissalsFlag) {
         // Get all teams for denormalization
         const teamsSnapshot = await db.collection(V2_COLLECTIONS.TEAMS).get();
-        const teamsMap = {};
         for (const teamDoc of teamsSnapshot.docs) {
           const teamData = teamDoc.data();
           teamsMap[teamData.numericId] = {
             id: teamData.numericId,
+            displayId: teamData.displayId,
             name: teamData.name,
-            shortName: teamData.shortName || teamData.name.substring(0, 3).toUpperCase()
+            shortName: teamData.shortName || (teamData.name ? teamData.name.substring(0, 3).toUpperCase() : 'UNK')
           };
         }
 
@@ -503,6 +513,8 @@ exports.handler = async (event, context) => {
             const team2SquadData = matchSquads[matchData.team2?.id || matchData.team2Id] || {};
             const team1Data = matchData.team1 ? {
               ...matchData.team1,
+              // Add displayId from teamsMap if available
+              displayId: teamsMap[matchData.team1.id || matchData.team1Id]?.displayId || matchData.team1.displayId,
               // Remove squad and squadId if they exist
               squad: undefined,
               squadId: undefined,
@@ -546,6 +558,7 @@ exports.handler = async (event, context) => {
               ...(includeDismissalsFlag && team1SquadData.players && {
                 innings: team1SquadData.players.map(player => ({
                   playerId: player.playerId,
+                  displayId: playersMap[player.playerId]?.displayId || player.displayId,
                   name: player.name,
                   role: player.role,
                   battingOrder: player.battingOrder || player.batting_order,
@@ -605,6 +618,8 @@ exports.handler = async (event, context) => {
             const team2SquadData = matchSquads[matchData.team2?.id || matchData.team2Id] || {};
             const team2Data = matchData.team2 ? {
               ...matchData.team2,
+              // Add displayId from teamsMap if available
+              displayId: teamsMap[matchData.team2.id || matchData.team2Id]?.displayId || matchData.team2.displayId,
               // Remove squad and squadId if they exist
               squad: undefined,
               squadId: undefined,
@@ -656,6 +671,7 @@ exports.handler = async (event, context) => {
                   
                   return {
                     playerId: player.playerId,
+                    displayId: playersMap[player.playerId]?.displayId || player.displayId,
                     name: player.name,
                     role: player.role,
                     battingOrder: player.battingOrder || player.batting_order,
@@ -881,6 +897,36 @@ exports.handler = async (event, context) => {
           ...(matchData.externalMatchId && { externalMatchId: matchData.externalMatchId })
         };
 
+        // Add AI commentary if requested
+        if (includeCommentaryFlag) {
+          try {
+            const commentaryData = await GroqService.generateMatchCommentary({
+              matchId: matchData.numericId,
+              team1: essentialMatch.team1,
+              team2: essentialMatch.team2,
+              venue: essentialMatch.venue,
+              matchType: essentialMatch.matchType,
+              status: essentialMatch.status,
+              winner: essentialMatch.result?.winner,
+              result: essentialMatch.result,
+              innings: matchInnings,
+              toss: essentialMatch.toss
+            });
+            essentialMatch.commentary = commentaryData;
+          } catch (error) {
+            console.error('Error generating commentary for match:', matchData.numericId, error);
+            essentialMatch.commentary = {
+              matchOverview: 'Commentary generation failed',
+              currentSituation: 'Unable to generate live commentary at this time',
+              keyHighlights: ['Commentary unavailable'],
+              playerSpotlight: 'Analysis pending',
+              tacticalAnalysis: 'Tactical insights unavailable',
+              matchPrediction: 'Prediction unavailable',
+              excitingCommentary: ['Stay tuned for updates!']
+            };
+          }
+        }
+
         matches.push(essentialMatch);
       }
 
@@ -952,13 +998,15 @@ exports.handler = async (event, context) => {
         includePlayers = 'false',
         includePerformance = 'false',
         includeImpactScores = 'false',
-        includeDismissals = 'false'
+        includeDismissals = 'false',
+        includeCommentary = 'false'
       } = event.queryStringParameters || {};
 
       const includePlayersFlag = includePlayers === 'true';
       const includePerformanceFlag = includePerformance === 'true';
       const includeImpactScoresFlag = includeImpactScores === 'true';
       const includeDismissalsFlag = includeDismissals === 'true';
+      const includeCommentaryFlag = includeCommentary === 'true';
 
       // Get teams for denormalization
       const teamsSnapshot = await db.collection(V2_COLLECTIONS.TEAMS).get();
@@ -967,8 +1015,9 @@ exports.handler = async (event, context) => {
         const teamData = teamDoc.data();
         teamsMap[teamData.numericId] = {
           id: teamData.numericId,
+          displayId: teamData.displayId,
           name: teamData.name,
-          shortName: teamData.shortName || teamData.name.substring(0, 3).toUpperCase()
+          shortName: teamData.shortName || (teamData.name ? teamData.name.substring(0, 3).toUpperCase() : 'UNK')
         };
       }
 
@@ -979,12 +1028,11 @@ exports.handler = async (event, context) => {
         const playerData = playerDoc.data();
         playersMap[playerData.numericId] = {
           id: playerData.numericId,
+          displayId: playerData.displayId,
           name: playerData.name,
           role: playerData.role
         };
-      }
-
-      const rawMatchData = matchDoc.data();
+      }      const rawMatchData = matchDoc.data();
 
       // Extract squad data from innings for dismissal processing
       const matchInnings = rawMatchData.innings || [];
@@ -1014,6 +1062,8 @@ exports.handler = async (event, context) => {
         // Nested team structure with squad and score information
         team1: rawMatchData.team1 ? {
           ...rawMatchData.team1,
+          // Add displayId from teamsMap if available
+          displayId: teamsMap[rawMatchData.team1.id || rawMatchData.team1Id]?.displayId || rawMatchData.team1.displayId,
           // Remove squad and squadId if they exist
           squad: undefined,
           squadId: undefined,
@@ -1083,6 +1133,7 @@ exports.handler = async (event, context) => {
             const team2SquadData = matchSquads[rawMatchData.team2?.id || rawMatchData.team2Id] || {};
             return {
               playerId: player.playerId,
+              displayId: playersMap[player.playerId]?.displayId || player.displayId,
               name: player.name,
               role: player.role,
               batting: player.batting ? {
@@ -1126,6 +1177,8 @@ exports.handler = async (event, context) => {
         },
         team2: rawMatchData.team2 ? {
           ...rawMatchData.team2,
+          // Add displayId from teamsMap if available
+          displayId: teamsMap[rawMatchData.team2.id || rawMatchData.team2Id]?.displayId || rawMatchData.team2.displayId,
           // Remove squad and squadId if they exist
           squad: undefined,
           squadId: undefined,
@@ -1144,6 +1197,7 @@ exports.handler = async (event, context) => {
           ...(includeDismissalsFlag && matchSquads[rawMatchData.team2?.id || rawMatchData.team2Id]?.players && {
             innings: matchSquads[rawMatchData.team2?.id || rawMatchData.team2Id].players.map(player => ({
               playerId: player.playerId,
+              displayId: playersMap[player.playerId]?.displayId || player.displayId,
               name: player.name,
               role: player.role,
               battingOrder: player.battingOrder || player.batting_order,
@@ -1401,7 +1455,12 @@ exports.handler = async (event, context) => {
             playerOfMatch: playerOfMatch
           };
         })(),
-        ...(rawMatchData.externalMatchId && { externalMatchId: rawMatchData.externalMatchId })
+        ...(rawMatchData.externalMatchId && { externalMatchId: rawMatchData.externalMatchId }),
+        // Include raw game data fields for structural consistency
+        innings: rawMatchData.innings || [],
+        fallOfWickets: rawMatchData.fallOfWickets || [],
+        playerOfMatch: rawMatchData.playerOfMatch || null,
+        playerOfMatchId: rawMatchData.playerOfMatchId || null
       };
 
       // Fetch innings from subcollection or use innings from main document
@@ -1607,6 +1666,104 @@ exports.handler = async (event, context) => {
         // Don't set innings for list API compatibility
       }
 
+      // Add impact scores to team players if requested
+      if (includeImpactScoresFlag && matchData.status === 'completed') {
+        // Build performance data from match document
+        const matchId = rawMatchData.externalReferenceId || rawMatchData.numericId.toString();
+
+        // Add impact scores to team1 players
+        if (matchData.team1?.players && Array.isArray(matchData.team1.players)) {
+          const teamId = rawMatchData.team1Id || rawMatchData.team1?.id;
+          matchData.team1.players = matchData.team1.players.map(player => {
+            const impactScores = PlayerImpactManager.calculatePlayerImpact({
+              batting: player.batting,
+              bowling: player.bowling,
+              fielding: player.fielding
+            });
+
+            return {
+              ...player,
+              batting: includePerformanceFlag && player.batting ? {
+                ...player.batting,
+                impact: impactScores.batting
+              } : undefined,
+              bowling: includePerformanceFlag && player.bowling ? {
+                ...player.bowling,
+                impact: impactScores.bowling
+              } : undefined,
+              fielding: includePerformanceFlag && player.fielding ? {
+                ...player.fielding,
+                impact: impactScores.fielding
+              } : undefined,
+              overall: {
+                impact: impactScores.total
+              }
+            };
+          });
+        }
+
+        // Add impact scores to team2 players
+        if (matchData.team2?.players && Array.isArray(matchData.team2.players)) {
+          const teamId = rawMatchData.team2Id || rawMatchData.team2?.id;
+          matchData.team2.players = matchData.team2.players.map(player => {
+            const impactScores = PlayerImpactManager.calculatePlayerImpact({
+              batting: player.batting,
+              bowling: player.bowling,
+              fielding: player.fielding
+            });
+
+            return {
+              ...player,
+              batting: includePerformanceFlag && player.batting ? {
+                ...player.batting,
+                impact: impactScores.batting
+              } : undefined,
+              bowling: includePerformanceFlag && player.bowling ? {
+                ...player.bowling,
+                impact: impactScores.bowling
+              } : undefined,
+              fielding: includePerformanceFlag && player.fielding ? {
+                ...player.fielding,
+                impact: impactScores.fielding
+              } : undefined,
+              overall: {
+                impact: impactScores.total
+              }
+            };
+          });
+        }
+      }
+
+      // Add AI commentary if requested
+      if (includeCommentaryFlag) {
+        try {
+          const commentaryData = await GroqService.generateMatchCommentary({
+            matchId: matchData.id,
+            team1: matchData.team1,
+            team2: matchData.team2,
+            venue: matchData.venue,
+            matchType: matchData.matchType,
+            status: matchData.status,
+            winner: matchData.result?.winner,
+            result: matchData.result,
+            innings: rawMatchData.innings || [],
+            toss: matchData.toss
+          });
+          matchData.commentary = commentaryData;
+        } catch (error) {
+          console.error('Error generating commentary for match:', matchData.id, error);
+          matchData.commentary = {
+            matchOverview: 'Commentary generation failed',
+            currentSituation: 'Unable to generate live commentary at this time',
+            keyHighlights: ['Commentary unavailable'],
+            playerSpotlight: 'Analysis pending',
+            tacticalAnalysis: 'Tactical insights unavailable',
+            matchPrediction: 'Prediction unavailable',
+            excitingCommentary: ['Stay tuned for updates!']
+          };
+        }
+      }
+
       return {
         statusCode: 200,
         headers: corsHeaders,
@@ -1623,6 +1780,7 @@ exports.handler = async (event, context) => {
 
       const matchDoc = await findDocumentByDisplayId(V2_COLLECTIONS.MATCHES, displayId);
       if (!matchDoc) {
+       
         return {
           statusCode: 404,
           headers: corsHeaders,
@@ -1651,7 +1809,7 @@ exports.handler = async (event, context) => {
           teamsMap[teamData.numericId] = {
             id: teamData.numericId,
             name: teamData.name,
-            shortName: teamData.shortName || teamData.name.substring(0, 3).toUpperCase()
+            shortName: teamData.shortName || (teamData.name ? teamData.name.substring(0, 3).toUpperCase() : 'UNK')
           };
         }
 
@@ -1816,7 +1974,7 @@ exports.handler = async (event, context) => {
         validationData.tournament = {
           tournamentId: tournamentData.numericId.toString(),
           name: tournamentData.name,
-          shortName: tournamentData.shortName || tournamentData.name.substring(0, 3).toUpperCase(),
+          shortName: tournamentData.shortName || (tournamentData.name ? tournamentData.name.substring(0, 3).toUpperCase() : 'UNK'),
           season: tournamentData.season
         };
       } else if (matchData.tournamentId === 'GEN2025' || matchData.tournamentId === '1000000000000000000') {
@@ -1894,41 +2052,26 @@ exports.handler = async (event, context) => {
         db.collection(V2_COLLECTIONS.PLAYERS).where('preferredTeamId', '==', team2Data.numericId.toString()).get()
       ]);
 
-      const players = [];
+      const team1Players = [];
+      const team2Players = [];
 
       // Add team 1 players
       for (const playerDoc of team1PlayersSnapshot.docs) {
         const playerData = playerDoc.data();
-        players.push({
+        team1Players.push({
           playerId: playerData.numericId.toString(),
-          player: {
-            playerId: playerData.numericId.toString(),
-            name: playerData.name,
-            role: playerData.role,
-            teamName: team1Data.name
-          },
-          teamId: matchData.team1Id, // Use the displayId passed from frontend
-          batting: { runs: 0, balls: 0, fours: 0, sixes: 0 },
-          bowling: { wickets: 0, runs: 0, overs: 0 },
-          fielding: { catches: 0, runOuts: 0 }
+          name: playerData.name,
+          role: playerData.role
         });
       }
 
       // Add team 2 players
       for (const playerDoc of team2PlayersSnapshot.docs) {
         const playerData = playerDoc.data();
-        players.push({
+        team2Players.push({
           playerId: playerData.numericId.toString(),
-          player: {
-            playerId: playerData.numericId.toString(),
-            name: playerData.name,
-            role: playerData.role,
-            teamName: team2Data.name
-          },
-          teamId: matchData.team2Id, // Use the displayId passed from frontend
-          batting: { runs: 0, balls: 0, fours: 0, sixes: 0 },
-          bowling: { wickets: 0, runs: 0, overs: 0 },
-          fielding: { catches: 0, runOuts: 0 }
+          name: playerData.name,
+          role: playerData.role
         });
       }
 
@@ -1944,7 +2087,7 @@ exports.handler = async (event, context) => {
           tournament: {
             tournamentId: tournamentData.numericId.toString(),
             name: tournamentData.name,
-            shortName: tournamentData.shortName || tournamentData.name.substring(0, 3).toUpperCase(),
+            shortName: tournamentData.shortName || (tournamentData.name ? tournamentData.name.substring(0, 3).toUpperCase() : 'UNK'),
             season: tournamentData.season
           }
         } : (matchData.tournamentId === 'GEN2025' || matchData.tournamentId === '1000000000000000000') ? {
@@ -1968,36 +2111,45 @@ exports.handler = async (event, context) => {
         team1: {
           id: team1Data.numericId.toString(),
           name: team1Data.name,
-          shortName: team1Data.shortName || team1Data.name.substring(0, 3).toUpperCase(),
+          shortName: team1Data.shortName || (team1Data.name ? team1Data.name.substring(0, 3).toUpperCase() : 'UNK'),
           squad: {
             teamId: team1Data.numericId.toString(),
             name: team1Data.name,
-            shortName: team1Data.shortName || team1Data.name.substring(0, 3).toUpperCase(),
+            shortName: team1Data.shortName || (team1Data.name ? team1Data.name.substring(0, 3).toUpperCase() : 'UNK'),
             captainName: team1CaptainName
           },
           squadId: team1SquadId,
-          score: 0
+          score: 0,
+          players: team1Players
         },
         team2: {
           id: team2Data.numericId.toString(),
           name: team2Data.name,
-          shortName: team2Data.shortName || team2Data.name.substring(0, 3).toUpperCase(),
+          shortName: team2Data.shortName || (team2Data.name ? team2Data.name.substring(0, 3).toUpperCase() : 'UNK'),
           squad: {
             teamId: team2Data.numericId.toString(),
             name: team2Data.name,
-            shortName: team2Data.shortName || team2Data.name.substring(0, 3).toUpperCase(),
+            shortName: team2Data.shortName || (team2Data.name ? team2Data.name.substring(0, 3).toUpperCase() : 'UNK'),
             captainName: team2CaptainName
           },
           squadId: team2SquadId,
-          score: 0
+          score: 0,
+          players: team2Players
         },
-        // Players from both squads
-        players: players,
+        // Players from both squads (simple structure for backward compatibility)
+        players: [...team1Players, ...team2Players],
         // Scores structure
         scores: {
           team1: { runs: 0, wickets: 0, overs: 0, declared: false },
           team2: { runs: 0, wickets: 0, overs: 0, declared: false }
         },
+        // Game data structures (initialized empty for new matches)
+        innings: [], // Will be populated during match play
+        fallOfWickets: [], // Will be populated during match play
+        toss: null, // Will be set when toss happens
+        result: null, // Will be set when match completes
+        playerOfMatch: null, // Will be set when match completes
+        playerOfMatchId: null, // Will be set when match completes
         // Legacy fields for backward compatibility
         team1Id: matchData.team1Id,
         team2Id: matchData.team2Id,
@@ -2005,7 +2157,6 @@ exports.handler = async (event, context) => {
         team1Score: 0,
         team2Score: 0,
         winner: null,
-        result: null,
         // External MatchId if provided
         ...(matchData.externalMatchId && { externalMatchId: matchData.externalMatchId }),
         createdAt: timestamp,
@@ -2041,19 +2192,133 @@ exports.handler = async (event, context) => {
         };
       }
 
-      const updatedMatch = {
-        ...updateData,
-        updatedAt: new Date().toISOString()
-      };
+      const existingMatchData = matchDoc.data();
 
-      await db.collection(V2_COLLECTIONS.MATCHES).doc(matchDoc.id).update(updatedMatch);
+      // Define allowed update fields (fields that can be safely updated)
+      const allowedUpdateFields = [
+        'title', 'status', 'venue', 'scheduledDate', 'matchType',
+        'toss', 'result', 'playerOfMatch', 'playerOfMatchId',
+        'completedDate', 'externalMatchId'
+      ];
+
+      // Build update object with only the fields that should be changed
+      const updateObject = {};
+
+      // Apply allowed field updates
+      allowedUpdateFields.forEach(field => {
+        if (updateData[field] !== undefined) {
+          updateObject[field] = updateData[field];
+        }
+      });
+
+      // Ensure structural fields exist (for backward compatibility with older documents)
+      if (!existingMatchData.innings) updateObject.innings = [];
+      if (!existingMatchData.fallOfWickets) updateObject.fallOfWickets = [];
+      if (existingMatchData.playerOfMatch === undefined) updateObject.playerOfMatch = null;
+      if (existingMatchData.playerOfMatchId === undefined) updateObject.playerOfMatchId = null;
+
+      // Handle special cases
+      if (updateData.totalOvers !== undefined) {
+        // This might be used for match configuration, but shouldn't override structure
+        // For now, we'll ignore it as it's not part of the v2 schema
+      }
+
+      // Handle squads update - transform into proper team structure
+      if (updateData.squads) {
+        // Get team IDs
+        const team1Id = existingMatchData.team1?.id || existingMatchData.team1Id;
+        const team2Id = existingMatchData.team2?.id || existingMatchData.team2Id;
+
+        // Check for squad data using various possible keys
+        const team1SquadKeys = [team1Id, '1', 'team1', existingMatchData.team1?.displayId];
+        const team2SquadKeys = [team2Id, '2', 'team2', existingMatchData.team2?.displayId];
+
+        let team1SquadData = null;
+        let team2SquadData = null;
+
+        // Find team1 squad data
+        for (const key of team1SquadKeys) {
+          if (updateData.squads[key]) {
+            team1SquadData = updateData.squads[key];
+            break;
+          }
+        }
+
+        // Find team2 squad data
+        for (const key of team2SquadKeys) {
+          if (updateData.squads[key]) {
+            team2SquadData = updateData.squads[key];
+            break;
+          }
+        }
+
+        // Update team1 players if squad data found
+        if (team1SquadData && team1SquadData.players) {
+          updateObject['team1.players'] = team1SquadData.players.map(player => ({
+            playerId: player.playerId,
+            name: player.name,
+            role: player.role
+          }));
+        }
+
+        // Update team2 players if squad data found
+        if (team2SquadData && team2SquadData.players) {
+          updateObject['team2.players'] = team2SquadData.players.map(player => ({
+            playerId: player.playerId,
+            name: player.name,
+            role: player.role
+          }));
+        }
+
+        // Update players array at root level (for backward compatibility)
+        const allPlayers = [];
+
+        // Add team1 players
+        if (team1SquadData && team1SquadData.players) {
+          team1SquadData.players.forEach(player => {
+            allPlayers.push({
+              playerId: player.playerId,
+              name: player.name,
+              role: player.role
+            });
+          });
+        }
+
+        // Add team2 players
+        if (team2SquadData && team2SquadData.players) {
+          team2SquadData.players.forEach(player => {
+            allPlayers.push({
+              playerId: player.playerId,
+              name: player.name,
+              role: player.role
+            });
+          });
+        }
+
+        if (allPlayers.length > 0) {
+          updateObject.players = allPlayers;
+        }
+      }
+
+      // Always update the updatedAt timestamp
+      updateObject.updatedAt = new Date().toISOString();
+
+      // Remove any fields that shouldn't be in the document
+      const fieldsToRemove = ['squads', 'totalOvers', 'currentInnings', 'scores', 'team1Score', 'team2Score', 'winner'];
+      fieldsToRemove.forEach(field => {
+        if (existingMatchData[field] !== undefined) {
+          updateObject[field] = admin.firestore.FieldValue.delete();
+        }
+      });
+
+      await db.collection(V2_COLLECTIONS.MATCHES).doc(matchDoc.id).update(updateObject);
 
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
           success: true,
-          data: { id: matchDoc.id, ...updatedMatch }
+          data: { id: matchDoc.id, ...existingMatchData }
         })
       };
     }
@@ -2085,6 +2350,103 @@ exports.handler = async (event, context) => {
           message: 'Match deleted successfully'
         })
       };
+    }
+
+    // POST /api/v2/matches/predict-winner - Predict match winner based on player lineups
+    if (method === 'POST' && path === '/predict-winner') {
+      const { team1PlayerIds, team2PlayerIds, matchType = 'T20' } = JSON.parse(event.body || '{}');
+
+      if (!team1PlayerIds || !team2PlayerIds || !Array.isArray(team1PlayerIds) || !Array.isArray(team2PlayerIds)) {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'team1PlayerIds and team2PlayerIds arrays are required'
+          })
+        };
+      }
+
+      try {
+        // Get team information
+        const teamsSnapshot = await db.collection(V2_COLLECTIONS.TEAMS).get();
+        const teamsMap = {};
+        for (const teamDoc of teamsSnapshot.docs) {
+          const teamData = teamDoc.data();
+          teamsMap[teamData.numericId] = teamData;
+        }
+
+        // Fetch team1 players
+        const team1Players = [];
+        if (team1PlayerIds.length > 0) {
+          const team1PlayersSnapshot = await db.collection(V2_COLLECTIONS.PLAYERS)
+            .where('numericId', 'in', team1PlayerIds.slice(0, 10))
+            .get();
+
+          team1PlayersSnapshot.forEach(doc => {
+            team1Players.push({ id: doc.id, ...doc.data() });
+          });
+        }
+
+        // Fetch team2 players
+        const team2Players = [];
+        if (team2PlayerIds.length > 0) {
+          const team2PlayersSnapshot = await db.collection(V2_COLLECTIONS.PLAYERS)
+            .where('numericId', 'in', team2PlayerIds.slice(0, 10))
+            .get();
+
+          team2PlayersSnapshot.forEach(doc => {
+            team2Players.push({ id: doc.id, ...doc.data() });
+          });
+        }
+
+        // Determine team IDs from players (assuming all players in a team have the same preferredTeamId)
+        const team1Id = team1Players.length > 0 ? team1Players[0].preferredTeamId : null;
+        const team2Id = team2Players.length > 0 ? team2Players[0].preferredTeamId : null;
+
+        const team1Data = teamsMap[team1Id] || { name: 'Team 1', shortName: 'T1' };
+        const team2Data = teamsMap[team2Id] || { name: 'Team 2', shortName: 'T2' };
+
+        // Prepare data for AI analysis
+        const team1AnalysisData = {
+          team1: team1Data,
+          players: team1Players
+        };
+
+        const team2AnalysisData = {
+          team2: team2Data,
+          players: team2Players
+        };
+
+        // Get AI prediction
+        const prediction = await GroqService.predictMatchWinner(team1AnalysisData, team2AnalysisData, matchType);
+
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: true,
+            data: {
+              ...prediction.analysis,
+              team1PlayersCount: team1Players.length,
+              team2PlayersCount: team2Players.length,
+              matchType: matchType
+            }
+          })
+        };
+
+      } catch (error) {
+        console.error('Match prediction error:', error);
+        return {
+          statusCode: 500,
+          headers: corsHeaders,
+          body: JSON.stringify({
+            success: false,
+            message: 'Failed to generate match prediction',
+            error: error.message
+          })
+        };
+      }
     }
 
     // Method or path not found

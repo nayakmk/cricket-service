@@ -1,4 +1,4 @@
-const { collections } = require('../../config/database');
+const { collections } = require('../../config/database-v2');
 const { sequenceManager } = require('../../utils/sequenceManager');
 const { TeamStatisticsManager } = require('../../utils/teamStatisticsManager');
 const { PlayerImpactManager } = require('../../utils/playerImpactManager');
@@ -326,14 +326,31 @@ exports.handler = async (event, context) => {
         // Handle team1 - use team1.id to look up in teamsMap
         if (matchData.team1?.id) {
           team1Details = teamsMap[matchData.team1.id] || null;
-          // If match has squad players, use them with impact scores instead of team players
-          if (matchData.team1.players && Array.isArray(matchData.team1.players)) {
+          // Always try to add squad players if they exist
+          if (matchData.team1.players && Array.isArray(matchData.team1.players) && matchData.team1.players.length > 0) {
             team1Details = {
               ...team1Details,
-              players: matchData.team1.players.map(player => ({
-                ...player,
-                impactScore: PlayerImpactManager.calculatePlayerImpact(player)
-              }))
+              squad: {
+                players: matchData.team1.players.map(player => {
+                  try {
+                    return {
+                      ...player,
+                      impactScore: PlayerImpactManager.calculatePlayerImpact(player)
+                    };
+                  } catch (error) {
+                    console.error('Error calculating impact score:', error);
+                    return player;
+                  }
+                })
+              }
+            };
+          } else {
+            // Add dummy squad for testing
+            team1Details = {
+              ...team1Details,
+              squad: {
+                players: [{ name: 'Test Player', playerId: 'test123' }]
+              }
             };
           }
         }
@@ -341,14 +358,23 @@ exports.handler = async (event, context) => {
         // Handle team2 - use team2.id to look up in teamsMap
         if (matchData.team2?.id) {
           team2Details = teamsMap[matchData.team2.id] || null;
-          // If match has squad players, use them with impact scores instead of team players
-          if (matchData.team2.players && Array.isArray(matchData.team2.players)) {
+          // Always try to add squad players if they exist
+          if (matchData.team2.players && Array.isArray(matchData.team2.players) && matchData.team2.players.length > 0) {
             team2Details = {
               ...team2Details,
-              players: matchData.team2.players.map(player => ({
-                ...player,
-                impactScore: PlayerImpactManager.calculatePlayerImpact(player)
-              }))
+              squad: {
+                players: matchData.team2.players.map(player => {
+                  try {
+                    return {
+                      ...player,
+                      impactScore: PlayerImpactManager.calculatePlayerImpact(player)
+                    };
+                  } catch (error) {
+                    console.error('Error calculating impact score:', error);
+                    return player;
+                  }
+                })
+              }
             };
           }
         }
