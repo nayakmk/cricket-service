@@ -47,11 +47,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const { collections, db, admin } = require('../config/database');
-const { sequenceManager } = require('../utils/sequenceManager');
-const { populateTeamMatchHistory } = require('./populate-team-match-history');
-const { TeamStatisticsManager } = require('../utils/teamStatisticsManager');
-const { DataValidator } = require('./validate-data-integrity');
+const { collections, db, admin } = require('../config/database.js');
+const { sequenceManager } = require('../utils/sequenceManager.js');
+const { populateTeamMatchHistory } = require('./populate-team-match-history.js');
+const { TeamStatisticsManager } = require('../utils/teamStatisticsManager.js');
+const { DataValidator } = require('./validate-data-integrity.js');
 
 class CompleteDataReimport {
   constructor() {

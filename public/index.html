@@ -1447,36 +1447,60 @@
       }
     }
 
-    /* Cricket score display */
-    .score-display {
-      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    /* Detail section styling */
+    .detail-section {
+      margin-bottom: 32px;
+      padding: 20px;
+      background: var(--background-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+
+    .detail-section h4 {
+      color: var(--primary-color);
       font-size: 18px;
       font-weight: 600;
+      margin: 0 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-color);
+    }
+
+    .detail-section h5 {
+      color: var(--text-primary);
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0 12px 0;
+    }
+
+    .detail-section h6 {
       color: var(--secondary-color);
-      background: rgba(52, 168, 83, 0.1);
-      padding: 8px 12px;
-      border-radius: var(--border-radius);
-      display: inline-block;
-      margin: 4px 0;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 16px 0 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    /* Mobile score display */
-    @media (max-width: 767px) {
-      .score-display {
-        font-size: 16px;
-        padding: 6px 10px;
-      }
+    .players-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
     }
 
-    /* Status badges in details */
-    .status-live,
-    .status-completed,
-    .status-scheduled {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .player-item {
+      background: var(--surface-color);
       padding: 6px 12px;
-      border-radius: 20px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .status-live, .status-completed, .status-scheduled, .status-upcoming {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
@@ -1501,13 +1525,163 @@
       border: 1px solid rgba(251, 188, 4, 0.2);
     }
 
-    /* Mobile status badges */
-    @media (max-width: 767px) {
-      .status-live,
-      .status-completed,
-      .status-scheduled {
-        font-size: 11px;
-        padding: 4px 8px;
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .player-card {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .player-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .player-header strong {
+      color: var(--primary-color);
+      font-size: 16px;
+    }
+
+    .player-role {
+      background: var(--secondary-color);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .player-team {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .player-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .stat-group h6 {
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 4px;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: var(--text-secondary);
+    }
+
+    .stat-item span {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .player-additional-info {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .player-additional-info .stat-item {
+      font-size: 12px;
+      margin-bottom: 0;
+    }
+
+    .player-impact {
+      background: linear-gradient(135deg, var(--surface-color), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 0;
+      text-align: center;
+    }
+
+    .impact-score {
+      font-size: 18px;
+      margin-bottom: 8px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .impact-rating {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .rating-stars {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .rating-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Mobile responsive adjustments */
+    @media (max-width: 768px) {
+      .players-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .player-card {
+        padding: 12px;
+      }
+
+      .player-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .player-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
       }
     }
     .modal {
@@ -1642,21 +1816,27 @@
       </div>
 
       <div class="api-section">
-        <h3>🏏 Matches</h3>
-        <div class="api-endpoint">GET /api/matches - Get all matches</div>
-        <div class="api-endpoint">GET /api/matches/{id} - Get specific match details</div>
+        <h3>🏏 Matches (V2)</h3>
+        <div class="api-endpoint">GET /api/v2/matches - Get all matches with pagination</div>
+        <div class="api-endpoint">GET /api/v2/matches/{displayId} - Get specific match details</div>
       </div>
 
       <div class="api-section">
-        <h3>👥 Teams</h3>
-        <div class="api-endpoint">GET /api/teams - Get all teams</div>
-        <div class="api-endpoint">GET /api/teams/{id} - Get specific team information</div>
+        <h3>👥 Teams (V2)</h3>
+        <div class="api-endpoint">GET /api/v2/teams - Get all teams</div>
+        <div class="api-endpoint">GET /api/v2/teams/{id} - Get specific team information</div>
+        <div class="api-endpoint">POST /api/v2/teams - Create new team</div>
+        <div class="api-endpoint">PUT /api/v2/teams/{id} - Update team</div>
+        <div class="api-endpoint">DELETE /api/v2/teams/{id} - Delete team</div>
       </div>
 
       <div class="api-section">
-        <h3>🏃 Players</h3>
-        <div class="api-endpoint">GET /api/players - Get all players</div>
-        <div class="api-endpoint">GET /api/players/{id} - Get detailed player statistics</div>
+        <h3>🏃 Players (V2)</h3>
+        <div class="api-endpoint">GET /api/v2/players - Get all players</div>
+        <div class="api-endpoint">GET /api/v2/players/{id} - Get detailed player statistics</div>
+        <div class="api-endpoint">POST /api/v2/players - Create new player</div>
+        <div class="api-endpoint">PUT /api/v2/players/{id} - Update player</div>
+        <div class="api-endpoint">DELETE /api/v2/players/{id} - Delete player</div>
         <div class="api-endpoint">POST /api/players/merge - Merge duplicate players</div>
       </div>
 
@@ -2107,41 +2287,46 @@
       } catch (error) {
         console.error('API Call Failed:', error);
         throw error;
-      }
     }
-    window.onload = function() {
-      checkApiStatus();
-    };
+    // Temporarily disable window.onload due to duplicate function conflicts
+    // window.onload = function() {
+    //   checkApiStatus();
+    // };
 
-    function showSection(sectionId) {
-      // Hide all sections
-      document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-      });
-      document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
+    // First showSection function removed - using enhanced version later
+    // function showSection(sectionId) {
+    //   // Hide all sections
+    //   document.querySelectorAll('.content-section').forEach(section => {
+    //     section.classList.remove('active');
+    //   });
+    //   document.querySelectorAll('.nav-tab').forEach(tab => {
+    //     tab.classList.remove('active');
+    //   });
 
-      // Show selected section
-      document.getElementById(sectionId).classList.add('active');
-      event.target.classList.add('active');
-    }
+    //   // Show selected section
+    //   document.getElementById(sectionId).classList.add('active');
+    //   event.target.classList.add('active');
+    // }
 
-    async function checkApiStatus() {
-      try {
-        const response = await fetch('/api/matches');
-        if (response.ok) {
-          document.getElementById('api-status').innerHTML = '✅ API Server Running';
-          document.getElementById('db-status').innerHTML = '✅ Firestore Connected';
-        } else {
-          throw new Error('API not responding');
-        }
-      } catch (error) {
-        document.getElementById('api-status').innerHTML = '❌ API Server Error';
-        document.getElementById('db-status').innerHTML = '❌ Database Connection Failed';
-        console.error('API Status Check Failed:', error);
-      }
-    }
+    // First checkApiStatus function removed - using enhanced version later
+    // async function checkApiStatus() {
+    //   try {
+    //     const response = await fetch('/api/v2/matches/health');
+    //     const data = await response.json();
+
+    //     if (response.ok && data.success && data.status === 'healthy') {
+    //       document.getElementById('api-status').innerHTML = '✅ API Server Running (V2)';
+    //       document.getElementById('db-status').innerHTML = '✅ Firestore Connected';
+    //       console.log('Health check passed:', data);
+    //     } else {
+    //       throw new Error(data.message || 'Health check failed');
+    //     }
+    //   } catch (error) {
+    //     document.getElementById('api-status').innerHTML = '❌ API Server Error';
+    //     document.getElementById('db-status').innerHTML = '❌ Database Connection Failed';
+    //     console.error('API Status Check Failed:', error);
+    //   }
+    // }
 
     function showLoading(elementId) {
       document.getElementById(elementId).innerHTML = '<div class="loading">Loading...</div>';
@@ -2173,15 +2358,15 @@
 
     // Teams CRUD
     async function createTeam(teamData) {
-      return await apiCall('/api/teams', 'POST', teamData);
+      return await apiCall('/api/v2/teams', 'POST', teamData);
     }
 
     async function updateTeam(teamId, teamData) {
-      return await apiCall(`/api/teams/${teamId}`, 'PUT', teamData);
+      return await apiCall(`/api/v2/teams/${teamId}`, 'PUT', teamData);
     }
 
     async function deleteTeam(teamId) {
-      return await apiCall(`/api/teams/${teamId}`, 'DELETE');
+      return await apiCall(`/api/v2/teams/${teamId}`, 'DELETE');
     }
 
     // Form handlers
@@ -2199,11 +2384,11 @@
       try {
         if (editingId) {
           // Update existing team
-          await apiCall(`/api/teams/${editingId}`, 'PUT', teamData);
+          await apiCall(`/api/v2/teams/${editingId}`, 'PUT', teamData);
           showSuccess('teams-content', 'Team updated successfully!');
         } else {
           // Create new team
-          await apiCall('/api/teams', 'POST', teamData);
+          await apiCall('/api/v2/teams', 'POST', teamData);
           showSuccess('teams-content', 'Team created successfully!');
         }
         hideCreateForm('teams');
@@ -2239,7 +2424,7 @@
       }
 
       try {
-        await apiCall(`/api/teams/${teamId}`, 'DELETE');
+        await apiCall(`/api/v2/teams/${teamId}`, 'DELETE');
         showSuccess('teams-content', 'Team deleted successfully!');
         loadTeams(); // Refresh the list
       } catch (error) {
@@ -2283,7 +2468,7 @@
 
       try {
         // Create the match
-        const result = await apiCall('/api/matches', 'POST', matchData);
+        const result = await apiCall('/api/v2/matches', 'POST', matchData);
         const matchId = result.data.id;
 
         // Create team lineups for the selected players
@@ -2291,8 +2476,8 @@
 
         // Get team details for the lineups
         const [team1Data, team2Data] = await Promise.all([
-          apiCall(`/api/teams/${team1Id}`),
-          apiCall(`/api/teams/${team2Id}`)
+          apiCall(`/api/v2/teams/${team1Id}`),
+          apiCall(`/api/v2/teams/${team2Id}`)
         ]);
 
         lineupPromises.push(
@@ -2335,7 +2520,7 @@
         // Load teams if not already loaded
         if (!currentData.teams || currentData.teams.length === 0) {
           console.log('Loading teams from API');
-          const data = await apiCall('/api/teams');
+          const data = await apiCall('/api/v2/teams');
           currentData.teams = data.data;
           console.log('Loaded teams:', currentData.teams.length, 'teams');
         } else {
@@ -2432,11 +2617,11 @@
         let result;
         if (mode === 'edit' && playerId) {
           // Update existing player
-          result = await apiCall(`/api/players/${playerId}`, 'PUT', formData);
+          result = await apiCall(`/api/v2/players/${playerId}`, 'PUT', formData);
           showSuccess('players-content', `Player "${formData.name}" updated successfully!`);
         } else {
           // Create new player
-          result = await apiCall('/api/players', 'POST', formData);
+          result = await apiCall('/api/v2/players', 'POST', formData);
           showSuccess('players-content', `Player "${formData.name}" created successfully!`);
         }
 
@@ -2510,7 +2695,7 @@
       try {
         // Get match details
         console.log('Fetching match data for:', matchId);
-        const matchResponse = await apiCall(`/api/matches/${matchId}`);
+        const matchResponse = await apiCall(`/api/v2/matches/${matchId}`);
         const match = matchResponse.data;
         console.log('Match data received:', match);
 
@@ -2552,7 +2737,7 @@
 
         if (team1LineupData) {
           // Fetch player details for team1 lineup
-          const playerPromises = team1LineupData.playerIds.map(playerId => apiCall(`/api/players/${playerId}`));
+          const playerPromises = team1LineupData.playerIds.map(playerId => apiCall(`/api/v2/players/${playerId}`));
           const playerResponses = await Promise.all(playerPromises);
           team1Lineup = {
             ...team1LineupData,
@@ -2562,7 +2747,7 @@
 
         if (team2LineupData) {
           // Fetch player details for team2 lineup
-          const playerPromises = team2LineupData.playerIds.map(playerId => apiCall(`/api/players/${playerId}`));
+          const playerPromises = team2LineupData.playerIds.map(playerId => apiCall(`/api/v2/players/${playerId}`));
           const playerResponses = await Promise.all(playerPromises);
           team2Lineup = {
             ...team2LineupData,
@@ -2750,7 +2935,7 @@
 
       try {
         // Update the match
-        await apiCall(`/api/matches/${matchId}`, 'PUT', matchData);
+        await apiCall(`/api/v2/matches/${matchId}`, 'PUT', matchData);
 
         // Update or create team lineups
         const lineupPromises = [];
@@ -2831,7 +3016,7 @@
       }
 
       // Get the match data and update/create team lineups
-      apiCall(`/api/matches/${matchId}`)
+      apiCall(`/api/v2/matches/${matchId}`)
         .then(response => {
           const match = response.data;
 
@@ -2894,8 +3079,8 @@
       if (match.status === 'live' || match.status === 'completed') {
         // Load teams and players data first
         Promise.all([
-          apiCall('/api/teams'),
-          apiCall('/api/players')
+          apiCall('/api/v2/teams'),
+          apiCall('/api/v2/players')
         ])
         .then(([teamsResponse, playersResponse]) => {
           currentData.teams = teamsResponse.data;
@@ -2925,7 +3110,7 @@
       }
 
       try {
-        await apiCall(`/api/matches/${matchId}`, 'DELETE');
+        await apiCall(`/api/v2/matches/${matchId}`, 'DELETE');
 
         // Reload all matches from the server to ensure data consistency
         await loadMatches();
@@ -3044,7 +3229,7 @@
       showLoading(contentId);
 
       try {
-        const data = await apiCall('/api/matches');
+        const data = await apiCall('/api/v2/matches');
         currentData.matches = data.data;
         displayMatches(data.data, contentId);
       } catch (error) {
@@ -3073,7 +3258,7 @@
             <p><strong>Teams:</strong> ${match.team1 ? match.team1.name : 'TBD'} vs ${match.team2 ? match.team2.name : 'TBD'}</p>
             <p><strong>Score:</strong> ${match.team1Score || 0} - ${match.team2Score || 0}</p>
             <p><strong>Result:</strong> ${match.result || 'N/A'}</p>
-            <p><strong>Type:</strong> ${match.matchType || match.title || 'N/A'}</p>
+            <p><strong>Type:</strong> ${match.matchType || 'N/A'}</p>
             <p><strong>Venue:</strong> ${match.venue || 'N/A'}</p>
             ${match.scheduledDate ? `<p><strong>Date:</strong> ${new Date(match.scheduledDate).toLocaleString()}</p>` : ''}
             <div class="card-actions">
@@ -3093,7 +3278,7 @@
     async function loadMatchInningsData(matchId) {
       try {
         // First get the list of innings for this match
-        const inningsListResponse = await fetch(`/api/matches/${matchId}/innings`);
+        const inningsListResponse = await fetch(`/api/v2/matches/${matchId}/innings`);
         if (!inningsListResponse.ok) {
           throw new Error('Failed to load innings list');
         }
@@ -3108,7 +3293,7 @@
         // For each inning, get the detailed data
         for (const inningSummary of inningsListData.data) {
           try {
-            const detailedResponse = await fetch(`/api/matches/${matchId}/innings/${inningSummary.id}`);
+            const detailedResponse = await fetch(`/api/v2/matches/${matchId}/innings/${inningSummary.id}`);
             if (detailedResponse.ok) {
               const detailedData = await detailedResponse.json();
               if (detailedData.success && detailedData.data) {
@@ -3185,45 +3370,456 @@
       detailDiv.innerHTML = '<div class="loading">Loading match details...</div>';
 
       try {
-        const data = await apiCall(`/api/matches/${matchId}`);
+        const data = await apiCall(`/api/v2/matches/${matchId}`);
         const match = data.data;
 
-        let html = `<h3>Match Details: ${match.displayId || match.id}</h3>`;
+        let html = `<h3>Match Details: ${match.title || match.displayId}</h3>`;
+
+        // Match Overview Section
+        html += '<div class="detail-section">';
+        html += '<h4>📋 Match Overview</h4>';
         html += '<div class="detail-grid">';
 
-        // Basic info
-        html += `<div class="detail-item"><strong>Status:</strong> ${match.status || 'Unknown'}</div>`;
+        // Basic Information
+        html += `<div class="detail-item"><strong>Match ID:</strong> ${match.displayId || match.id}</div>`;
+        html += `<div class="detail-item"><strong>Title:</strong> ${match.title || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Status:</strong> <span class="status-${match.status}">${match.status || 'Unknown'}</span></div>`;
         html += `<div class="detail-item"><strong>Type:</strong> ${match.matchType || 'N/A'}</div>`;
         html += `<div class="detail-item"><strong>Venue:</strong> ${match.venue || 'N/A'}</div>`;
-        html += `<div class="detail-item"><strong>Current Innings:</strong> ${match.currentInnings || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Tournament:</strong> ${match.tournament ? match.tournament.name : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Scheduled Date:</strong> ${match.scheduledDate ? new Date(match.scheduledDate).toLocaleString() : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Created:</strong> ${match.createdAt ? new Date(match.createdAt).toLocaleString() : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Last Updated:</strong> ${match.updatedAt ? new Date(match.updatedAt).toLocaleString() : 'N/A'}</div>`;
 
-        // Teams
+        if (match.externalMatchId) {
+          html += `<div class="detail-item"><strong>External Match ID:</strong> ${match.externalMatchId}</div>`;
+        }
+
+        html += '</div>';
+        html += '</div>';
+
+        // Teams Section
+        html += '<div class="detail-section">';
+        html += '<h4>👥 Teams & Squads</h4>';
+        html += '<div class="detail-grid">';
+
         if (match.team1) {
           html += `<div class="detail-item"><strong>Team 1:</strong> ${match.team1.name} (${match.team1.shortName})</div>`;
+          if (match.team1.squad) {
+            html += `<div class="detail-item"><strong>Team 1 Captain:</strong> ${match.team1.squad.captainName || 'N/A'}</div>`;
+            html += `<div class="detail-item"><strong>Team 1 Players:</strong> ${match.team1.squad.playersCount || 0}</div>`;
+          }
         }
+
         if (match.team2) {
           html += `<div class="detail-item"><strong>Team 2:</strong> ${match.team2.name} (${match.team2.shortName})</div>`;
+          if (match.team2.squad) {
+            html += `<div class="detail-item"><strong>Team 2 Captain:</strong> ${match.team2.squad.captainName || 'N/A'}</div>`;
+            html += `<div class="detail-item"><strong>Team 2 Players:</strong> ${match.team2.squad.playersCount || 0}</div>`;
+          }
         }
-
-        // Scores
-        html += `<div class="detail-item"><strong>Team 1 Score:</strong> ${match.team1Score || 0}</div>`;
-        html += `<div class="detail-item"><strong>Team 2 Score:</strong> ${match.team2Score || 0}</div>`;
-
-        // Result
-        if (match.winner && match.team1 && match.team2) {
-          const winnerName = match.winner === match.team1.id ? match.team1.name :
-                           match.winner === match.team2.id ? match.team2.name : 'Unknown';
-          html += `<div class="detail-item"><strong>Winner:</strong> ${winnerName}</div>`;
-        }
-        html += `<div class="detail-item"><strong>Result:</strong> ${match.result || 'N/A'}</div>`;
 
         html += '</div>';
 
-        // Load detailed innings data from JSON
+        // Show nested players within team1 and team2 objects
+        if (match.team1 && match.team1.players && match.team1.players.length > 0) {
+          html += '<h5>Team 1 Nested Players</h5>';
+          html += '<div class="players-grid">';
+
+          match.team1.players.forEach(player => {
+            const isCaptain = player.isCaptain;
+            const isViceCaptain = player.isViceCaptain;
+            const captainBadge = isCaptain ? ' (C)' : '';
+            const vcBadge = isViceCaptain ? ' (VC)' : '';
+            const impact = calculatePlayerImpact(player);
+            const impactRating = getImpactRating(impact);
+
+            html += `
+              <div class="player-card">
+                <div class="player-header">
+                  <strong>${player.player ? player.player.name : player.name || `Player ${player.playerId || player.id}`}</strong>
+                  <span class="player-role">${player.player ? player.player.role : player.role || 'N/A'}${captainBadge}${vcBadge}</span>
+                </div>
+                <div class="player-team">Team: ${match.team1.name}</div>
+                <div class="player-impact">
+                  <div class="impact-score" style="color: ${impactRating.color}; font-weight: bold;">
+                    Impact: ${impact} pts
+                  </div>
+                  <div class="impact-rating">
+                    <span class="rating-stars">${impactRating.rating}</span>
+                    <span class="rating-label">${impactRating.label}</span>
+                  </div>
+                </div>
+                <div class="player-stats">
+                  <div class="stat-group">
+                    <h6>Batting</h6>
+                    <div class="stat-item"><span>Runs:</span> ${player.batting?.runs || 0}</div>
+                    <div class="stat-item"><span>Balls:</span> ${player.batting?.balls || 0}</div>
+                    <div class="stat-item"><span>4s:</span> ${player.batting?.fours || 0}</div>
+                    <div class="stat-item"><span>6s:</span> ${player.batting?.sixes || 0}</div>
+                    <div class="stat-item"><span>SR:</span> ${player.batting?.strikeRate ? player.batting.strikeRate.toFixed(2) : 'N/A'}</div>
+                  </div>
+                  <div class="stat-group">
+                    <h6>Bowling</h6>
+                    <div class="stat-item"><span>Overs:</span> ${player.bowling?.overs || 0}</div>
+                    <div class="stat-item"><span>Wickets:</span> ${player.bowling?.wickets || 0}</div>
+                    <div class="stat-item"><span>Runs:</span> ${player.bowling?.runs || 0}</div>
+                    <div class="stat-item"><span>Econ:</span> ${player.bowling?.economy ? player.bowling.economy.toFixed(2) : 'N/A'}</div>
+                  </div>
+                </div>
+                <div class="player-additional-info">
+                  <div class="stat-item"><span>Matches Played:</span> ${player.matchesPlayed || 0}</div>
+                  <div class="stat-item"><span>Total Runs:</span> ${player.totalRuns || 0}</div>
+                  <div class="stat-item"><span>Total Wickets:</span> ${player.totalWickets || 0}</div>
+                </div>
+              </div>
+            `;
+          });
+
+          html += '</div>';
+        }
+
+        if (match.team2 && match.team2.players && match.team2.players.length > 0) {
+          html += '<h5>Team 2 Nested Players</h5>';
+          html += '<div class="players-grid">';
+
+          match.team2.players.forEach(player => {
+            const isCaptain = player.isCaptain;
+            const isViceCaptain = player.isViceCaptain;
+            const captainBadge = isCaptain ? ' (C)' : '';
+            const vcBadge = isViceCaptain ? ' (VC)' : '';
+            const impact = calculatePlayerImpact(player);
+            const impactRating = getImpactRating(impact);
+
+            html += `
+              <div class="player-card">
+                <div class="player-header">
+                  <strong>${player.player ? player.player.name : player.name || `Player ${player.playerId || player.id}`}</strong>
+                  <span class="player-role">${player.player ? player.player.role : player.role || 'N/A'}${captainBadge}${vcBadge}</span>
+                </div>
+                <div class="player-team">Team: ${match.team2.name}</div>
+                <div class="player-impact">
+                  <div class="impact-score" style="color: ${impactRating.color}; font-weight: bold;">
+                    Impact: ${impact} pts
+                  </div>
+                  <div class="impact-rating">
+                    <span class="rating-stars">${impactRating.rating}</span>
+                    <span class="rating-label">${impactRating.label}</span>
+                  </div>
+                </div>
+                <div class="player-stats">
+                  <div class="stat-group">
+                    <h6>Batting</h6>
+                    <div class="stat-item"><span>Runs:</span> ${player.batting?.runs || 0}</div>
+                    <div class="stat-item"><span>Balls:</span> ${player.batting?.balls || 0}</div>
+                    <div class="stat-item"><span>4s:</span> ${player.batting?.fours || 0}</div>
+                    <div class="stat-item"><span>6s:</span> ${player.batting?.sixes || 0}</div>
+                    <div class="stat-item"><span>SR:</span> ${player.batting?.strikeRate ? player.batting.strikeRate.toFixed(2) : 'N/A'}</div>
+                  </div>
+                  <div class="stat-group">
+                    <h6>Bowling</h6>
+                    <div class="stat-item"><span>Overs:</span> ${player.bowling?.overs || 0}</div>
+                    <div class="stat-item"><span>Wickets:</span> ${player.bowling?.wickets || 0}</div>
+                    <div class="stat-item"><span>Runs:</span> ${player.bowling?.runs || 0}</div>
+                    <div class="stat-item"><span>Econ:</span> ${player.bowling?.economy ? player.bowling.economy.toFixed(2) : 'N/A'}</div>
+                  </div>
+                </div>
+                <div class="player-additional-info">
+                  <div class="stat-item"><span>Matches Played:</span> ${player.matchesPlayed || 0}</div>
+                  <div class="stat-item"><span>Total Runs:</span> ${player.totalRuns || 0}</div>
+                  <div class="stat-item"><span>Total Wickets:</span> ${player.totalWickets || 0}</div>
+                </div>
+              </div>
+            `;
+          });
+
+          html += '</div>';
+        }
+
+        html += '</div>';
+
+        // Toss & Match Events
+        if (match.toss || match.result || match.playerOfMatch) {
+          html += '<div class="detail-section">';
+          html += '<h4>🎯 Match Events</h4>';
+          html += '<div class="detail-grid">';
+
+          if (match.toss) {
+            html += `<div class="detail-item"><strong>Toss Winner:</strong> ${match.toss.winnerTeamName || 'N/A'}</div>`;
+            html += `<div class="detail-item"><strong>Toss Decision:</strong> ${match.toss.decision || 'N/A'}</div>`;
+          }
+
+          if (match.result) {
+            html += `<div class="detail-item"><strong>Result Type:</strong> ${match.result.resultType || 'N/A'}</div>`;
+            if (match.result.winnerTeamName) {
+              html += `<div class="detail-item"><strong>Winner:</strong> ${match.result.winnerTeamName}</div>`;
+            }
+            if (match.result.margin) {
+              html += `<div class="detail-item"><strong>Margin:</strong> ${match.result.margin}</div>`;
+            }
+          }
+
+          if (match.playerOfMatch) {
+            html += `<div class="detail-item"><strong>Player of the Match:</strong> ${match.playerOfMatch.name || 'N/A'}</div>`;
+          }
+
+          html += '</div>';
+          html += '</div>';
+        }
+
+        // Scores Section
+        if (match.scores) {
+          html += '<div class="detail-section">';
+          html += '<h4>📊 Scores</h4>';
+          html += '<div class="detail-grid">';
+
+          if (match.scores.team1) {
+            html += `<div class="detail-item"><strong>Team 1 Score:</strong> ${match.scores.team1.runs || 0}/${match.scores.team1.wickets || 0} (${match.scores.team1.overs || 0} overs${match.scores.team1.declared ? ' - declared' : ''})</div>`;
+          }
+
+          if (match.scores.team2) {
+            html += `<div class="detail-item"><strong>Team 2 Score:</strong> ${match.scores.team2.runs || 0}/${match.scores.team2.wickets || 0} (${match.scores.team2.overs || 0} overs${match.scores.team2.declared ? ' - declared' : ''})</div>`;
+          }
+
+          html += '</div>';
+          html += '</div>';
+        }
+
+        // Squads Details
+        if (match.squads && Object.keys(match.squads).length > 0) {
+          html += '<div class="detail-section">';
+          html += '<h4>🏏 Team Squads</h4>';
+
+          Object.entries(match.squads).forEach(([teamId, squad]) => {
+            html += `<h5>${squad.teamName || `Team ${teamId}`}</h5>`;
+            html += '<div class="detail-grid">';
+
+            if (squad.captain) {
+              html += `<div class="detail-item"><strong>Captain:</strong> ${squad.captain.name} (${squad.captain.role || 'N/A'})</div>`;
+            }
+
+            if (squad.wicketKeeper) {
+              html += `<div class="detail-item"><strong>Wicket Keeper:</strong> ${squad.wicketKeeper.name} (${squad.wicketKeeper.role || 'N/A'})</div>`;
+            }
+
+            if (squad.players && squad.players.length > 0) {
+              html += `<div class="detail-item"><strong>Players (${squad.players.length}):</strong></div>`;
+              html += '<div class="players-list">';
+              squad.players.forEach(player => {
+                html += `<div class="player-item">${player.name} (${player.role || 'N/A'})</div>`;
+              });
+              html += '</div>';
+            }
+
+            html += '</div>';
+          });
+
+          html += '</div>';
+        }
+
+        // Player Statistics
+        if (match.playerStats && match.playerStats.length > 0) {
+          html += '<div class="detail-section">';
+          html += '<h4>📈 Player Statistics</h4>';
+          html += '<div class="table-container">';
+          html += '<table class="data-table">';
+          html += '<thead><tr><th>Player</th><th>Team</th><th>Role</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th><th>SR</th><th>Overs</th><th>Wickets</th><th>Runs Conceded</th><th>Econ</th></tr></thead>';
+          html += '<tbody>';
+
+          match.playerStats.forEach(stat => {
+            const playerName = stat.player ? stat.player.name : `Player ${stat.playerId}`;
+            const playerRole = stat.player ? stat.player.role : 'N/A';
+            const playerTeam = getPlayerTeamName(stat.playerId, match);
+            html += `<tr>
+              <td>${playerName}</td>
+              <td>${playerTeam}</td>
+              <td>${playerRole}</td>
+              <td>${stat.batting?.runs || 0}</td>
+              <td>${stat.batting?.balls || 0}</td>
+              <td>${stat.batting?.fours || 0}</td>
+              <td>${stat.batting?.sixes || 0}</td>
+              <td>${stat.batting?.strikeRate ? stat.batting.strikeRate.toFixed(2) : 'N/A'}</td>
+              <td>${stat.bowling?.overs || 0}</td>
+              <td>${stat.bowling?.wickets || 0}</td>
+              <td>${stat.bowling?.runs || 0}</td>
+              <td>${stat.bowling?.economy ? stat.bowling.economy.toFixed(2) : 'N/A'}</td>
+            </tr>`;
+          });
+
+          html += '</tbody></table></div></div>';
+        }
+
+        // All Players from Match
+        html += '<div class="detail-section">';
+        html += '<h4>👥 All Players in Match</h4>';
+
+        // Team 1 Players
+        if (match.squads && match.squads[match.team1?.id]) {
+          const team1Squad = match.squads[match.team1.id];
+          html += `<h5>🏏 ${match.team1?.name || 'Team 1'} Squad</h5>`;
+          html += '<div class="players-grid">';
+
+          if (team1Squad.players && team1Squad.players.length > 0) {
+            team1Squad.players.forEach(player => {
+              const playerStats = getPlayerMatchStats(player.id, match);
+              const isCaptain = team1Squad.captain && team1Squad.captain.id === player.id;
+              const isWicketKeeper = team1Squad.wicketKeeper && team1Squad.wicketKeeper.id === player.id;
+              const captainBadge = isCaptain ? ' (C)' : '';
+              const wkBadge = isWicketKeeper ? ' (WK)' : '';
+
+              html += `
+                <div class="player-card">
+                  <div class="player-header">
+                    <strong>${player.name}</strong>
+                    <span class="player-role">${player.role || 'N/A'}${captainBadge}${wkBadge}</span>
+                  </div>
+                  <div class="player-stats">
+                    <div class="stat-group">
+                      <h6>Batting</h6>
+                      <div class="stat-item"><span>Runs:</span> ${playerStats.batting?.runs || 0}</div>
+                      <div class="stat-item"><span>Balls:</span> ${playerStats.batting?.balls || 0}</div>
+                      <div class="stat-item"><span>4s:</span> ${playerStats.batting?.fours || 0}</div>
+                      <div class="stat-item"><span>6s:</span> ${playerStats.batting?.sixes || 0}</div>
+                      <div class="stat-item"><span>SR:</span> ${playerStats.batting?.strikeRate ? playerStats.batting.strikeRate.toFixed(2) : 'N/A'}</div>
+                    </div>
+                    <div class="stat-group">
+                      <h6>Bowling</h6>
+                      <div class="stat-item"><span>Overs:</span> ${playerStats.bowling?.overs || 0}</div>
+                      <div class="stat-item"><span>Wickets:</span> ${playerStats.bowling?.wickets || 0}</div>
+                      <div class="stat-item"><span>Runs:</span> ${playerStats.bowling?.runs || 0}</div>
+                      <div class="stat-item"><span>Econ:</span> ${playerStats.bowling?.economy ? playerStats.bowling.economy.toFixed(2) : 'N/A'}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          html += '</div>';
+        }
+
+        // Team 2 Players
+        if (match.squads && match.squads[match.team2?.id]) {
+          const team2Squad = match.squads[match.team2.id];
+          html += `<h5>🏏 ${match.team2?.name || 'Team 2'} Squad</h5>`;
+          html += '<div class="players-grid">';
+
+          if (team2Squad.players && team2Squad.players.length > 0) {
+            team2Squad.players.forEach(player => {
+              const playerStats = getPlayerMatchStats(player.id, match);
+              const isCaptain = team2Squad.captain && team2Squad.captain.id === player.id;
+              const isWicketKeeper = team2Squad.wicketKeeper && team2Squad.wicketKeeper.id === player.id;
+              const captainBadge = isCaptain ? ' (C)' : '';
+              const wkBadge = isWicketKeeper ? ' (WK)' : '';
+
+              html += `
+                <div class="player-card">
+                  <div class="player-header">
+                    <strong>${player.name}</strong>
+                    <span class="player-role">${player.role || 'N/A'}${captainBadge}${wkBadge}</span>
+                  </div>
+                  <div class="player-stats">
+                    <div class="stat-group">
+                      <h6>Batting</h6>
+                      <div class="stat-item"><span>Runs:</span> ${playerStats.batting?.runs || 0}</div>
+                      <div class="stat-item"><span>Balls:</span> ${playerStats.batting?.balls || 0}</div>
+                      <div class="stat-item"><span>4s:</span> ${playerStats.batting?.fours || 0}</div>
+                      <div class="stat-item"><span>6s:</span> ${playerStats.batting?.sixes || 0}</div>
+                      <div class="stat-item"><span>SR:</span> ${playerStats.batting?.strikeRate ? playerStats.batting.strikeRate.toFixed(2) : 'N/A'}</div>
+                    </div>
+                    <div class="stat-group">
+                      <h6>Bowling</h6>
+                      <div class="stat-item"><span>Overs:</span> ${playerStats.bowling?.overs || 0}</div>
+                      <div class="stat-item"><span>Wickets:</span> ${playerStats.bowling?.wickets || 0}</div>
+                      <div class="stat-item"><span>Runs:</span> ${playerStats.bowling?.runs || 0}</div>
+                      <div class="stat-item"><span>Econ:</span> ${playerStats.bowling?.economy ? playerStats.bowling.economy.toFixed(2) : 'N/A'}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          html += '</div>';
+        }
+
+        // If no squads data, show players from innings
+        if ((!match.squads || Object.keys(match.squads).length === 0) && match.innings) {
+          html += '<h5>Players from Innings Data</h5>';
+          const allPlayers = new Map();
+
+          match.innings.forEach(inning => {
+            // Add batsmen
+            if (inning.batsmen) {
+              inning.batsmen.forEach(batsman => {
+                if (batsman.player && batsman.player.id) {
+                  allPlayers.set(batsman.player.id, {
+                    ...batsman.player,
+                    team: inning.battingTeam?.name || 'Unknown'
+                  });
+                }
+              });
+            }
+
+            // Add bowlers
+            if (inning.bowling) {
+              inning.bowling.forEach(bowler => {
+                if (bowler.player && bowler.player.id) {
+                  allPlayers.set(bowler.player.id, {
+                    ...bowler.player,
+                    team: inning.bowlingTeam?.name || 'Unknown'
+                  });
+                }
+              });
+            }
+          });
+
+          if (allPlayers.size > 0) {
+            html += '<div class="players-grid">';
+
+            allPlayers.forEach(player => {
+              const playerStats = getPlayerMatchStats(player.id, match);
+
+              html += `
+                <div class="player-card">
+                  <div class="player-header">
+                    <strong>${player.name}</strong>
+                    <span class="player-role">${player.role || 'N/A'}</span>
+                  </div>
+                  <div class="player-team">Team: ${player.team}</div>
+                  <div class="player-stats">
+                    <div class="stat-group">
+                      <h6>Batting</h6>
+                      <div class="stat-item"><span>Runs:</span> ${playerStats.batting?.runs || 0}</div>
+                      <div class="stat-item"><span>Balls:</span> ${playerStats.batting?.balls || 0}</div>
+                      <div class="stat-item"><span>4s:</span> ${playerStats.batting?.fours || 0}</div>
+                      <div class="stat-item"><span>6s:</span> ${playerStats.batting?.sixes || 0}</div>
+                      <div class="stat-item"><span>SR:</span> ${playerStats.batting?.strikeRate ? playerStats.batting.strikeRate.toFixed(2) : 'N/A'}</div>
+                    </div>
+                    <div class="stat-group">
+                      <h6>Bowling</h6>
+                      <div class="stat-item"><span>Overs:</span> ${playerStats.bowling?.overs || 0}</div>
+                      <div class="stat-item"><span>Wickets:</span> ${playerStats.bowling?.wickets || 0}</div>
+                      <div class="stat-item"><span>Runs:</span> ${playerStats.bowling?.runs || 0}</div>
+                      <div class="stat-item"><span>Econ:</span> ${playerStats.bowling?.economy ? playerStats.bowling.economy.toFixed(2) : 'N/A'}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+
+            html += '</div>';
+          }
+        }
+
+        html += '</div>';
+
+        // Load detailed innings data
         try {
           const inningsData = await loadMatchInningsData(matchId);
           if (inningsData && inningsData.length > 0) {
-            html += '<h4>Detailed Innings</h4>';
+            html += '<div class="detail-section">';
+            html += '<h4>🎾 Detailed Innings</h4>';
 
             inningsData.forEach((inning, index) => {
               const inningNumber = index + 1;
@@ -3232,7 +3828,7 @@
 
               // Batting table
               if (inning.batsmen && inning.batsmen.length > 0) {
-                html += '<h6>Batting</h6>';
+                html += '<h6>🏏 Batting</h6>';
                 html += '<div class="table-container">';
                 html += '<table class="innings-table">';
                 html += '<tr><th>Batsman</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th><th>SR</th><th>Dismissal</th></tr>';
@@ -3255,7 +3851,7 @@
 
               // Bowling table
               if (inning.bowling && inning.bowling.length > 0) {
-                html += '<h6>Bowling</h6>';
+                html += '<h6>🎯 Bowling</h6>';
                 html += '<div class="table-container">';
                 html += '<table class="innings-table">';
                 html += '<tr><th>Bowler</th><th>Overs</th><th>Maidens</th><th>Runs</th><th>Wickets</th><th>Econ</th><th>Dots</th><th>4s</th><th>6s</th></tr>';
@@ -3280,7 +3876,7 @@
 
               // Fall of wickets
               if (inning.fall_of_wickets && inning.fall_of_wickets.length > 0) {
-                html += '<h6>Fall of Wickets</h6>';
+                html += '<h6>📉 Fall of Wickets</h6>';
                 html += '<div class="table-container">';
                 html += '<table class="innings-table">';
                 html += '<tr><th>Wicket</th><th>Score</th><th>Player Out</th><th>Over</th></tr>';
@@ -3300,16 +3896,20 @@
 
               html += '</div>';
             });
+
+            html += '</div>';
           } else {
             // Fallback to basic innings summary
             if (match.innings && match.innings.length > 0) {
-              html += '<h4>Innings Summary</h4>';
+              html += '<div class="detail-section">';
+              html += '<h4>🎾 Innings Summary</h4>';
               html += '<div class="table-container">';
               html += '<table class="innings-table">';
               html += '<tr><th>Inning</th><th>Runs</th><th>Wickets</th><th>Overs</th><th>Run Rate</th><th>Batting Team</th><th>Bowling Team</th></tr>';
 
               match.innings.forEach(inning => {
-                const battingTeam = match.team1 && match.team1.id === inning.battingTeam ? match.team1.name :
+                const battingTeam = match.team1 && match.team1.id === inning.battingTeam ?
+                                  match.team1.name :
                                   match.team2 && match.team2.id === inning.battingTeam ? match.team2.name : inning.battingTeam;
                 const bowlingTeam = match.team1 && match.team1.id === inning.bowlingTeam ? match.team1.name :
                                   match.team2 && match.team2.id === inning.bowlingTeam ? match.team2.name : inning.bowlingTeam;
@@ -3326,14 +3926,15 @@
               });
 
               html += '</table>';
-              html += '</div>';
+              html += '</div></div>';
             }
           }
         } catch (inningsError) {
           console.error('Error loading innings data:', inningsError);
           // Fallback to basic innings summary
           if (match.innings && match.innings.length > 0) {
-            html += '<h4>Innings Summary</h4>';
+            html += '<div class="detail-section">';
+            html += '<h4>🎾 Innings Summary</h4>';
             html += '<div class="table-container">';
             html += '<table class="innings-table">';
             html += '<tr><th>Inning</th><th>Runs</th><th>Wickets</th><th>Overs</th><th>Run Rate</th><th>Batting Team</th><th>Bowling Team</th></tr>';
@@ -3356,9 +3957,18 @@
             });
 
             html += '</table>';
-            html += '</div>';
+            html += '</div></div>';
           }
         }
+
+        // Raw JSON Data (for debugging/advanced users)
+        html += '<div class="detail-section">';
+        html += '<h4>🔧 Raw Match Data (JSON)</h4>';
+        html += '<details>';
+        html += '<summary>Click to view complete match data</summary>';
+        html += `<pre style="background: var(--background-color); padding: 16px; border-radius: var(--border-radius); overflow-x: auto; font-size: 12px; max-height: 400px; overflow-y: auto;">${JSON.stringify(match, null, 2)}</pre>`;
+        html += '</details>';
+        html += '</div>';
 
         html += '<br><button class="btn btn-secondary" onclick="hideMatchDetail()">Close Details</button>';
 
@@ -3370,8 +3980,105 @@
       }
     }
 
-    function hideMatchDetail() {
-      document.getElementById('match-detail').style.display = 'none';
+    function getPlayerTeamName(playerId, match) {
+      // Check if player is in team1 squad
+      if (match.squads && match.squads[match.team1?.id]) {
+        const team1Squad = match.squads[match.team1.id];
+        if (team1Squad.players && team1Squad.players.some(p => p.id === playerId)) {
+          return match.team1?.name || 'Team 1';
+        }
+      }
+
+      // Check if player is in team2 squad
+      if (match.squads && match.squads[match.team2?.id]) {
+        const team2Squad = match.squads[match.team2.id];
+        if (team2Squad.players && team2Squad.players.some(p => p.id === playerId)) {
+          return match.team2?.name || 'Team 2';
+        }
+      }
+
+      // Fallback: check innings data
+      if (match.innings) {
+        for (const inning of match.innings) {
+          // Check batsmen
+          if (inning.batsmen) {
+            const batsman = inning.batsmen.find(b => b.playerId === playerId || (b.player && b.player.id === playerId));
+            if (batsman) {
+              return inning.battingTeam?.name || 'Unknown';
+            }
+          }
+
+          // Check bowlers
+          if (inning.bowling) {
+            const bowler = inning.bowling.find(b => b.playerId === playerId || (b.player && b.player.id === playerId));
+            if (bowler) {
+              return inning.bowlingTeam?.name || 'Unknown';
+            }
+          }
+        }
+      }
+
+      return 'Unknown';
+    }
+
+    function calculatePlayerImpact(player) {
+      let impact = 0;
+
+      // Batting Impact
+      const batting = player.batting || {};
+      const runs = batting.runs || 0;
+      const balls = batting.balls || 0;
+      const fours = batting.fours || 0;
+      const sixes = batting.sixes || 0;
+
+      // Batting points: runs + boundaries bonus + strike rate bonus
+      impact += runs;
+      impact += fours * 1; // 1 extra point per boundary
+      impact += sixes * 2; // 2 extra points per six
+
+      // Strike rate bonus (if strike rate > 100, add bonus points)
+      if (balls > 0) {
+        const strikeRate = (runs / balls) * 100;
+        if (strikeRate > 100) {
+          impact += Math.floor((strikeRate - 100) / 10); // Bonus for high strike rate
+        }
+      }
+
+      // Bowling Impact
+      const bowling = player.bowling || {};
+      const wickets = bowling.wickets || 0;
+      const overs = bowling.overs || 0;
+      const bowlingRuns = bowling.runs || 0;
+
+      // Bowling points: 25 points per wicket + economy bonus
+      impact += wickets * 25;
+
+      // Economy rate bonus (lower economy = better)
+      if (overs > 0) {
+        const economy = bowlingRuns / overs;
+        if (economy < 6) {
+          impact += Math.floor((6 - economy) * 2); // Bonus for good economy
+        }
+      }
+
+      // Fielding Impact (if available)
+      const fielding = player.fielding || {};
+      const catches = fielding.catches || 0;
+      const runOuts = fielding.runOuts || 0;
+
+      impact += catches * 10; // 10 points per catch
+      impact += runOuts * 10; // 10 points per run out
+
+      return Math.round(impact);
+    }
+
+    function getImpactRating(impact) {
+      if (impact >= 100) return { rating: '⭐⭐⭐⭐⭐', color: '#FFD700', label: 'Game Changer' };
+      if (impact >= 75) return { rating: '⭐⭐⭐⭐', color: '#32CD32', label: 'Excellent' };
+      if (impact >= 50) return { rating: '⭐⭐⭐', color: '#1E90FF', label: 'Good' };
+      if (impact >= 25) return { rating: '⭐⭐', color: '#FFA500', label: 'Decent' };
+      if (impact >= 10) return { rating: '⭐', color: '#FF6347', label: 'Minimal' };
+      return { rating: '⚪', color: '#808080', label: 'Low Impact' };
     }
 
     // Teams functions
@@ -3380,7 +4087,7 @@
       showLoading(contentId);
 
       try {
-        const data = await apiCall('/api/teams');
+        const data = await apiCall('/api/v2/teams');
         currentData.teams = data.data;
         displayTeams(data.data, contentId);
       } catch (error) {
@@ -3398,12 +4105,19 @@
       html += '<div class="data-grid">';
 
       teams.forEach(team => {
+        const playersCount = team.players ? team.players.length : 0;
+        const matchesPlayed = team.teamStats ? team.teamStats.matchesPlayed : 0;
+        const winPercentage = team.teamStats ? team.teamStats.winPercentage : 0;
+
         html += `
           <div class="data-card" onclick="showTeamDetail('${team.id}')">
             <h3>${team.name}</h3>
             <p><strong>Short Name:</strong> ${team.shortName || 'N/A'}</p>
             <p><strong>ID:</strong> ${team.displayId || team.id}</p>
-            <p><strong>Players:</strong> ${team.playersCount || 0}</p>
+            <p><strong>Captain:</strong> ${team.captain ? team.captain.name : 'N/A'}</p>
+            <p><strong>Vice Captain:</strong> ${team.viceCaptain ? team.viceCaptain.name : 'N/A'}</p>
+            <p><strong>Players:</strong> ${playersCount}</p>
+            <p><strong>Matches:</strong> ${matchesPlayed} | <strong>Win %:</strong> ${winPercentage.toFixed(1)}%</p>
             <div class="card-actions">
               <button class="btn btn-small btn-edit" onclick="editTeam('${team.id}', event)">Edit</button>
               <button class="btn btn-small btn-delete" onclick="deleteTeam('${team.id}', event)">Delete</button>
@@ -3422,7 +4136,7 @@
       detailDiv.innerHTML = '<div class="loading">Loading team details...</div>';
 
       try {
-        const data = await apiCall(`/api/teams/${teamId}`);
+        const data = await apiCall(`/api/v2/teams/${teamId}`);
         const team = data.data;
 
         let html = `<h3>Team Details: ${team.name}</h3>`;
@@ -3431,7 +4145,38 @@
         html += `<div class="detail-item"><strong>Name:</strong> ${team.name}</div>`;
         html += `<div class="detail-item"><strong>Short Name:</strong> ${team.shortName || 'N/A'}</div>`;
         html += `<div class="detail-item"><strong>ID:</strong> ${team.displayId || team.id}</div>`;
+        html += `<div class="detail-item"><strong>Captain:</strong> ${team.captain ? team.captain.name : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Vice Captain:</strong> ${team.viceCaptain ? team.viceCaptain.name : 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Home Ground:</strong> ${team.homeGround || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Active:</strong> ${team.isActive ? 'Yes' : 'No'}</div>`;
         html += `<div class="detail-item"><strong>Created:</strong> ${team.createdAt ? new Date(team.createdAt).toLocaleDateString() : 'N/A'}</div>`;
+
+        // Team Statistics
+        if (team.teamStats) {
+          html += '<div class="detail-section"><h4>Team Statistics</h4>';
+          html += `<div class="detail-item"><strong>Matches Played:</strong> ${team.teamStats.matchesPlayed || 0}</div>`;
+          html += `<div class="detail-item"><strong>Matches Won:</strong> ${team.teamStats.matchesWon || 0}</div>`;
+          html += `<div class="detail-item"><strong>Matches Lost:</strong> ${team.teamStats.matchesLost || 0}</div>`;
+          html += `<div class="detail-item"><strong>Win Percentage:</strong> ${team.teamStats.winPercentage ? team.teamStats.winPercentage.toFixed(1) + '%' : 'N/A'}</div>`;
+          html += `<div class="detail-item"><strong>Total Players:</strong> ${team.teamStats.totalPlayers || 0}</div>`;
+          html += `<div class="detail-item"><strong>Avg Players/Match:</strong> ${team.teamStats.avgPlayersPerMatch ? team.teamStats.avgPlayersPerMatch.toFixed(1) : 'N/A'}</div>`;
+          html += '</div>';
+        }
+
+        // Players
+        if (team.players && team.players.length > 0) {
+          html += '<div class="detail-section"><h4>Players</h4>';
+          html += '<div class="players-list">';
+          team.players.forEach(player => {
+            const isCaptain = player.isCaptain ? ' (C)' : '';
+            const isViceCaptain = player.isViceCaptain ? ' (VC)' : '';
+            html += `<div class="player-item">
+              <strong>${player.player.name}</strong> - ${player.player.role}${isCaptain}${isViceCaptain}
+              <br><small>Matches: ${player.matchesPlayed}, Runs: ${player.totalRuns}, Wickets: ${player.totalWickets}</small>
+            </div>`;
+          });
+          html += '</div></div>';
+        }
 
         html += '</div>';
 
@@ -3455,7 +4200,7 @@
       showLoading(contentId);
 
       try {
-        const data = await apiCall('/api/players');
+        const data = await apiCall('/api/v2/players');
         currentData.players = data.data;
         displayPlayers(data.data, contentId);
       } catch (error) {
@@ -3493,6 +4238,19 @@
         const status = player.isActive === false ? 'Suspended' : 'Active';
         const statusClass = player.isActive === false ? 'status-suspended' : 'status-active';
         
+        // Extract stats from careerStats object
+        const careerStats = player.careerStats || {};
+        const matchesPlayed = careerStats.matchesPlayed || 0;
+        const totalRuns = careerStats.runs || 0;
+        const totalWickets = careerStats.wickets || 0;
+        const battingAverage = careerStats.battingAverage || 0;
+        const bowlingAverage = careerStats.bowlingAverage || 0;
+        const strikeRate = careerStats.strikeRate || 0;
+        const economyRate = careerStats.economyRate || 0;
+        
+        // Get preferred team name
+        const teamName = player.preferredTeam ? player.preferredTeam.name : 'N/A';
+        
         html += `
           <div class="data-card ${statusClass}" onclick="showPlayerDetail('${player.id}')">
             <div class="card-checkbox">
@@ -3502,12 +4260,11 @@
             <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${status}</span></p>
             <p><strong>Role:</strong> ${player.role || 'N/A'}</p>
             <p><strong>ID:</strong> ${player.displayId || player.id}</p>
-            <p><strong>Team:</strong> ${player.teamName || 'N/A'}</p>
-            <p><strong>Matches:</strong> ${player.matchesPlayed || 0}</p>
-            <p><strong>Runs:</strong> ${player.totalRuns || 0} | <strong>Wickets:</strong> ${player.totalWickets || 0}</p>
-            <p><strong>Overs Bowled:</strong> ${player.oversBowled || 0} | <strong>Runs Conceded:</strong> ${player.runsConceded || 0}</p>
-            <p><strong>Batting Avg:</strong> ${player.battingAverage ? player.battingAverage.toFixed(2) : 'N/A'} | <strong>Bowling Avg:</strong> ${player.bowlingAverage ? player.bowlingAverage.toFixed(2) : 'N/A'}</p>
-            <p><strong>Strike Rate:</strong> ${player.battingStrikeRate ? player.battingStrikeRate.toFixed(2) : 'N/A'} | <strong>Economy:</strong> ${player.bowlingEconomy ? player.bowlingEconomy.toFixed(2) : 'N/A'}</p>
+            <p><strong>Team:</strong> ${teamName}</p>
+            <p><strong>Matches:</strong> ${matchesPlayed}</p>
+            <p><strong>Runs:</strong> ${totalRuns} | <strong>Wickets:</strong> ${totalWickets}</p>
+            <p><strong>Batting Avg:</strong> ${battingAverage ? battingAverage.toFixed(2) : 'N/A'} | <strong>Bowling Avg:</strong> ${bowlingAverage ? bowlingAverage.toFixed(2) : 'N/A'}</p>
+            <p><strong>Strike Rate:</strong> ${strikeRate ? strikeRate.toFixed(2) : 'N/A'} | <strong>Economy:</strong> ${economyRate ? economyRate.toFixed(2) : 'N/A'}</p>
             <div class="card-actions">
               <button class="btn btn-small btn-edit" onclick="editPlayer('${player.id}', event)">Edit</button>
               <button class="btn btn-small btn-delete" onclick="deletePlayer('${player.id}', event)">Delete</button>
@@ -3527,16 +4284,8 @@
 
       try {
         // Get basic player info
-        const playerData = await apiCall(`/api/players/${playerId}`);
+        const playerData = await apiCall(`/api/v2/players/${playerId}`);
         const player = playerData.data;
-
-        // Get detailed match performance
-        const matchData = await apiCall(`/api/players/${playerId}/matches`);
-        const matchDetails = matchData.data;
-        
-        console.log('Player match data:', matchDetails);
-        console.log('Matches array:', matchDetails.matches);
-        console.log('Matches length:', matchDetails.matches ? matchDetails.matches.length : 'undefined');
 
         let html = `<h3>Player Details: ${player.name}</h3>`;
         html += '<div class="detail-grid">';
@@ -3544,116 +4293,78 @@
         html += `<div class="detail-item"><strong>Name:</strong> ${player.name}</div>`;
         html += `<div class="detail-item"><strong>Role:</strong> ${player.role || 'N/A'}</div>`;
         html += `<div class="detail-item"><strong>ID:</strong> ${player.displayId || player.id}</div>`;
-        html += `<div class="detail-item"><strong>Team:</strong> ${player.teamName || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Preferred Team:</strong> ${player.preferredTeam ? player.preferredTeam.name : 'N/A'}</div>`;
         html += `<div class="detail-item"><strong>Batting Style:</strong> ${player.battingStyle || 'N/A'}</div>`;
         html += `<div class="detail-item"><strong>Bowling Style:</strong> ${player.bowlingStyle || 'N/A'}</div>`;
-        html += `<div class="detail-item"><strong>Matches Played:</strong> ${matchDetails.summary.totalMatches}</div>`;
-        html += `<div class="detail-item"><strong>Total Runs:</strong> ${matchDetails.summary.totalRuns}</div>`;
-        html += `<div class="detail-item"><strong>Total Wickets:</strong> ${matchDetails.summary.totalWickets}</div>`;
-        html += `<div class="detail-item"><strong>Total Catches:</strong> ${matchDetails.summary.totalCatches}</div>`;
+        html += `<div class="detail-item"><strong>Nationality:</strong> ${player.nationality || 'N/A'}</div>`;
+        html += `<div class="detail-item"><strong>Active:</strong> ${player.isActive !== false ? 'Yes' : 'No'}</div>`;
 
-        if (player.battingAverage) {
-          html += `<div class="detail-item"><strong>Batting Average:</strong> ${player.battingAverage.toFixed(2)}</div>`;
-        }
-        if (player.bowlingAverage) {
-          html += `<div class="detail-item"><strong>Bowling Average:</strong> ${player.bowlingAverage.toFixed(2)}</div>`;
-        }
-        if (player.battingStrikeRate) {
-          html += `<div class="detail-item"><strong>Batting Strike Rate:</strong> ${player.battingStrikeRate.toFixed(2)}</div>`;
-        }
-        if (player.bowlingEconomy) {
-          html += `<div class="detail-item"><strong>Bowling Economy:</strong> ${player.bowlingEconomy.toFixed(2)}</div>`;
+        // Career Statistics
+        if (player.careerStats) {
+          html += '<div class="detail-section"><h4>Career Statistics</h4>';
+          html += `<div class="detail-item"><strong>Matches Played:</strong> ${player.careerStats.matchesPlayed || 0}</div>`;
+          html += `<div class="detail-item"><strong>Runs:</strong> ${player.careerStats.runs || 0}</div>`;
+          html += `<div class="detail-item"><strong>Wickets:</strong> ${player.careerStats.wickets || 0}</div>`;
+          html += `<div class="detail-item"><strong>Highest Score:</strong> ${player.careerStats.highestScore || 0}</div>`;
+          html += `<div class="detail-item"><strong>Batting Average:</strong> ${player.careerStats.battingAverage ? player.careerStats.battingAverage.toFixed(2) : 'N/A'}</div>`;
+          html += `<div class="detail-item"><strong>Bowling Average:</strong> ${player.careerStats.bowlingAverage ? player.careerStats.bowlingAverage.toFixed(2) : 'N/A'}</div>`;
+          html += `<div class="detail-item"><strong>Strike Rate:</strong> ${player.careerStats.strikeRate ? player.careerStats.strikeRate.toFixed(2) : 'N/A'}</div>`;
+          html += `<div class="detail-item"><strong>Economy Rate:</strong> ${player.careerStats.economyRate ? player.careerStats.economyRate.toFixed(2) : 'N/A'}</div>`;
+          html += `<div class="detail-item"><strong>Catches:</strong> ${player.careerStats.catches || 0}</div>`;
+          html += `<div class="detail-item"><strong>Run Outs:</strong> ${player.careerStats.runOuts || 0}</div>`;
+          html += '</div>';
         }
 
-        html += '</div>';
+        // Teams Played For
+        if (player.teamsPlayedFor && player.teamsPlayedFor.length > 0) {
+          html += '<div class="detail-section"><h4>Teams Played For</h4>';
+          html += '<div class="teams-list">';
+          player.teamsPlayedFor.forEach(teamInfo => {
+            const captainText = teamInfo.isCaptain ? ' (Captain)' : '';
+            html += `<div class="team-item">
+              <strong>${teamInfo.team.name}</strong>${captainText}
+              <br><small>Matches: ${teamInfo.matchesPlayed}, Runs: ${teamInfo.totalRuns}, Wickets: ${teamInfo.totalWickets}</small>
+            </div>`;
+          });
+          html += '</div></div>';
+        }
 
-        // Match Performance Details
-        if (matchDetails.matches && matchDetails.matches.length > 0) {
-          html += '<h4>Match Performance Details</h4>';
+        // Recent Matches
+        if (player.recentMatches && player.recentMatches.length > 0) {
+          html += '<div class="detail-section"><h4>Recent Matches</h4>';
           html += '<div class="matches-table-container">';
           html += '<table class="data-table">';
           html += '<thead>';
           html += '<tr>';
           html += '<th>Date</th>';
           html += '<th>Match</th>';
+          html += '<th>Team</th>';
           html += '<th>Batting</th>';
           html += '<th>Bowling</th>';
-          html += '<th>Fielding</th>';
           html += '</tr>';
           html += '</thead>';
           html += '<tbody>';
 
-          for (const match of matchDetails.matches) {
-            // Handle different date formats
-            let matchDate = 'N/A';
-            if (match.matchDate) {
-              if (typeof match.matchDate === 'object' && match.matchDate.seconds) {
-                // Firestore timestamp
-                matchDate = new Date(match.matchDate.seconds * 1000).toLocaleDateString();
-              } else if (typeof match.matchDate === 'object' && match.matchDate._seconds) {
-                // Firestore timestamp with _seconds
-                matchDate = new Date(match.matchDate._seconds * 1000).toLocaleDateString();
-              } else if (typeof match.matchDate === 'string') {
-                // ISO string or other string format
-                matchDate = new Date(match.matchDate).toLocaleDateString();
-              }
-            }
-            
-            const matchTitle = `${match.team1 || 'Team 1'} vs ${match.team2 || 'Team 2'}`;
-
-            // Parse contributions array to extract batting, bowling, and fielding data
-            let battingInfo = '-';
-            let bowlingInfo = '-';
-            let fieldingInfo = '-';
-
-            if (match.contributions && Array.isArray(match.contributions)) {
-              // Aggregate batting contributions
-              const battingContributions = match.contributions.filter(c => c.type === 'batting');
-              if (battingContributions.length > 0) {
-                const totalRuns = battingContributions.reduce((sum, c) => sum + (c.runs || 0), 0);
-                const totalBalls = battingContributions.reduce((sum, c) => sum + (c.balls || 0), 0);
-                const dismissals = battingContributions.map(c => c.dismissal).filter(d => d && d !== 'not out');
-                battingInfo = `${totalRuns}(${totalBalls})`;
-                if (dismissals.length > 0) {
-                  battingInfo += '*';
-                }
-              }
-
-              // Aggregate bowling contributions
-              const bowlingContributions = match.contributions.filter(c => c.type === 'bowling');
-              if (bowlingContributions.length > 0) {
-                const totalOvers = bowlingContributions.reduce((sum, c) => sum + (parseFloat(c.overs) || 0), 0);
-                const totalMaidens = bowlingContributions.reduce((sum, c) => sum + (c.maidens || 0), 0);
-                const totalRuns = bowlingContributions.reduce((sum, c) => sum + (c.runs || 0), 0);
-                const totalWickets = bowlingContributions.reduce((sum, c) => sum + (c.wickets || 0), 0);
-                bowlingInfo = `${totalOvers.toFixed(1)}-${totalMaidens}-${totalRuns}-${totalWickets}`;
-              }
-
-              // Aggregate fielding contributions
-              const fieldingContributions = match.contributions.filter(c => c.type === 'fielding' && c.action === 'catch');
-              if (fieldingContributions.length > 0) {
-                const totalCatches = fieldingContributions.reduce((sum, c) => sum + (c.count || 0), 0);
-                if (totalCatches > 0) {
-                  fieldingInfo = `${totalCatches} catch${totalCatches > 1 ? 'es' : ''}`;
-                }
-              }
-            }
+          player.recentMatches.forEach(match => {
+            const matchDate = match.match.date ? new Date(match.match.date).toLocaleDateString() : 'N/A';
+            const batting = match.batting ? `${match.batting.runs}/${match.batting.balls} (${match.batting.dismissal || 'not out'})` : '-';
+            const bowling = match.bowling ? `${match.bowling.wickets}/${match.bowling.runs} (${match.bowling.overs} overs)` : '-';
 
             html += '<tr>';
             html += `<td>${matchDate}</td>`;
-            html += `<td>${matchTitle}</td>`;
-            html += `<td>${battingInfo}</td>`;
-            html += `<td>${bowlingInfo}</td>`;
-            html += `<td>${fieldingInfo}</td>`;
+            html += `<td>${match.match.title}</td>`;
+            html += `<td>${match.teamPlayedFor.name}</td>`;
+            html += `<td>${batting}</td>`;
+            html += `<td>${bowling}</td>`;
             html += '</tr>';
-          }
+          });
 
           html += '</tbody>';
           html += '</table>';
-          html += '</div>';
-        } else {
-          html += '<p>No match data available for this player.</p>';
+          html += '</div></div>';
         }
+
+        html += '</div>';
 
         html += '<br><button class="btn btn-secondary" onclick="hidePlayerDetail()">Close Details</button>';
 
@@ -4210,7 +4921,7 @@
       try {
         // For now, load all players and filter by teamId
         // TODO: Add team filtering to players API
-        const result = await apiCall('/api/players');
+        const result = await apiCall('/api/v2/players');
         const allPlayers = result.data;
 
         // Filter players by teamId (assuming players have teamId field)
@@ -4271,7 +4982,7 @@
       // Ensure players are loaded
       if (!currentData.players || currentData.players.length === 0) {
         try {
-          const data = await apiCall('/api/players');
+          const data = await apiCall('/api/v2/players');
           currentData.players = data.data;
         } catch (error) {
           console.error('Failed to load players:', error);
@@ -4451,7 +5162,7 @@
       try {
         // For now, load all players and filter by teamId
         // TODO: Add team filtering to players API
-        const result = await apiCall('/api/players');
+        const result = await apiCall('/api/v2/players');
         const allPlayers = result.data;
 
         // Filter players by teamId (assuming players have teamId field)
@@ -4821,16 +5532,16 @@
           team2Score: updatedTeam2Score
         };
 
-        await apiCall(`/api/matches/${match.id}`, 'PUT', matchUpdate);
+        await apiCall(`/api/v2/matches/${match.id}`, 'PUT', matchUpdate);
 
         // Save batsmen data
         for (const batsman of inning.batsmen) {
-          await apiCall(`/api/matches/${match.id}/innings/${inning.inningNumber}/batsmen`, 'POST', batsman);
+          await apiCall(`/api/v2/matches/${match.id}/innings/${inning.inningNumber}/batsmen`, 'POST', batsman);
         }
 
         // Save bowling data
         for (const bowler of inning.bowling) {
-          await apiCall(`/api/matches/${match.id}/innings/${inning.inningNumber}/bowling`, 'POST', bowler);
+          await apiCall(`/api/v2/matches/${match.id}/innings/${inning.inningNumber}/bowling`, 'POST', bowler);
         }
 
         alert('Inning data saved successfully!');
@@ -4958,13 +5669,15 @@
       const statusDot = document.getElementById('apiStatusDot');
 
       try {
-        const response = await fetch('/api/matches', { method: 'HEAD' });
-        if (response.ok) {
+        const response = await fetch('/api/v2/matches/health');
+        const data = await response.json();
+
+        if (response.ok && data.success && data.status === 'healthy') {
           statusElement.textContent = 'Online';
           statusDot.classList.add('online');
           statusDot.classList.remove('offline');
         } else {
-          throw new Error('API not responding');
+          throw new Error(data.message || 'Health check failed');
         }
       } catch (error) {
         statusElement.textContent = 'Offline';
@@ -4978,8 +5691,8 @@
       const statusDot = document.getElementById('dbStatusDot');
 
       try {
-        const response = await apiCall('/api/matches');
-        if (response && response.data) {
+        const response = await apiCall('/api/v2/matches/health');
+        if (response && response.status === 'healthy') {
           statusElement.textContent = 'Connected';
           statusDot.classList.add('online');
           statusDot.classList.remove('offline');
@@ -4992,7 +5705,6 @@
         statusDot.classList.remove('online');
       }
     }
-
   </script>
 
   <!-- App Footer -->
