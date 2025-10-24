@@ -258,6 +258,42 @@ exports.handler = async (event, context) => {
         }
       }
 
+      // Fetch players for this team (they're embedded in the team document)
+      if (teamData.players && Array.isArray(teamData.players) && teamData.players.length > 0) {
+        try {
+          // Get displayId for each player from the players collection
+          const enrichedPlayers = [];
+          for (const teamPlayer of teamData.players.slice(0, 10)) { // Limit to 10 players
+            try {
+              // Query by playerId field, not document ID
+              const playerQuery = await db.collection(V2_COLLECTIONS.PLAYERS)
+                .where('playerId', '==', teamPlayer.playerId)
+                .limit(1)
+                .get();
+
+              if (!playerQuery.empty) {
+                const playerDoc = playerQuery.docs[0];
+                const playerData = playerDoc.data();
+                enrichedPlayers.push({
+                  id: teamPlayer.playerId,
+                  displayId: playerData.displayId,
+                  name: teamPlayer.player.name,
+                  role: teamPlayer.player.role
+                });
+              }
+            } catch (error) {
+              console.error(`Error fetching player ${teamPlayer.playerId}:`, error);
+            }
+          }
+          teamData.players = enrichedPlayers;
+        } catch (error) {
+          console.error('Error fetching player displayIds:', error);
+          teamData.players = [];
+        }
+      } else {
+        teamData.players = [];
+      }
+
       // Get recent matches for this team
       try {
         const matchesSnapshot = await db.collection(V2_COLLECTIONS.MATCHES)
